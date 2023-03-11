@@ -14,12 +14,16 @@ class Simulator:
 
     def run(self, world: World):
         print('Running simulation for {} hours'.format(self.finish_time))
-        exchange_matrix = world.compute_exchange_matrix()
         while self.time < self.finish_time:
+            exchange_matrix = world.compute_exchange_matrix(self.dt)
             print('Time: {} hours'.format(self.time))
+            np.random.shuffle(world.voxel_list)
             for voxel in world.voxel_list:
                 for process in self.list_of_process:
-                    process(voxel)
+                    if process.name == 'CellDivision' or process.name == 'CellAging' or process.name == 'CellApoptosis':
+                        process(voxel)
+                    elif process.name == 'CellMigration':
+                        process(voxel, exchange_matrix, world)
             self.time = self.time + self.dt
 
 
@@ -55,16 +59,18 @@ class CellAging(Process):
         super().__init__('CellAging', dt)
     def __call__(self, voxel):
         for cell in voxel.list_of_cells:
-            cell.age = cell.age + 1
+            cell.age = cell.age + self.dt
 
 class CellMigration(Process):
     def __init__(self, name, dt):
         super().__init__('CellMigration', dt)
-    def __call__(self, voxel, exchange_matrix):
+    def __call__(self, voxel, exchange_matrix, world : World):
+        #print('voxel', voxel.voxel_number)
         for cell in voxel.list_of_cells:
-            list_of_neighbors = find_neighbors(voxel)
-            scrambled_list_of_neighbors = np.random.shuffle(list_of_neighbors)
-            for neighbor in scrambled_list_of_neighbors:
+            list_of_neighbors = world.find_neighbors(voxel)
+            #print('voisins', list_of_neighbors[0].voxel_number)
+            np.random.shuffle(list_of_neighbors)
+            for neighbor in list_of_neighbors:
                 probability = exchange_matrix[voxel.voxel_number, neighbor.voxel_number]
                 if np.random.random() < probability:
                     neighbor.add_cell(cell)

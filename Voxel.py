@@ -22,6 +22,8 @@ class Voxel(object):
                 #print('adding cell to voxel number : ', self.voxel_number)
                 self.list_of_cells = np.append(cell,self.list_of_cells)
                 self.free_space = self.free_space - cell.volume
+                if self.free_space < 0:
+                        raise ValueError('Voxel is full')
 
         def remove_cell(self, cell):
                 self.list_of_cells = np.delete(self.list_of_cells, np.where(self.list_of_cells == cell))

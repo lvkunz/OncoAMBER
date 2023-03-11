@@ -25,12 +25,14 @@ fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 
 world = World(100, 10)
+center_voxel_numbers = [454, 455, 544, 545, 554, 555, 644, 645]
 
-for i in range(10000):
-    voxel1 = world.find_voxel(np.random.uniform(-100,100,3))
-    voxel1.add_cell(Cell(0.01, cycle_hours=20, life_expectancy=48, color='red'))
-    voxel1.add_cell(Cell(0.01, cycle_hours=20, life_expectancy=48, color='blue'))
-
+# for i in range(10):
+#     voxel1 = world.find_voxel(np.random.uniform(-100,100,3))
+#     voxel1.add_cell(Cell(0.01, cycle_hours=10, life_expectancy=1000, color='red'))
+#     voxel1.add_cell(Cell(0.01, cycle_hours=10, life_expectancy=1000, color='blue'))
+for i in center_voxel_numbers:
+    world.voxel_list[i].add_cell(Cell(0.01, cycle_hours=10, life_expectancy=1000, color='red'))
 
 world.show_voxels_centers(ax,fig)
 
@@ -38,27 +40,28 @@ plt.show()
 
 
 ##########################################################################################
-end_time = 100
+end_time = 120
 dt = 10
 
 celldivision = CellDivision('cell_division', dt)
 cellapoptosis = CellApoptosis('cell_apoptosis',dt)
 cellaging = CellAging('cell_aging',dt)
+cellmigration = CellMigration('cell_migration',dt)
 
-list_of_processes = [celldivision, cellapoptosis, cellaging]
+list_of_processes = [celldivision, cellapoptosis, cellaging, cellmigration]
 
 
 print('starting number of cells: ', len(world.voxel_list[0].list_of_cells))
-#choose a few cells to print their age
-for i in range(10):
-    print('starting age of cells: ', world.voxel_list[0].list_of_cells[i].age)
+# #choose a few cells to print their age
+# for i in range(10):
+#     print('starting age of cells: ', world.voxel_list[0].list_of_cells[i].age)
 
 sim = Simulator(list_of_processes,end_time,dt)
 sim.run(world)
 
 print('ending number of cells: ', len(world.voxel_list[0].list_of_cells))
-for i in range(10):
-    print('ending age of cells: ', world.voxel_list[0].list_of_cells[i].age)
+# for i in range(10):
+#     print('ending age of cells: ', world.voxel_list[0].list_of_cells[i].age)
 
 fig2 = plt.figure()
 ax2 = fig2.add_subplot(111, projection='3d')
