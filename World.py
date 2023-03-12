@@ -11,26 +11,33 @@ import sys
 
 
 class World:
-    def __init__(self, half_length, number_of_voxels : int = 100):
-
-        #raise error if half length is not a multiple of number of voxels
-        if half_length % number_of_voxels != 0:
-            raise ValueError('half_length must be a multiple of number_of_voxels')
-
+    def __init__(self, half_length, number_of_voxels : int = 20):
         self.half_length = half_length
         self.voxel_list = []
         self.total_number_of_voxels = number_of_voxels**3
         for i in range(number_of_voxels):
             for j in range(number_of_voxels):
                 for k in range(number_of_voxels):
-                    self.voxel_list.append(Voxel(np.array([i,j,k]), half_length/number_of_voxels, voxel_number = i*number_of_voxels**2 + j*number_of_voxels + k))
+                    position = np.array([i*2*half_length/number_of_voxels - half_length, j*2*half_length/number_of_voxels - half_length, k*2*half_length/number_of_voxels - half_length])
+                    self.voxel_list.append(Voxel(position, half_length/number_of_voxels, voxel_number = i*number_of_voxels**2 + j*number_of_voxels + k))
         #self.vascular_network = VascularNetwork()
         self.number_of_voxels = number_of_voxels
+
+    def find_voxel_number(self, position):
+        #doesn't handle the case where the position is outside the world
+        num_voxels = self.number_of_voxels
+        i = int((position[0] + self.half_length) * num_voxels / (2 * self.half_length))
+        j = int((position[1] + self.half_length) * num_voxels / (2 * self.half_length))
+        k = int((position[2] + self.half_length) * num_voxels / (2 * self.half_length))
+        n = i * num_voxels ** 2 + j * num_voxels + k
+        if n >= self.total_number_of_voxels or n < 0:
+            raise ValueError('position ' +str(position) + ' is outside the world (voxel number = ' + str(n) + ')' )
+        return n
     def find_voxel(self, position):
         #find the voxel that contains the position given
         #position is a numpy array
         #returns the voxel object
-        voxel_number = int((position[0] + self.half_length)/(2*self.half_length)*self.total_number_of_voxels)
+        voxel_number = self.find_voxel_number(position)
         return self.voxel_list[voxel_number]
     def find_neighbors(self, voxel):
         #finds the neighbors of a voxel
@@ -62,14 +69,23 @@ class World:
         for voxel in self.voxel_list:
             voxel.plot_vox(ax,fig)
         return fig, ax
-    def show_voxels_centers(self, ax, fig):
+    def show_voxels_centers(self, ax, fig, colorful = False):
         #plots all the voxel centers in the world
         for voxel in self.voxel_list:
             # print(voxel)
             # print(voxel.position)
             # print(len(voxel.list_of_cells))
-            #choose the color of the main type of cell in the voxel
-            ax.scatter(voxel.position[0], voxel.position[1], voxel.position[2], s= len(voxel.list_of_cells) , color='green', alpha=0.5)
+            average_color = (0, 0, 0)
+            if colorful:
+                for cell in voxel.list_of_cells:
+                    #transform the string color into rgb
+                    rgb = to_rgb(cell.color)
+                    average_color = (average_color[0] + rgb[0], average_color[1] + rgb[1], average_color[2] + rgb[2])
+                if len(voxel.list_of_cells) > 0: #if the voxel is empty we'd have an error
+                    average_color = (average_color[0]/len(voxel.list_of_cells), average_color[1]/len(voxel.list_of_cells), average_color[2]/len(voxel.list_of_cells))
+                    average_color = (int(average_color[0]), int(average_color[1]), int(average_color[2]))
+            color = rgb_to_hex(average_color)
+            ax.scatter(voxel.position[0], voxel.position[1], voxel.position[2], s= len(voxel.list_of_cells) , color=color, alpha = 0.3)
         return fig, ax
 
     def compute_exchange_matrix(self, dt):
@@ -84,11 +100,11 @@ class World:
         for voxel in self.voxel_list:
             i = voxel.voxel_number
             N = len(voxel.list_of_cells)
-            f1 = voxel.free_space
+            f1 = voxel.free_space/voxel.volume
             neighbors_voxel = self.find_neighbors(voxel)
             for neighbor in neighbors_voxel:
-                f2 = neighbor.free_space
+                f2 = neighbor.free_space/neighbor.volume
                 j = neighbor.voxel_number
                 exchange_matrix[i][j] = 1 - np.exp((-2*(d**2)*N*f1*dt)/(volume*(f1+f2))) #this is the probability of a cell moving from voxel i to voxel j
-        print(exchange_matrix)
+        #print(exchange_matrix)
         return exchange_matrix

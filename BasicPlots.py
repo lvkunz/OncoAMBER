@@ -35,3 +35,25 @@ def plot_cube(ax, fig, center, half_length, color='black'):
     ax.plot([x[6], x[7]], [y[6], y[7]], [z[6], z[7]], color, linewidth=lw, alpha=0.5)
     ax.plot([x[7], x[4]], [y[7], y[4]], [z[7], z[4]], color, linewidth=lw, alpha=0.5)
     return fig, ax
+
+def to_rgb(color_name: str):
+    color_map = {
+        "black": (0, 0, 0),
+        "red": (255, 0, 0),
+        "green": (0,255,0),
+        "blue": (0, 0, 255),
+        "yellow": (255, 255, 0),
+        "cyan": (0, 255, 255),
+        "magenta": (255, 0, 255),
+        "my green": (19, 136, 8),
+        "my purple": (191, 64, 191)
+
+        # Add more colors and their corresponding RGB values as needed
+    }
+    if color_name in color_map:
+        return color_map[color_name]
+    else:
+        return color_map["black"]
+
+def rgb_to_hex(rgb):
+    return '#%02x%02x%02x' % rgb

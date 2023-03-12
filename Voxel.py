@@ -12,7 +12,8 @@ class Voxel(object):
                 self.half_length = half_length
                 self.list_of_cells = list_of_cells_in
                 self.oxygen = oxygen
-                self.free_space = 1 - sum([cell.volume for cell in self.list_of_cells])
+                self.volume = 8*half_length**3
+                self.free_space = self.volume - sum([cell.volume for cell in self.list_of_cells])
                 self.voxel_number = voxel_number
         def random_points_in_voxel(self, n):
                 points = np.random.uniform(-self.half_length, self.half_length, (n,3))

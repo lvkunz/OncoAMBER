@@ -17,13 +17,15 @@ class Simulator:
         while self.time < self.finish_time:
             exchange_matrix = world.compute_exchange_matrix(self.dt)
             print('Time: {} hours'.format(self.time))
-            np.random.shuffle(world.voxel_list)
-            for voxel in world.voxel_list:
+            #loop in random order
+            copy_voxel_list = world.voxel_list.copy()
+            np.random.shuffle(copy_voxel_list)
+            for voxel in copy_voxel_list:
                 for process in self.list_of_process:
-                    if process.name == 'CellDivision' or process.name == 'CellAging' or process.name == 'CellApoptosis':
+                    if process.is_global:
+                        process(voxel, exchange_matrix, world) #might need to be modified
+                    else:
                         process(voxel)
-                    elif process.name == 'CellMigration':
-                        process(voxel, exchange_matrix, world)
             self.time = self.time + self.dt
 
 
@@ -31,6 +33,7 @@ class Process:
     def __init__(self, name, dt):
         self.name = name
         self.dt = dt
+        self.is_global = False
     def __call__(self, voxel):
         pass
 
@@ -64,6 +67,7 @@ class CellAging(Process):
 class CellMigration(Process):
     def __init__(self, name, dt):
         super().__init__('CellMigration', dt)
+        self.is_global = True
     def __call__(self, voxel, exchange_matrix, world : World):
         #print('voxel', voxel.voxel_number)
         for cell in voxel.list_of_cells:
