@@ -19,3 +19,4 @@ class TumorCell(Cell):
 class HealthyCell (Cell):
     def __init__(self, radius, cycle_hours=10, life_expectancy=1000, color='my green'):
         Cell.__init__(self, radius, cycle_hours, life_expectancy, color)
+

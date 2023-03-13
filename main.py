@@ -25,76 +25,81 @@ start_time = time.time()
 
 DPI = 100
 
-show = True
+show = False
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 #set dpi
 ax.figure.set_dpi(DPI)
-#ax.view_init(90, 0)
-initial_number_cells = 10000
+ax.view_init(90, 0)
+initial_number_cells = 20000
 ratio = []
 stable_for_le100 = 42.5
 
-half_length_world = 10
-voxels_per_side = 10
-world = World(half_length_world, voxels_per_side)
+for life in range(10,200,10):
+    print('life expectancy: ', life)
 
-central_voxel = world.find_voxel(np.array([0,0,0])).voxel_number
+    half_length_world = 10
+    voxels_per_side = 10
+    world = World(half_length_world, voxels_per_side)
 
-#find eight corners voxel numbers
-
-for i in range(initial_number_cells):
-    #print('Adding healthy cell number: ', i)
-    voxel1 = world.find_voxel(np.random.uniform(-10,10,3))
-    voxel1.add_cell(HealthyCell(0.01, cycle_hours=stable_for_le100, life_expectancy=100, color='my green'))
-
-for i in range(100):
-    print('Adding tumor cell number: ', i)
-    voxel1 = world.find_voxel(np.random.uniform(-1,1,3))
-    voxel1.add_cell(TumorCell(0.01, cycle_hours=stable_for_le100*0.1, life_expectancy=100, color='my purple'))
-
-# for i in centre_voxel_numbers:
-#     world.voxel_list[i].add_cell(Cell(0.003, cycle_hours=30, life_expectancy=100, color='red'))
-
-if show:
-    world.show_voxels_centers(ax,fig,colorful=True)
-    plt.title('Initial cells in voxels')
-    plt.savefig('Plots/initial.png')
-    plt.show()
+    central_voxel = world.find_voxel(np.array([0,0,0])).voxel_number
 
 
-simulation_start = time.time()
+    #find eight corners voxel numbers
 
-##########################################################################################
-end_time = 50
-dt = 5
+    for i in range(initial_number_cells):
+        #print('Adding healthy cell number: ', i)
+        voxel1 = world.find_voxel(np.random.uniform(-10,10,3))
+        voxel1.add_cell(HealthyCell(0.01, cycle_hours=stable_for_le100, life_expectancy=life, color='my green'))
 
-celldivision = CellDivision('cell_division', dt)
-cellapoptosis = CellApoptosis('cell_apoptosis',dt)
-cellaging = CellAging('cell_aging',dt)
-cellmigration = CellMigration('cell_migration',dt)
+    # for i in range(100):
+    #     print('Adding tumor cell number: ', i)
+    #     voxel1 = world.find_voxel(np.random.uniform(-1,1,3))
+    #     voxel1.add_cell(TumorCell(0.01, cycle_hours=stable_for_le100*0.1, life_expectancy=100, color='my purple'))
 
-list_of_processes = [celldivision, cellapoptosis, cellaging, cellmigration]
+    # for i in centre_voxel_numbers:
+    #     world.voxel_list[i].add_cell(Cell(0.003, cycle_hours=30, life_expectancy=100, color='red'))
+
+    if show:
+        world.show_voxels_centers(ax,fig,colorful=True)
+        plt.title('Initial cells in voxels')
+        plt.savefig('Plots/initial.png')
+        plt.show()
 
 
-print('starting number of cells: ', len(world.voxel_list[central_voxel].list_of_cells))
+    simulation_start = time.time()
 
-sim = Simulator(list_of_processes,end_time,dt)
-sim.run(world)
+    ##########################################################################################
+    end_time = 100
+    dt = 5
 
-print('ending number of cells: ', len(world.voxel_list[central_voxel].list_of_cells))
+    celldivision = CellDivision('cell_division', dt)
+    cellapoptosis = CellApoptosis('cell_apoptosis',dt)
+    cellaging = CellAging('cell_aging',dt)
+    cellmigration = CellMigration('cell_migration',dt)
 
-simulation_end = time.time()
+    list_of_processes = [cellapoptosis, cellaging]#,  cellmigration]
 
-#total number of cell
-total_number_of_cells = 0
-for voxel in world.voxel_list:
-    total_number_of_cells += len(voxel.list_of_cells)
-print('total number of cells: ', total_number_of_cells)
-print('ratio of cells: ', total_number_of_cells/initial_number_cells)
-ratio.append(total_number_of_cells/initial_number_cells)
-print('simulation time: ', simulation_end - simulation_start, ' seconds')
+
+    print('starting number of cells: ', len(world.voxel_list[central_voxel].list_of_cells))
+
+    sim = Simulator(list_of_processes,end_time,dt)
+    sim.run(world)
+
+    print('ending number of cells: ', len(world.voxel_list[central_voxel].list_of_cells))
+
+    simulation_end = time.time()
+
+    #total number of cell
+    total_number_of_cells = 0
+    for voxel in world.voxel_list:
+        total_number_of_cells += len(voxel.list_of_cells)
+    print('total number of cells: ', total_number_of_cells)
+
+    print('ratio of cells: ', total_number_of_cells/initial_number_cells)
+    ratio.append(total_number_of_cells/initial_number_cells)
+    print('simulation time: ', simulation_end - simulation_start, ' seconds')
 
 
 
@@ -104,7 +109,7 @@ if show:
     ax2 = fig2.add_subplot(111, projection='3d')
     ax2.figure.set_dpi(DPI)
     #view from above
-    #ax2.view_init(90, 0)
+    ax2.view_init(90, 0)
     world.show_voxels_centers(ax2,fig2,colorful=True)
     plt.title('Final cells in voxels at time t = ' + str(end_time) + ' hours')
     plt.savefig('Plots/final.png')
@@ -112,3 +117,12 @@ if show:
 
 
 print('total time: ', time.time() - start_time, ' seconds')
+
+plt.figure()
+plt.plot(range(10,200,10),ratio)
+plt.title('Ratio of cells at end of simulation dt = ' + str(dt) + ' hours')
+plt.xlabel('Life expectancy of cells')
+plt.ylabel('Ratio of cells at end of simulation')
+plt.savefig('Plots/ratio' + str(dt) +'.png')
+plt.show()
+

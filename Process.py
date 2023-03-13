@@ -14,18 +14,24 @@ class Simulator:
 
     def run(self, world: World):
         print('Running simulation for {} hours'.format(self.finish_time))
-        while self.time < self.finish_time:
-            exchange_matrix = world.compute_exchange_matrix(self.dt)
+        while self.time <= self.finish_time:
             print('Time: {} hours'.format(self.time))
+            process_local = []
+            process_global = []
+            for process in self.list_of_process:
+                if process.is_global:
+                    process_global.append(process)
+                else:
+                    process_local.append(process)
             #loop in random order
             copy_voxel_list = world.voxel_list.copy()
             np.random.shuffle(copy_voxel_list)
+
             for voxel in copy_voxel_list:
-                for process in self.list_of_process:
-                    if process.is_global:
-                        process(voxel, exchange_matrix, world) #might need to be modified
-                    else:
+                for process in process_local:
                         process(voxel)
+            for process in process_global:
+                process(world)
             self.time = self.time + self.dt
 
 
@@ -53,7 +59,8 @@ class CellApoptosis(Process):
 
     def __call__(self, voxel):
         for cell in voxel.list_of_cells:
-            probability = 1 - np.exp(-cell.age/cell.life_expectancy) #this is wrong
+            effective_age = cell.age + self.dt/2
+            probability = 1 - np.exp(-effective_age / cell.life_expectancy)
             #print(probability)
             if np.random.random() < probability:
                 voxel.remove_cell(cell)
@@ -68,15 +75,17 @@ class CellMigration(Process):
     def __init__(self, name, dt):
         super().__init__('CellMigration', dt)
         self.is_global = True
-    def __call__(self, voxel, exchange_matrix, world : World):
+    def __call__(self, world : World):
         #print('voxel', voxel.voxel_number)
-        for cell in voxel.list_of_cells:
-            list_of_neighbors = world.find_neighbors(voxel)
-            #print('voisins', list_of_neighbors[0].voxel_number)
-            np.random.shuffle(list_of_neighbors)
-            for neighbor in list_of_neighbors:
-                probability = exchange_matrix[voxel.voxel_number, neighbor.voxel_number]
-                if np.random.random() < probability:
-                    neighbor.add_cell(cell)
-                    voxel.remove_cell(cell)
-                    break
+        exchange_matrix = world.compute_exchange_matrix(self.dt)
+        for voxel in world.voxel_list:
+            for cell in voxel.list_of_cells:
+                list_of_neighbors = world.find_neighbors(voxel)
+                #print('voisins', list_of_neighbors[0].voxel_number)
+                np.random.shuffle(list_of_neighbors)
+                for neighbor in list_of_neighbors:
+                    probability = exchange_matrix[voxel.voxel_number, neighbor.voxel_number]
+                    if np.random.random() < probability:
+                        neighbor.add_cell(cell)
+                        voxel.remove_cell(cell)
+                        break
