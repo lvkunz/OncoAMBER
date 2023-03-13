@@ -13,7 +13,8 @@ def DoseOnWorld(file_path : str):
         doses = np.append(doses, arr[i][3])
         n = arr[i][0] * num_voxels ** 2 + arr[i][1] * num_voxels + arr[i][2]
         nn = np.append(nn, n)
-    doses = doses / np.max(doses) * 100000
+    if np.max(doses) != 0:
+        doses = doses / np.max(doses) * 10000
     return nn, doses
 
 

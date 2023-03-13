@@ -4,7 +4,6 @@ import subprocess
 def RunTopasSimulation(file: str):
     print('Running Topas Simulation')
     file = file + '.txt'
-    file = 'BasicParameters.txt'
     run = '/Applications/topas/bin/topas ' + file
 
     #open current folder

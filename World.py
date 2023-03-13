@@ -152,6 +152,9 @@ class World:
 
     def update_dose(self, doses):
         #updates the dose in each voxel
+        if len(doses) != self.total_number_of_voxels:
+            print('Error: the number of doses is not equal to the number of voxels, Probably due to a unmatching Topas simulation')
+            return
         for voxel in self.voxel_list:
             voxel.dose = doses[voxel.voxel_number]
         return

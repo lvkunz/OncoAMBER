@@ -53,6 +53,7 @@ class Simulator:
                 process(world)
             if video: self.show(world, self.time)
             self.time = self.time + self.dt
+        return world
 
 
 class Process:
@@ -70,7 +71,7 @@ class CellDivision(Process):
         super().__init__(name, dt)
 
     def __call__(self, voxel):
-        print('CellDivision')
+        #print('CellDivision')
         for cell in voxel.list_of_cells:
             if cell.state == 'cycling':
                 # Calculate the expected number of cell divisions in the time step
@@ -86,7 +87,7 @@ class CellApoptosis(Process):
         super().__init__('CellDeath', dt)
 
     def __call__(self, voxel):
-        print('CellDeath')
+        #print('CellDeath')
         # for cell in voxel.list_of_cells:
         #     effective_age = cell.age + self.dt/2
         #     probability = 1 - np.exp(-effective_age / cell.life_expectancy)
@@ -114,7 +115,7 @@ class CellAging(Process):
     def __init__(self, name, dt):
         super().__init__('CellAging', dt)
     def __call__(self, voxel):
-        print('CellAging')
+        #print('CellAging')
         for cell in voxel.list_of_cells:
             cell.age = cell.age + self.dt
 
@@ -123,7 +124,7 @@ class CellMigration(Process):
         super().__init__('CellMigration', dt)
         self.is_global = True
     def __call__(self, world : World):
-        print('CellMigration')
+        #print('CellMigration')
         #print('voxel', voxel.voxel_number)
         exchange_matrix = world.compute_exchange_matrix(self.dt)
         for voxel in world.voxel_list:
@@ -144,5 +145,5 @@ class UpdateCellState(Process):
         self.is_global = False
         self.only_once = True
     def __call__(self, voxel: Voxel):
-        print('UpdateState')
+        #print('UpdateState')
         voxel.update_cells_afterRT()
