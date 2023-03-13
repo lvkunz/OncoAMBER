@@ -88,6 +88,24 @@ class World:
             ax.scatter(voxel.position[0], voxel.position[1], voxel.position[2], s= len(voxel.list_of_cells) , color=color, alpha = 0.3)
         return fig, ax
 
+    def show_voxels_centers_dose(self, ax, fig):
+        doses = []
+        positions = []
+        # collect doses and positions for all voxels
+        for voxel in self.voxel_list:
+            doses.append(voxel.dose)
+            positions.append(voxel.position)
+        # plot all voxels with their respective doses
+        #alpha between 0.1 and 0.5 depending on dose
+        ax.scatter(
+            [p[0] for p in positions],
+            [p[1] for p in positions],
+            [p[2] for p in positions],
+            c=doses, cmap='BuPu', alpha=0.3, vmin=min(doses), vmax=max(doses)
+        )
+        # add colorbar
+        fig.colorbar(ax.collections[0])
+        return fig, ax
     def compute_exchange_matrix(self, dt):
         #computes the matrix that describes the exchange of cells between voxels
         #returns the matrix
@@ -108,3 +126,33 @@ class World:
                 exchange_matrix[i][j] = 1 - np.exp((-2*(d**2)*N*f1*dt)/(volume*(f1+f2))) #this is the probability of a cell moving from voxel i to voxel j
         #print(exchange_matrix)
         return exchange_matrix
+
+    def topas_param_file(self, name : str = 'Params'):
+        print('creating parameter file for topas')
+        #returns a txt file that can be used as a parameter file for topas
+        name = name + '.txt'
+        #the file is saved in the TopasSimulation folder
+        file = open('TopasSimulation/' + name, 'w')
+        file.write('IncludeFile = BasicParameters.txt \n' +
+                                                'd:Ge/MyBox/HLX      = ' + str(self.half_length*2) +' cm \n' +
+                                                'd:Ge/MyBox/HLY      = ' + str(self.half_length*2) +' cm \n' +
+                                                'd:Ge/MyBox/HLZ      = ' + str(self.half_length*2) +' cm \n' +
+                                                'd:Ge/MyBox/TransX   = 0. m \n' +
+                                                'd:Ge/MyBox/TransY   = 0. m \n' +
+                                                'd:Ge/MyBox/TransZ   = 0. m \n' +
+                                                'd:Ge/MyBox/RotX     = 0. deg \n' +
+                                                'd:Ge/MyBox/RotY     = 0. deg \n' +
+                                                'd:Ge/MyBox/RotZ     = 0. deg \n' +
+                                                'i:Ge/MyBox/ZBins = ' + str(self.number_of_voxels) +' \n' +
+                                                'i:Ge/MyBox/XBins = ' + str(self.number_of_voxels) +' \n' +
+                                                'i:Ge/MyBox/YBins = ' + str(self.number_of_voxels))
+        file.close()
+        print('File saved as ' + name)
+        return
+
+    def update_dose(self, doses):
+        #updates the dose in each voxel
+        for voxel in self.voxel_list:
+            voxel.dose = doses[voxel.voxel_number]
+        return
+    #function to plot cells

@@ -15,6 +15,7 @@ class Voxel(object):
                 self.volume = 8*half_length**3
                 self.free_space = self.volume - sum([cell.volume for cell in self.list_of_cells])
                 self.voxel_number = voxel_number
+                self.dose = 0
         def random_points_in_voxel(self, n):
                 points = np.random.uniform(-self.half_length, self.half_length, (n,3))
                 points = points + self.position
@@ -50,5 +51,18 @@ class Voxel(object):
                         ax.scatter(points[i, 0], points[i, 1], points[i, 2], color=cell.color, alpha=0.5)
                         i = i + 1
                 return fig, ax
+
+        def update_cells_afterRT(self):
+               RADIOSENSITIVITY = 0.1 #1% of cells killed per Gy
+               expected_deaths = self.dose*RADIOSENSITIVITY
+               expected_senescent = expected_deaths * 10
+               # Use a Poisson distribution to model the number of cell deaths
+               num_deaths = np.random.poisson(expected_deaths)
+               num_deaths = min(num_deaths, len(self.list_of_cells))
+               cells_to_remove = np.random.choice(self.list_of_cells, size=num_deaths, replace=False)
+               for cell in cells_to_remove:
+                       cell.state = 'dead' # kill the cell
+
+
 
 

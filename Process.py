@@ -12,26 +12,46 @@ class Simulator:
         self.dt = dt
         self.time = 0
 
-    def run(self, world: World):
+
+    def show(self, world: World, t = 0):
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        ax.view_init(90, 0)
+        world.show_voxels_centers(ax, fig, colorful=True)
+        plt.title('Cells in voxels at time t = ' + str(t) + ' hours')
+        plt.savefig('Plots/Video/t'+ str(t) + '.png')
+
+
+    def run(self, world: World, video = False):
         print('Running simulation for {} hours'.format(self.finish_time))
+        process_local = [process for process in self.list_of_process if (not process.is_global) and (not process.only_once)]
+        process_global = [process for process in self.list_of_process if process.is_global and (not process.only_once)]
+        process_local_init = [process for process in self.list_of_process if (not process.is_global) and process.only_once]
+        process_global_init = [process for process in self.list_of_process if process.is_global and process.only_once]
+
+
+        for process in process_local_init:
+            for voxel in world.voxel_list:
+                process(voxel)
+        for process in process_global_init:
+            process(world)
+
+        if video: self.show(world, 0)
+
+
         while self.time <= self.finish_time:
             print('Time: {} hours'.format(self.time))
-            process_local = []
-            process_global = []
-            for process in self.list_of_process:
-                if process.is_global:
-                    process_global.append(process)
-                else:
-                    process_local.append(process)
+
             #loop in random order
             copy_voxel_list = world.voxel_list.copy()
             np.random.shuffle(copy_voxel_list)
 
             for voxel in copy_voxel_list:
                 for process in process_local:
-                        process(voxel)
+                    process(voxel)
             for process in process_global:
                 process(world)
+            if video: self.show(world, self.time)
             self.time = self.time + self.dt
 
 
@@ -40,6 +60,7 @@ class Process:
         self.name = name
         self.dt = dt
         self.is_global = False
+        self.only_once = False
     def __call__(self, voxel):
         pass
 
@@ -47,27 +68,57 @@ class CellDivision(Process):
     def __init__(self, name, dt):
         super().__init__('CellDivision', dt)
     def __call__(self, voxel):
+        print('CellDivision')
+        # for cell in voxel.list_of_cells:
+        #     if cell.state == 'cycling':
+        #         probability = 1 - np.exp(-self.dt/cell.doubling_time) #this is wrong
+        #         if np.random.random() < probability:
+        #             voxel.add_cell(cell)
+        #             cell.age = 0 #the cell is still old but the new one is aged 0
         for cell in voxel.list_of_cells:
             if cell.state == 'cycling':
-                probability = 1 - np.exp(-self.dt/cell.doubling_time) #this is wrong
-                if np.random.random() < probability:
+                # Calculate the expected number of cell divisions in the time step
+                expected_divisions = (self.dt / cell.doubling_time) * len(voxel.list_of_cells)
+                # Use a Poisson distribution to model the number of cell divisions
+                num_divisions = np.random.poisson(expected_divisions)
+                # Add new cells to the voxel
+                for i in range(num_divisions):
                     voxel.add_cell(cell)
-                    cell.age = 0 #the cell is still old but the new one is aged 0
+                    cell.age = 0
 class CellApoptosis(Process):
     def __init__(self, name, dt):
         super().__init__('CellDeath', dt)
 
     def __call__(self, voxel):
+        print('CellDeath')
+        # for cell in voxel.list_of_cells:
+        #     effective_age = cell.age + self.dt/2
+        #     probability = 1 - np.exp(-effective_age / cell.life_expectancy)
+        #     #print(probability)
+        #     if np.random.random() < probability:
+        #         voxel.remove_cell(cell)
+
+        # for cell in voxel.list_of_cells:
+        #     # Calculate the expected number of cell deaths in the time step
+        #     expected_deaths = (self.dt / cell.life_expectancy) * len(voxel.list_of_cells)
+        #     # Use a Poisson distribution to model the number of cell deaths
+        #     num_deaths = np.random.poisson(expected_deaths)
+        #     num_deaths = min(num_deaths, len(voxel.list_of_cells))
+        #     #print('num_deaths ', num_deaths)
+        #     # Remove cells from the voxel at random
+        #     cells_to_remove = np.random.choice(voxel.list_of_cells, size=num_deaths, replace=False)
+        #     for cell in cells_to_remove:
+        #         voxel.remove_cell(cell)
+
         for cell in voxel.list_of_cells:
-            effective_age = cell.age + self.dt/2
-            probability = 1 - np.exp(-effective_age / cell.life_expectancy)
-            #print(probability)
-            if np.random.random() < probability:
+            if cell.state == 'dead':
                 voxel.remove_cell(cell)
+
 class CellAging(Process):
     def __init__(self, name, dt):
         super().__init__('CellAging', dt)
     def __call__(self, voxel):
+        print('CellAging')
         for cell in voxel.list_of_cells:
             cell.age = cell.age + self.dt
 
@@ -76,6 +127,7 @@ class CellMigration(Process):
         super().__init__('CellMigration', dt)
         self.is_global = True
     def __call__(self, world : World):
+        print('CellMigration')
         #print('voxel', voxel.voxel_number)
         exchange_matrix = world.compute_exchange_matrix(self.dt)
         for voxel in world.voxel_list:
@@ -89,3 +141,12 @@ class CellMigration(Process):
                         neighbor.add_cell(cell)
                         voxel.remove_cell(cell)
                         break
+
+class UpdateCellState(Process):
+    def __init__(self, name, dt):
+        super().__init__('UpdateState', dt)
+        self.is_global = False
+        self.only_once = True
+    def __call__(self, voxel: Voxel):
+        print('UpdateState')
+        voxel.update_cells_afterRT()
