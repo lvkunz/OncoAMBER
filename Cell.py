@@ -12,6 +12,9 @@ class Cell (object):
         self.age = 0
         self.life_expectancy = life_expectancy
 
+    def duplicate(self):
+        return Cell(self.radius, self.doubling_time, self.life_expectancy, self.color)
+
 class TumorCell(Cell):
     def __init__(self, radius, cycle_hours = 5, life_expectancy = 1000, color = 'my purple'):
         Cell.__init__(self, radius, cycle_hours, life_expectancy, color)

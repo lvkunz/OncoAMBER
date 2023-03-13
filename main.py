@@ -15,7 +15,7 @@ start_time = time.time()
 
 DPI = 100
 
-show = False
+show = True
 Topas = False
 
 
@@ -57,10 +57,10 @@ for i in range(initial_number_cells):
     voxel1 = world.find_voxel(np.random.uniform(-10,10,3))
     voxel1.add_cell(HealthyCell(0.01, cycle_hours=stable_for_le100, life_expectancy=5000, color='my green'))
 
-# for i in range(100):
-#     print('Adding tumor cell number: ', i)
-#     voxel1 = world.find_voxel(np.random.uniform(-1,1,3))
-#     voxel1.add_cell(TumorCell(0.01, cycle_hours=stable_for_le100*0.1, life_expectancy=100, color='my purple'))
+for i in range(100):
+    #print('Adding tumor cell number: ', i)
+    voxel1 = world.find_voxel(np.random.uniform(-1,1,3))
+    voxel1.add_cell(TumorCell(0.01, cycle_hours=stable_for_le100*0.5, life_expectancy=10000, color='my purple'))
 
 # for i in centre_voxel_numbers:
 #     world.voxel_list[i].add_cell(Cell(0.003, cycle_hours=30, life_expectancy=100, color='red'))
@@ -89,7 +89,7 @@ cellaging = CellAging('cell_aging',dt)
 cellmigration = CellMigration('cell_migration',dt)
 update_cell_state = UpdateCellState('update_cell_state',dt)
 
-list_of_processes = [update_cell_state, cellapoptosis, cellaging, cellmigration]
+list_of_processes = [update_cell_state, cellapoptosis, cellaging, cellmigration, celldivision]
 
 print('starting number of cells: ', len(world.voxel_list[central_voxel].list_of_cells))
 

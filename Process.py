@@ -16,7 +16,7 @@ class Simulator:
     def show(self, world: World, t = 0):
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
-        ax.view_init(90, 0)
+        #ax.view_init(90, 0)
         world.show_voxels_centers(ax, fig, colorful=True)
         plt.title('Cells in voxels at time t = ' + str(t) + ' hours')
         plt.savefig('Plots/Video/t'+ str(t) + '.png')
@@ -64,27 +64,23 @@ class Process:
     def __call__(self, voxel):
         pass
 
+
 class CellDivision(Process):
     def __init__(self, name, dt):
-        super().__init__('CellDivision', dt)
+        super().__init__(name, dt)
+
     def __call__(self, voxel):
         print('CellDivision')
-        # for cell in voxel.list_of_cells:
-        #     if cell.state == 'cycling':
-        #         probability = 1 - np.exp(-self.dt/cell.doubling_time) #this is wrong
-        #         if np.random.random() < probability:
-        #             voxel.add_cell(cell)
-        #             cell.age = 0 #the cell is still old but the new one is aged 0
         for cell in voxel.list_of_cells:
             if cell.state == 'cycling':
                 # Calculate the expected number of cell divisions in the time step
-                expected_divisions = (self.dt / cell.doubling_time) * len(voxel.list_of_cells)
+                expected_divisions = self.dt / cell.doubling_time
                 # Use a Poisson distribution to model the number of cell divisions
                 num_divisions = np.random.poisson(expected_divisions)
-                # Add new cells to the voxel
                 for i in range(num_divisions):
-                    voxel.add_cell(cell)
-                    cell.age = 0
+                    new_cell = cell.duplicate()
+                    voxel.add_cell(new_cell)
+        return
 class CellApoptosis(Process):
     def __init__(self, name, dt):
         super().__init__('CellDeath', dt)
