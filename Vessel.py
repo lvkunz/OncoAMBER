@@ -18,7 +18,7 @@ def rotation_matrix_from_vectors(u, v):
     R = np.identity(3) + s * K + (1 - c) * np.dot(K, K)
     return R
 class Vessel:
-    def __init__(self, origin, end, radius, mesh_density=300):
+    def __init__(self, origin, end, radius):
 
 
         self.origin = np.array(origin)
@@ -65,11 +65,11 @@ class Vessel:
         closest_point = self.closest_point(p)
         return np.linalg.norm(p - closest_point)
 
-class Vasculature:
+class VasculatureNetwork:
     def __init__(self, bounds : Shape = Sphere(center = np.array([0,0,0]), radius = 3.0), list_of_vessels = None):
         self.bounds = bounds
         if list_of_vessels is None:
-            self.list_of_vessels = self.generate_vasculature(100)
+            self.list_of_vessels = self.generate_vasculature(20)
         else:
             self.list_of_vessels = list_of_vessels
 
@@ -87,12 +87,21 @@ class Vasculature:
                 closest_point = current_point
                 closest_distance = current_distance
         return closest_point
+
+    def closest_distance(self, p):
+        closest_distance = None
+        for vessel in self.list_of_vessels:
+            current_distance = vessel.distance(p)
+            if closest_distance is None or current_distance < closest_distance:
+                closest_distance = current_distance
+        return closest_distance
     def generate_vasculature(self, n):
         points = self.bounds.generate_random_points(n)
         starting = points[0]
         ending = points[1]
         self.list_of_vessels = [Vessel(starting, ending, 0.1)]
         for i in range(2, n):
+            if i % 100 == 0: print(i)
             end = points[i]
             self.list_of_vessels.append(Vessel(self.closest_point(end), end, 0.1))
         return self.list_of_vessels
@@ -107,7 +116,8 @@ class Vasculature:
     def save(self, filename):
         with open(filename, 'w') as f:
             for vessel in self.list_of_vessels:
-                f.write(str(vessel.origin[0]) + ' ' + str(vessel.origin[1]) + ' ' + str(vessel.origin[2]) + ' ' + str(vessel.end[0]) + ' ' + str(vessel.end[1]) + ' ' + str(vessel.end[2]) + ' ' + str(vessel.radius) + '
+                f.write(str(vessel.origin[0]) + ' ' + str(vessel.origin[1]) + ' ' + str(vessel.origin[2]) + ' ' \
+                        + str(vessel.end[0]) + ' ' + str(vessel.end[1]) + ' ' + str(vessel.end[2]) + ' ' + str(vessel.radius) + '\n')
     def read(self, filename):
         self.list_of_vessels = []
         with open(filename, 'r') as f:

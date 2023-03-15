@@ -6,6 +6,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from BasicPlots import *
 from scipy.sparse import csr_matrix
 import sys
+from Vessel import *
 
 #np.set_printoptions(threshold=sys.maxsize)
 
@@ -20,8 +21,16 @@ class World:
                 for k in range(number_of_voxels):
                     position = np.array([i*2*half_length/number_of_voxels - half_length, j*2*half_length/number_of_voxels - half_length, k*2*half_length/number_of_voxels - half_length])
                     self.voxel_list.append(Voxel(position, half_length/number_of_voxels, voxel_number = i*number_of_voxels**2 + j*number_of_voxels + k))
-        #self.vascular_network = VascularNetwork()
         self.number_of_voxels = number_of_voxels
+        self.vasculature = VasculatureNetwork()
+
+    def generate_vasculature(self, num_vessels):
+        self.vasculature.generate_vasculature(num_vessels)
+        return
+
+    def compute_oxygen_map(self):
+        for voxel in self.voxel_list:
+            distance = self.vasculature.closest_distance(voxel.position)
 
     def find_voxel_number(self, position):
         #doesn't handle the case where the position is outside the world
