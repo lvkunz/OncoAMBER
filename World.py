@@ -31,6 +31,8 @@ class World:
     def compute_oxygen_map(self):
         for voxel in self.voxel_list:
             distance = self.vasculature.closest_distance(voxel.position)
+            voxel.oxygen = 1/(1 + distance**2)
+        return
 
     def find_voxel_number(self, position):
         #doesn't handle the case where the position is outside the world
