@@ -139,7 +139,7 @@ class CellMigration(Process):
                         voxel.remove_cell(cell)
                         break
 
-class UpdateCellState(Process):
+class UpdateCellInitialState(Process):
     def __init__(self, name, dt):
         super().__init__('UpdateState', dt)
         self.is_global = False
@@ -147,3 +147,12 @@ class UpdateCellState(Process):
     def __call__(self, voxel: Voxel):
         #print('UpdateState')
         voxel.update_cells_afterRT()
+
+class UpdateCellState(Process):
+    def __init__(self, name, dt):
+        super().__init__('UpdateState', dt)
+        self.is_global = False
+        self.only_once = False
+    def __call__(self, voxel: Voxel):
+        #print('UpdateState')
+        voxel.update_cells_for_oxygen_state()

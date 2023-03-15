@@ -7,6 +7,7 @@ from BasicPlots import *
 from scipy.sparse import csr_matrix
 import sys
 from Vessel import *
+from BasicGeometries import *
 
 #np.set_printoptions(threshold=sys.maxsize)
 
@@ -24,12 +25,12 @@ class World:
         self.number_of_voxels = number_of_voxels
         self.vasculature = VasculatureNetwork()
 
-    def generate_vasculature(self, num_vessels):
-        self.vasculature.generate_vasculature(num_vessels)
+    def generate_vasculature(self, num_vessels = 20, bounds : Shape = Sphere(center = np.array([0,0,0]), radius = 3.0)):
+        self.vasculature.generate_vasculature(num_vessels, bounds)
         return
 
     def compute_oxygen_map(self):
-        for voxel in self.voxel_list:
+        for voxel in self.voxel_list: ##this doesnt make sense as typical vasculature is smaller than a voxel
             distance = self.vasculature.closest_distance(voxel.position)
             voxel.oxygen = 1/(1 + distance**2)
         return
@@ -81,6 +82,7 @@ class World:
             voxel.plot_vox(ax,fig)
         return fig, ax
     def show_voxels_centers(self, ax, fig, colorful = False):
+        print('Plotting Cell Population')
         #plots all the voxel centers in the world
         for voxel in self.voxel_list:
             # print(voxel)
@@ -100,14 +102,13 @@ class World:
         return fig, ax
 
     def show_voxels_centers_dose(self, ax, fig):
+        print('Plotting Dose')
         doses = []
         positions = []
         # collect doses and positions for all voxels
         for voxel in self.voxel_list:
             doses.append(voxel.dose)
             positions.append(voxel.position)
-        # plot all voxels with their respective doses
-        #alpha between 0.1 and 0.5 depending on dose
         ax.scatter(
             [p[0] for p in positions],
             [p[1] for p in positions],
@@ -117,6 +118,41 @@ class World:
         # add colorbar
         fig.colorbar(ax.collections[0])
         return fig, ax
+
+    def show_voxels_centers_oxygen(self, ax, fig):
+        print('Plotting Oxygen')
+        oxygen = []
+        positions = []
+        # collect doses and positions for all voxels
+        for voxel in self.voxel_list:
+            oxygen.append(voxel.oxygen)
+            positions.append(voxel.position)
+        ax.scatter(
+            [p[0] for p in positions],
+            [p[1] for p in positions],
+            [p[2] for p in positions],
+            c=oxygen, cmap='Blues', alpha=0.3, vmin=min(oxygen), vmax=max(oxygen)
+        )
+        # add colorbar
+        fig.colorbar(ax.collections[0])
+        return fig, ax
+    def show_voxels_centers_pressure(self, ax, fig):
+        print('Plotting Pressure')
+        pressure = []
+        positions = []
+        for voxel in self.voxel_list:
+            pressure.append(voxel.free_space)
+            positions.append(voxel.position)
+        ax.scatter(
+            [p[0] for p in positions],
+            [p[1] for p in positions],
+            [p[2] for p in positions],
+            c=pressure, cmap='hot', alpha=0.3, vmin=min(pressure), vmax=max(pressure)
+        )
+        # add colorbar
+        fig.colorbar(ax.collections[0])
+        return fig, ax
+
     def compute_exchange_matrix(self, dt):
         #computes the matrix that describes the exchange of cells between voxels
         #returns the matrix

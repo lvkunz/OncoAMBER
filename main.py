@@ -16,9 +16,10 @@ start_time = time.time()
 
 DPI = 100
 
-show = True
-Topas = True
+show = False
+Topas = False
 CellDynamics = True
+Vasculature = False
 
 
 
@@ -37,6 +38,18 @@ if Topas:
 n, doses = DoseOnWorld('TopasSimulation/' + param_file + '.csv')
 world.update_dose(doses)
 
+
+
+if Vasculature:
+    world.generate_vasculature(500, bounds = Sphere(center = np.array([0,0,0]), radius = 10.0))
+    world.compute_oxygen_map()
+    figO = plt.figure()
+    axO = figO.add_subplot(111, projection='3d')
+    world.show_voxels_centers_oxygen(axO, figO)
+    world.vasculature.plot(figO, axO)
+    plt.title('Oxygen in voxels')
+    plt.show()
+
 fig3 = plt.figure()
 ax3 = fig3.add_subplot(111, projection='3d')
 ax3.figure.set_dpi(DPI)
@@ -50,17 +63,17 @@ plt.show()
 
 if CellDynamics:
 
-    initial_number_cells = 100
+    initial_number_cells = 100000
 
     for i in range(initial_number_cells):
         # print('Adding healthy cell number: ', i)
-        voxel1 = world.find_voxel(np.random.uniform(-1, 1, 3))
-        voxel1.add_cell(HealthyCell(0.1, cycle_hours=40, life_expectancy=5000, color='my green'))
+        voxel1 = world.find_voxel(np.random.uniform(-15, 15, 3))
+        voxel1.add_cell(HealthyCell(0.1, cycle_hours=100000000000000, life_expectancy=5000, color='my green'))
 
     # for i in range(100):
     #     # print('Adding tumor cell number: ', i)
     #     voxel1 = world.find_voxel(np.random.uniform(-1, 1, 3))
-    #     voxel1.add_cell(TumorCell(0.01, cycle_hours=stable_for_le100 * 0.5, life_expectancy=10000, color='my purple'))
+    #     voxel1.add_cell(TumorCell(0.01, cycle_hours=20, life_expectancy=10000, color='my purple'))
 
     # for i in centre_voxel_numbers:
     #     world.voxel_list[i].add_cell(Cell(0.003, cycle_hours=30, life_expectancy=100, color='red'))
@@ -76,36 +89,79 @@ if CellDynamics:
         plt.savefig('Plots/initial.png')
         plt.show()
 
+        figP = plt.figure()
+        axP = figP.add_subplot(111, projection='3d')
+        axP.figure.set_dpi(DPI)
+        # axP.view_init(90, 0)
+        world.show_voxels_centers_pressure(axP, figP)
+        plt.title('Pressure in voxels')
+        plt.show()
+
+
     simulation_start = time.time()
 
+
+
     ##########################################################################################
-    end_time = 300
+    end_time = 200
     dt = 20
+
+    matrix = world.compute_exchange_matrix(dt)
+    matrix = matrix / np.max(matrix)
+    matrix = matrix[0:15, 0:15]
+    plt.figure()
+    plt.imshow(matrix)
+    plt.title('Exchange matrix')
+    plt.colorbar()
+    plt.show()
 
     celldivision = CellDivision('cell_division', dt)
     cellapoptosis = CellApoptosis('cell_apoptosis', dt)
     cellaging = CellAging('cell_aging', dt)
     cellmigration = CellMigration('cell_migration', dt)
+    update_cell_init_state = UpdateCellInitialState('update_cell_state', dt)
     update_cell_state = UpdateCellState('update_cell_state', dt)
 
-    list_of_processes = [update_cell_state, cellapoptosis, cellaging, cellmigration, celldivision]
+    list_of_processes = [cellapoptosis, cellaging, cellmigration, celldivision]
 
     sim = Simulator(list_of_processes, end_time, dt)
-    sim.run(world, video=True)
+    sim.run(world, video=False)
 
     simulation_end = time.time()
     ##########################################################################################
 
     # total number of cell
     total_number_of_cells = 0
+    cells_cycling = 0
+    cells_apoptotic = 0
+    cells_senescent = 0
     for voxel in world.voxel_list:
         total_number_of_cells += len(voxel.list_of_cells)
-    print('total number of cells: ', total_number_of_cells)
+        for cell in voxel.list_of_cells:
+            if cell.state == 'cycling':
+                cells_cycling += 1
+            elif cell.state == 'apoptotic':
+                cells_apoptotic += 1
+            elif cell.state == 'senescent':
+                cells_senescent += 1
 
-    print('ratio of cells: ', total_number_of_cells / initial_number_cells)
+    print('total number of cells: ', total_number_of_cells)
+    print('number of cells cycling: ', cells_cycling)
+    print('number of cells apoptotic: ', cells_apoptotic)
+    print('number of cells senescent: ', cells_senescent)
+
+    print('ratio of cells: ', total_number_of_cells / (initial_number_cells+1))
     print('simulation time: ', simulation_end - simulation_start, ' seconds')
 
+    matrix = world.compute_exchange_matrix(dt)
+    matrix = matrix[0:100, 0:100]
+    plt.figure()
+    plt.imshow(matrix)
+    plt.title('Exchange matrix')
+    plt.show()
+
     if show:
+
         fig2 = plt.figure()
         ax2 = fig2.add_subplot(111, projection='3d')
         ax2.figure.set_dpi(DPI)
@@ -114,6 +170,14 @@ if CellDynamics:
         world.show_voxels_centers(ax2, fig2, colorful=True)
         plt.title('Final cells in voxels at time t = ' + str(end_time) + ' hours')
         plt.savefig('Plots/final.png')
+        plt.show()
+
+        figP2 = plt.figure()
+        axP2 = figP2.add_subplot(111, projection='3d')
+        axP2.figure.set_dpi(DPI)
+        # axP.view_init(90, 0)
+        world.show_voxels_centers_pressure(axP2, figP2)
+        plt.title('Pressure in voxels')
         plt.show()
 
 print('total time: ', time.time() - start_time, ' seconds')

@@ -4,7 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import random
-
+def sigmoid(L, x, x0, k):
+    return L/(1 + np.exp(-k*(x-x0)))
 
 class Voxel(object):
         def __init__(self, position = np.array([0,0,0]), half_length = 0.1, list_of_cells_in = [], oxygen = 0, voxel_number = 0):
@@ -62,6 +63,21 @@ class Voxel(object):
                cells_to_remove = np.random.choice(self.list_of_cells, size=num_deaths, replace=False)
                for cell in cells_to_remove:
                        cell.state = 'dead' # kill the cell
+
+        def update_cells_for_oxygen_state(self):
+                #print('updating cells for oxygen state')
+                #define sigmoid function depending on oxygen (logistic function)
+                death = lambda pO2: sigmoid(1, pO2, 0.15, 30)
+                senescence = lambda pO2: sigmoid(1, pO2, 0.4, 10)
+                for cell in self.list_of_cells:
+                        sample = np.random.random()
+                        if sample > death(self.oxygen):
+                                cell.state = 'dead'
+                        elif sample > senescence(self.oxygen):
+                                cell.state = 'senescent'
+                        else:
+                                cell.state = 'cycling'
+
 
 
 
