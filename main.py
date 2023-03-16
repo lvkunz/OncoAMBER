@@ -16,7 +16,7 @@ start_time = time.time()
 
 DPI = 100
 
-show = False
+show = True
 Topas = False
 CellDynamics = True
 Vasculature = False
@@ -63,17 +63,17 @@ plt.show()
 
 if CellDynamics:
 
-    initial_number_cells = 100000
+    initial_number_cells = int(100000)
 
     for i in range(initial_number_cells):
-        # print('Adding healthy cell number: ', i)
+        if i % 100000 == 0: print('Adding healthy cell number: ', i)
         voxel1 = world.find_voxel(np.random.uniform(-15, 15, 3))
-        voxel1.add_cell(HealthyCell(0.1, cycle_hours=100000000000000, life_expectancy=5000, color='my green'))
+        voxel1.add_cell(HealthyCell(0.01, cycle_hours=100000, life_expectancy=5000, color='my green'))
 
-    # for i in range(100):
-    #     # print('Adding tumor cell number: ', i)
-    #     voxel1 = world.find_voxel(np.random.uniform(-1, 1, 3))
-    #     voxel1.add_cell(TumorCell(0.01, cycle_hours=20, life_expectancy=10000, color='my purple'))
+    for i in range(100):
+        print('Adding tumor cell number: ', i)
+        voxel1 = world.find_voxel(np.random.uniform(-1, 1, 3))
+        voxel1.add_cell(TumorCell(0.01, cycle_hours=100, life_expectancy=100000000, color='my purple'))
 
     # for i in centre_voxel_numbers:
     #     world.voxel_list[i].add_cell(Cell(0.003, cycle_hours=30, life_expectancy=100, color='red'))
@@ -84,7 +84,7 @@ if CellDynamics:
         # set dpi
         ax.figure.set_dpi(DPI)
         # ax.view_init(90, 0)
-        world.show_voxels_centers(ax, fig, colorful=True)
+        world.show_voxels_centers(ax, fig)
         plt.title('Initial cells in voxels')
         plt.savefig('Plots/initial.png')
         plt.show()
@@ -103,17 +103,18 @@ if CellDynamics:
 
 
     ##########################################################################################
-    end_time = 200
+    end_time = 400
     dt = 20
 
-    matrix = world.compute_exchange_matrix(dt)
-    matrix = matrix / np.max(matrix)
-    matrix = matrix[0:15, 0:15]
-    plt.figure()
-    plt.imshow(matrix)
-    plt.title('Exchange matrix')
-    plt.colorbar()
-    plt.show()
+    # if show:
+        # matrix = world.compute_exchange_matrix(dt)
+        # matrix = matrix / np.max(matrix)
+        # #matrix = matrix[0:100, 0:100]
+        # plt.figure()
+        # plt.imshow(matrix)
+        # plt.title('Initial Exchange matrix')
+        # plt.colorbar()
+        # plt.show()
 
     celldivision = CellDivision('cell_division', dt)
     cellapoptosis = CellApoptosis('cell_apoptosis', dt)
@@ -153,12 +154,14 @@ if CellDynamics:
     print('ratio of cells: ', total_number_of_cells / (initial_number_cells+1))
     print('simulation time: ', simulation_end - simulation_start, ' seconds')
 
-    matrix = world.compute_exchange_matrix(dt)
-    matrix = matrix[0:100, 0:100]
-    plt.figure()
-    plt.imshow(matrix)
-    plt.title('Exchange matrix')
-    plt.show()
+    # if show:
+        # matrix = world.compute_exchange_matrix(dt)
+        # #matrix = matrix[0:100, 0:100]
+        # plt.figure()
+        # plt.imshow(matrix)
+        # plt.title('Final Exchange matrix')
+        # plt.colorbar()
+        # plt.show()
 
     if show:
 
@@ -167,7 +170,7 @@ if CellDynamics:
         ax2.figure.set_dpi(DPI)
         # view from above
         # ax2.view_init(90, 0)
-        world.show_voxels_centers(ax2, fig2, colorful=True)
+        world.show_voxels_centers(ax2, fig2)
         plt.title('Final cells in voxels at time t = ' + str(end_time) + ' hours')
         plt.savefig('Plots/final.png')
         plt.show()

@@ -11,6 +11,7 @@ class Cell (object):
         self.color = color
         self.age = 0
         self.life_expectancy = life_expectancy
+        self.diffusion_coefficient = 1e-3/self.radius   # probably not the right value
 
     def duplicate(self):
         return Cell(self.radius, self.doubling_time, self.life_expectancy, self.color)

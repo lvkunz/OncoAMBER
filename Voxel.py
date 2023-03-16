@@ -14,9 +14,36 @@ class Voxel(object):
                 self.list_of_cells = list_of_cells_in
                 self.oxygen = oxygen
                 self.volume = 8*half_length**3
-                self.free_space = self.volume - sum([cell.volume for cell in self.list_of_cells])
+                self.occupied_volume = sum([cell.volume for cell in self.list_of_cells])
                 self.voxel_number = voxel_number
                 self.dose = 0
+                self.number_cells = len(self.list_of_cells)
+
+        def pressure(self): #units of pressure are pascals
+                # print('x', len(self.list_of_cells))
+                # print('y', self.occupied_volume)
+                # B = 5.7e-4 #system of hard spheres interacting via hard core repulsion at 37 degrees C
+                # kT = 4.1e-3 #4.1e-21 #kT at 37 degrees C
+                # if len(self.list_of_cells) == 0:
+                #         return 0
+                # packing_density = self.occupied_volume/self.volume
+                # print('packing density', packing_density)
+                # number_density = packing_density
+                # print('number density', number_density)
+                # ratio = number_density/(1-number_density)
+                # print('ratio', ratio)
+                # ratio2 = ratio**2
+                # pressure = kT * ratio - B * ratio2
+                # print('pressure', pressure)
+                # return pressure
+                NkT = 1e5 #use somethig sensitive to make sense of this
+                if len(self.list_of_cells) == 0:
+                        return 0
+                packing_density = self.occupied_volume/self.volume
+                ratio = (1+packing_density+packing_density**2-packing_density**3)/(1-packing_density**3)
+                pressure = (NkT*ratio)/self.volume
+                return pressure
+
         def random_points_in_voxel(self, n):
                 points = np.random.uniform(-self.half_length, self.half_length, (n,3))
                 points = points + self.position
@@ -24,14 +51,16 @@ class Voxel(object):
         def add_cell(self, cell):
                 #print('adding cell to voxel number : ', self.voxel_number)
                 self.list_of_cells = np.append(cell,self.list_of_cells)
-                self.free_space = self.free_space - cell.volume
-                if self.free_space < 0:
+                self.occupied_volume = self.occupied_volume + cell.volume
+                self.number_cells = self.number_cells + 1
+                if self.occupied_volume > self.volume:
                         raise ValueError('Voxel is full')
 
         def remove_cell(self, cell):
-                self.list_of_cells = np.delete(self.list_of_cells, np.where(self.list_of_cells == cell))
-                self.free_space = self.free_space + cell.volume
-
+                self.occupied_volume = self.occupied_volume - cell.volume
+                id = np.where(self.list_of_cells == cell)
+                self.list_of_cells = np.delete(self.list_of_cells, id)
+                self.number_cells = self.number_cells - 1
         def plot_vox(self, ax, fig, color='black'):
                 plot_cube(ax, fig, self.position, self.half_length, color,)
                 return fig, ax

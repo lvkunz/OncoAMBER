@@ -123,14 +123,13 @@ class CellMigration(Process):
     def __init__(self, name, dt):
         super().__init__('CellMigration', dt)
         self.is_global = True
-    def __call__(self, world : World):
+    def __call__(self, world : World): #maybe make it cleaner
         #print('CellMigration')
         #print('voxel', voxel.voxel_number)
         exchange_matrix = world.compute_exchange_matrix(self.dt)
         for voxel in world.voxel_list:
+            list_of_neighbors = world.find_neighbors(voxel)
             for cell in voxel.list_of_cells:
-                list_of_neighbors = world.find_neighbors(voxel)
-                #print('voisins', list_of_neighbors[0].voxel_number)
                 np.random.shuffle(list_of_neighbors)
                 for neighbor in list_of_neighbors:
                     probability = exchange_matrix[voxel.voxel_number, neighbor.voxel_number]
