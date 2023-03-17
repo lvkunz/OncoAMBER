@@ -40,7 +40,7 @@ class Simulator:
 
 
         while self.time <= self.finish_time:
-            print('Time: {} hours'.format(self.time))
+            print('Time: {} hours'.format(self.time) + ' / ' + str(self.finish_time) + ' hours')
 
             #loop in random order
             copy_voxel_list = world.voxel_list.copy()
@@ -53,7 +53,7 @@ class Simulator:
                 process(world)
             if video: self.show(world, self.time)
             self.time = self.time + self.dt
-        return world
+        return
 
 
 class Process:

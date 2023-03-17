@@ -24,9 +24,26 @@ class World:
         self.number_of_voxels = number_of_voxels
         self.vasculature = VasculatureNetwork()
 
-    def generate_vasculature(self, num_vessels = 20, bounds : Shape = Sphere(center = np.array([0,0,0]), radius = 3.0)):
-        self.vasculature.generate_vasculature(num_vessels, bounds)
+    def generate_vasculature(self, num_vessels):
+        points = self.random_points_for_voxels_concentration(num_vessels, 'VEGF')
+        self.vasculature.build_vasculature(points)
         return
+
+    def random_points_for_voxels_concentration(self, num_points, molecule : str):
+        if num_points % 1000 == 0:
+            print('Generating ' + str(num_points) + ' random points for ' + molecule + ' concentration, if no progress is shown, VEGF concentration might be too low')
+        points = []
+        while len(points) < num_points:
+            copy = self.voxel_list.copy()
+            np.random.shuffle(copy)
+            for voxel in copy:
+                mol = voxel.molecular_factors[molecule]
+                if np.random.random() < mol:
+                    points.append(voxel.random_points_in_voxel(1)[0])
+        points = points[0:num_points]
+        points = np.array(points)
+        np.random.shuffle(points)
+        return points
 
     def compute_oxygen_map(self):
         for voxel in self.voxel_list: ##this doesnt make sense as typical vasculature is smaller than a voxel
@@ -165,6 +182,24 @@ class World:
             [p[1] for p in positions],
             [p[2] for p in positions],
             c=pressure, cmap='RdPu', alpha=0.3, vmin=min(pressure), vmax=max(pressure)
+        )
+        # add colorbar
+        fig.colorbar(ax.collections[0])
+        return fig, ax
+
+    def show_voxels_centers_molecules(self, ax, fig, molecule : str):
+        print('Plotting Molecules')
+        molecules = []
+        positions = []
+        # collect doses and positions for all voxels
+        for voxel in self.voxel_list:
+            molecules.append(voxel.molecular_factors[molecule])
+            positions.append(voxel.position)
+        ax.scatter(
+            [p[0] for p in positions],
+            [p[1] for p in positions],
+            [p[2] for p in positions],
+            c=molecules, cmap='Oranges', alpha=0.3, vmin=min(molecules), vmax=max(molecules)
         )
         # add colorbar
         fig.colorbar(ax.collections[0])

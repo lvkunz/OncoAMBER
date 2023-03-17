@@ -3,9 +3,8 @@ import numpy as np
 class Shape(object):
     def __init__(self, name: str = "Shape"):
         self.name = name
-    def generate_random_point(self):
-        raise NotImplementedError
-
+    def generate_random_points(self, n):
+        raise NotImplementedError("generate_random_points not implemented")
 
 class Sphere(Shape):
     def __init__(self, radius: float = 1.0, center = np.array([0,0,0]) , name: str = "Sphere"):
@@ -27,4 +26,17 @@ class Sphere(Shape):
         # make sure the number of points is n
         points = points[1:]
         points = points[:n]
+        return points
+
+class Cube(Shape):
+    def __init__(self, half_side: float = 1.0, center = np.array([0,0,0]) , name: str = "Cube"):
+        super().__init__(name)
+        self.half_side = half_side
+        self.side = 2*half_side
+        self.center = center
+        self.volume = self.side**3
+    def generate_random_points(self, n):
+        # generate n random points within the cube
+        # the points are generated in a cube of side side
+        points = np.random.uniform(-self.half_side, self.half_side, (n, 3))
         return points

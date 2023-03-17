@@ -18,7 +18,10 @@ class Voxel(object):
                 self.voxel_number = voxel_number
                 self.dose = 0
                 self.number_cells = len(self.list_of_cells)
-
+                self.molecular_factors = {'EGF': 0, 'FGF': 0, 'HGF': 0, 'IGF': 0, 'TGF': 0, 'VEGF': 0, 'WNT': 0}
+                self.molecular_factors['VEGF'] = 0
+                if np.linalg.norm(self.position) < 7.0:
+                        self.molecular_factors['VEGF'] = 1.0
         def pressure(self): #units of pressure are pascals
                 # print('x', len(self.list_of_cells))
                 # print('y', self.occupied_volume)

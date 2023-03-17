@@ -66,11 +66,10 @@ class Vessel:
         return np.linalg.norm(p - closest_point)
 
 class VasculatureNetwork:
-    def __init__(self, bounds : Shape = Sphere(center = np.array([0,0,0]), radius = 3.0), list_of_vessels = None):
-        self.bounds = bounds
+    def __init__(self, list_of_vessels = None):
         self.next_vessel_number = 0
         if list_of_vessels is None:
-            self.list_of_vessels = self.generate_vasculature(20)
+            self.list_of_vessels = self.build_vasculature(Sphere(center = np.array([0,0,0]), radius = 3.0).generate_random_points(20))
             self.next_vessel_number = len(self.list_of_vessels)
         else:
             self.list_of_vessels = list_of_vessels
@@ -97,18 +96,18 @@ class VasculatureNetwork:
             if closest_distance is None or current_distance < closest_distance:
                 closest_distance = current_distance
         return closest_distance
-    def generate_vasculature(self, n, bounds : Shape = Sphere(center = np.array([0,0,0]), radius = 3.0)):
-        self.bounds = bounds
-        points = self.bounds.generate_random_points(n)
+    def build_vasculature(self, random_points = []):
+        points = random_points
         starting = points[0]
         ending = points[1]
         self.list_of_vessels = [Vessel(starting, ending, 0.1, id = 0)]
-        for i in range(2, n):
-            if i % 100 == 0: print('Generating Vasculature, current number of vessels: ', i)
+        for i in range(2, len(points)):
+            if i % 100 == 0: print('Building Vasculature, current number of vessels: ', i)
             end = points[i]
             self.list_of_vessels.append(Vessel(self.closest_point(end), end, 0.1, id = i-1))
         self.next_vessel_number = len(self.list_of_vessels)
         return self.list_of_vessels
+
     def add_vessel(self, origin, end, radius):
         self.list_of_vessels.append(Vessel(origin, end, radius, id = self.next_vessel_number))
         self.next_vessel_number += 1

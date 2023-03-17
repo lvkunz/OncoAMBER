@@ -19,7 +19,7 @@ DPI = 100
 show = True
 Topas = False
 CellDynamics = True
-Vasculature = False
+Vasculature = True
 
 
 
@@ -41,23 +41,26 @@ world.update_dose(doses)
 
 
 if Vasculature:
-    world.generate_vasculature(500, bounds = Sphere(center = np.array([0,0,0]), radius = 10.0))
+    # world.generate_vasculature(2000)
+    # world.vasculature.save('Vasculature/vasculature_current.txt')
+    world.vasculature.read('Vasculature/vasculature_current.txt')
     world.compute_oxygen_map()
     figO = plt.figure()
     axO = figO.add_subplot(111, projection='3d')
+    #world.show_voxels_centers_molecules(axO, figO, 'VEGF')
     world.show_voxels_centers_oxygen(axO, figO)
     world.vasculature.plot(figO, axO)
     plt.title('Oxygen in voxels')
     plt.show()
 
-fig3 = plt.figure()
-ax3 = fig3.add_subplot(111, projection='3d')
-ax3.figure.set_dpi(DPI)
-# ax3.view_init(90, 0)
-world.show_voxels_centers_dose(ax3, fig3)
-plt.title('Dose in voxels')
-plt.savefig('Plots/dose_' + param_file + '.png')
-plt.show()
+# fig3 = plt.figure()
+# ax3 = fig3.add_subplot(111, projection='3d')
+# ax3.figure.set_dpi(DPI)
+# # ax3.view_init(90, 0)
+# world.show_voxels_centers_dose(ax3, fig3)
+# plt.title('Dose in voxels')
+# plt.savefig('Plots/dose_' + param_file + '.png')
+# plt.show()
 
 #########################################################################################
 
@@ -68,12 +71,12 @@ if CellDynamics:
     for i in range(initial_number_cells):
         if i % 100000 == 0: print('Adding healthy cell number: ', i)
         voxel1 = world.find_voxel(np.random.uniform(-15, 15, 3))
-        voxel1.add_cell(HealthyCell(0.01, cycle_hours=100000, life_expectancy=5000, color='my green'))
+        voxel1.add_cell(HealthyCell(0.01, cycle_hours=30, life_expectancy=5000, color='my green'))
 
-    for i in range(100):
-        print('Adding tumor cell number: ', i)
-        voxel1 = world.find_voxel(np.random.uniform(-1, 1, 3))
-        voxel1.add_cell(TumorCell(0.01, cycle_hours=100, life_expectancy=100000000, color='my purple'))
+    # for i in range(100):
+    #     print('Adding tumor cell number: ', i)
+    #     voxel1 = world.find_voxel(np.random.uniform(-1, 1, 3))
+    #     voxel1.add_cell(TumorCell(0.01, cycle_hours=20, life_expectancy=100000000, color='my purple'))
 
     # for i in centre_voxel_numbers:
     #     world.voxel_list[i].add_cell(Cell(0.003, cycle_hours=30, life_expectancy=100, color='red'))
@@ -103,8 +106,9 @@ if CellDynamics:
 
 
     ##########################################################################################
-    end_time = 400
-    dt = 20
+
+    end_time = 200 # in hours (simulation time)
+    dt = 20 # in hours (time step)
 
     # if show:
         # matrix = world.compute_exchange_matrix(dt)
@@ -123,7 +127,7 @@ if CellDynamics:
     update_cell_init_state = UpdateCellInitialState('update_cell_state', dt)
     update_cell_state = UpdateCellState('update_cell_state', dt)
 
-    list_of_processes = [cellapoptosis, cellaging, cellmigration, celldivision]
+    list_of_processes = [cellapoptosis, cellaging, cellmigration, celldivision, update_cell_init_state, update_cell_state]
 
     sim = Simulator(list_of_processes, end_time, dt)
     sim.run(world, video=False)
