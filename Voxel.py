@@ -19,9 +19,10 @@ class Voxel(object):
                 self.dose = 0
                 self.number_cells = len(self.list_of_cells)
                 self.molecular_factors = {'EGF': 0, 'FGF': 0, 'HGF': 0, 'IGF': 0, 'TGF': 0, 'VEGF': 0, 'WNT': 0}
-                self.molecular_factors['VEGF'] = 0
-                if np.linalg.norm(self.position) < 7.0:
-                        self.molecular_factors['VEGF'] = 1.0
+                self.molecular_factors['VEGF'] = 0.1
+                # if np.linalg.norm(self.position) < 7.0:
+                #         self.molecular_factors['VEGF'] = 1.0
+                self.list_of_vessels_ids = []
         def pressure(self): #units of pressure are pascals
                 # print('x', len(self.list_of_cells))
                 # print('y', self.occupied_volume)
@@ -109,6 +110,19 @@ class Voxel(object):
                                 cell.state = 'senescent'
                         else:
                                 cell.state = 'cycling'
+
+        def update_molecules(self, dt):
+                #print('updating molecules')
+                count = 0
+                for cell in self.list_of_cells:
+                        if cell.state == 'cycling':
+                                count = count + 1
+                self.molecular_factors['VEGF'] = min(1, count*0.001)
+
+
+
+
+
 
 
 

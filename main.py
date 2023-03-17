@@ -38,12 +38,10 @@ if Topas:
 n, doses = DoseOnWorld('TopasSimulation/' + param_file + '.csv')
 world.update_dose(doses)
 
-
-
 if Vasculature:
-    # world.generate_vasculature(2000)
+    world.generate_vasculature(500)
     # world.vasculature.save('Vasculature/vasculature_current.txt')
-    world.vasculature.read('Vasculature/vasculature_current.txt')
+    # world.vasculature.read('Vasculature/vasculature_current.txt')
     world.compute_oxygen_map()
     figO = plt.figure()
     axO = figO.add_subplot(111, projection='3d')
@@ -101,13 +99,15 @@ if CellDynamics:
         plt.show()
 
 
+
+
     simulation_start = time.time()
 
 
 
     ##########################################################################################
 
-    end_time = 200 # in hours (simulation time)
+    end_time = 60 # in hours (simulation time)
     dt = 20 # in hours (time step)
 
     # if show:
@@ -124,13 +124,16 @@ if CellDynamics:
     cellapoptosis = CellApoptosis('cell_apoptosis', dt)
     cellaging = CellAging('cell_aging', dt)
     cellmigration = CellMigration('cell_migration', dt)
-    update_cell_init_state = UpdateCellInitialState('update_cell_state', dt)
     update_cell_state = UpdateCellState('update_cell_state', dt)
+    update_molecules = UpdateVoxelMolecules('update_molecules', dt)
+    update_vessels = UpdateVasculature('update_vessels', dt)
 
-    list_of_processes = [cellapoptosis, cellaging, cellmigration, celldivision, update_cell_init_state, update_cell_state]
+    list_of_processes = [update_molecules, cellapoptosis, cellaging, cellmigration, celldivision, update_cell_state, update_vessels]
+
+    #world.update_biology_after_RT()
 
     sim = Simulator(list_of_processes, end_time, dt)
-    sim.run(world, video=False)
+    sim.run(world, video=True)
 
     simulation_end = time.time()
     ##########################################################################################
@@ -140,6 +143,8 @@ if CellDynamics:
     cells_cycling = 0
     cells_apoptotic = 0
     cells_senescent = 0
+
+    print(' -- Computing final number of cells')
     for voxel in world.voxel_list:
         total_number_of_cells += len(voxel.list_of_cells)
         for cell in voxel.list_of_cells:

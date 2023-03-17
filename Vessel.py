@@ -29,6 +29,7 @@ class Vessel:
         self.direction_vector = self.direction_vector / self.length
         self.rotation_matrix = np.array(rotation_matrix_from_vectors( u = [0, 0, 1], v = self.direction_vector))
         self.id = id
+        self.center = (self.origin + self.end) / 2 # center of the vessel
     def __iter__(self):
         return self
 
@@ -66,14 +67,9 @@ class Vessel:
         return np.linalg.norm(p - closest_point)
 
 class VasculatureNetwork:
-    def __init__(self, list_of_vessels = None):
-        self.next_vessel_number = 0
-        if list_of_vessels is None:
-            self.list_of_vessels = self.build_vasculature(Sphere(center = np.array([0,0,0]), radius = 3.0).generate_random_points(20))
-            self.next_vessel_number = len(self.list_of_vessels)
-        else:
-            self.list_of_vessels = list_of_vessels
-            self.next_vessel_number = len(self.list_of_vessels)
+    def __init__(self, list_of_vessels = []):
+        self.list_of_vessels = list_of_vessels
+        self.next_vessel_number = len(list_of_vessels)
 
     def closest_point(self, p):
         """
@@ -96,16 +92,14 @@ class VasculatureNetwork:
             if closest_distance is None or current_distance < closest_distance:
                 closest_distance = current_distance
         return closest_distance
-    def build_vasculature(self, random_points = []):
-        points = random_points
-        starting = points[0]
-        ending = points[1]
-        self.list_of_vessels = [Vessel(starting, ending, 0.1, id = 0)]
-        for i in range(2, len(points)):
-            if i % 100 == 0: print('Building Vasculature, current number of vessels: ', i)
-            end = points[i]
-            self.list_of_vessels.append(Vessel(self.closest_point(end), end, 0.1, id = i-1))
-        self.next_vessel_number = len(self.list_of_vessels)
+    def grow_vasculature(self, random_points = []):
+        if len(self.list_of_vessels) == 0:
+            raise ValueError('You need at least one initial vessel to grow a vasculature network')
+        for i in range(0, len(random_points)):
+            if i % 100 == 0: print('Growing Vasculature, current number of vessels added: ', i)
+            end = random_points[i]
+            self.list_of_vessels.append(Vessel(self.closest_point(end), end, 0.1, id = self.next_vessel_number))
+            self.next_vessel_number = self.next_vessel_number + 1
         return self.list_of_vessels
 
     def add_vessel(self, origin, end, radius):
@@ -123,22 +117,25 @@ class VasculatureNetwork:
                 return vessel
         return None
     def plot(self, fig, ax):
-        print('Plotting Vasculature')
+        print('-- Plotting Vasculature')
         for vessel in self.list_of_vessels:
             x = [vessel.origin[0], vessel.end[0]]
             y = [vessel.origin[1], vessel.end[1]]
             z = [vessel.origin[2], vessel.end[2]]
-            ax.plot(x, y, z, color='red', linewidth=1, alpha=0.5)
+            ax.plot(x, y, z, color='black', linewidth=1, alpha=1)
 
     def save(self, filename):
         with open(filename, 'w') as f:
             for vessel in self.list_of_vessels:
                 f.write(str(vessel.origin[0]) + ' ' + str(vessel.origin[1]) + ' ' + str(vessel.origin[2]) + ' ' \
                         + str(vessel.end[0]) + ' ' + str(vessel.end[1]) + ' ' + str(vessel.end[2]) + ' ' + str(vessel.radius) + '\n')
+        print('-- Vasculature saved to file: ', filename)
+
     def read(self, filename):
+        print('-- Reading vasculature from file: ', filename)
         self.list_of_vessels = []
         with open(filename, 'r') as f:
             for line in f:
                 line = line.split()
                 self.list_of_vessels.append(Vessel([float(line[0]), float(line[1]), float(line[2])], [float(line[3]), float(line[4]), float(line[5])], float(line[6])))
-
+        print('-- Vasculature read from file: ', filename)

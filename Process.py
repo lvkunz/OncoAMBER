@@ -16,28 +16,46 @@ class Simulator:
     def show(self, world: World, t = 0):
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
-        #ax.view_init(90, 0)
-        world.show_voxels_centers(ax, fig, colorful=True)
+        ax.view_init(90, 0)
+        world.show_voxels_centers(ax, fig)
+        world.vasculature.plot(fig, ax)
         plt.title('Cells in voxels at time t = ' + str(t) + ' hours')
         plt.savefig('Plots/Video/t'+ str(t) + '.png')
+        plt.show()
 
+        figA = plt.figure()
+        axA = figA.add_subplot(111, projection='3d')
+        axA.view_init(90, 0)
+        world.show_voxels_centers_molecules(axA, figA, 'VEGF')
+        world.vasculature.plot(figA, axA)
+        plt.title('VEGF in voxels at time t = ' + str(t) + ' hours')
+        plt.savefig('Plots/Video/t'+ str(t) + '_VEGF.png')
+        plt.show()
+
+        figB = plt.figure()
+        axB = figB.add_subplot(111, projection='3d')
+        axB.view_init(90, 0)
+        world.show_voxels_centers_oxygen(axB, figB)
+        world.vasculature.plot(figB, axB)
+        plt.title('Oxygen in voxels at time t = ' + str(t) + ' hours')
+        plt.savefig('Plots/Video/t'+ str(t) + '_Oxygen.png')
+        plt.show()
+
+        figC = plt.figure()
+        axC = figC.add_subplot(111, projection='3d')
+        axC.view_init(90, 0)
+        world.show_voxels_centers_pressure(axC, figC)
+        world.vasculature.plot(figC, axC)
+        plt.title('Pressure in voxels at time t = ' + str(t) + ' hours')
+        plt.savefig('Plots/Video/t'+ str(t) + '_Pressure.png')
+        plt.show()
 
     def run(self, world: World, video = False):
-        print('Running simulation for {} hours'.format(self.finish_time))
-        process_local = [process for process in self.list_of_process if (not process.is_global) and (not process.only_once)]
-        process_global = [process for process in self.list_of_process if process.is_global and (not process.only_once)]
-        process_local_init = [process for process in self.list_of_process if (not process.is_global) and process.only_once]
-        process_global_init = [process for process in self.list_of_process if process.is_global and process.only_once]
-
-
-        for process in process_local_init:
-            for voxel in world.voxel_list:
-                process(voxel)
-        for process in process_global_init:
-            process(world)
+        print('Running simulation for {} hours'.format(self.finish_time), ' with dt = ', self.dt)
+        process_local = [process for process in self.list_of_process if (not process.is_global)]
+        process_global = [process for process in self.list_of_process if process.is_global]
 
         if video: self.show(world, 0)
-
 
         while self.time <= self.finish_time:
             print('Time: {} hours'.format(self.time) + ' / ' + str(self.finish_time) + ' hours')
@@ -61,7 +79,6 @@ class Process:
         self.name = name
         self.dt = dt
         self.is_global = False
-        self.only_once = False
     def __call__(self, voxel):
         pass
 
@@ -138,20 +155,26 @@ class CellMigration(Process):
                         voxel.remove_cell(cell)
                         break
 
-class UpdateCellInitialState(Process):
-    def __init__(self, name, dt):
-        super().__init__('UpdateState', dt)
-        self.is_global = False
-        self.only_once = True
-    def __call__(self, voxel: Voxel):
-        #print('UpdateState')
-        voxel.update_cells_afterRT()
 
 class UpdateCellState(Process):
     def __init__(self, name, dt):
         super().__init__('UpdateState', dt)
-        self.is_global = False
-        self.only_once = False
     def __call__(self, voxel: Voxel):
         #print('UpdateState')
         voxel.update_cells_for_oxygen_state()
+
+class UpdateVoxelMolecules(Process):
+    def __init__(self, name, dt):
+        super().__init__('UpdateMolecules', dt)
+    def __call__(self, voxel: Voxel):
+        #print('UpdateMolecules')
+        voxel.update_molecules(self.dt)
+class UpdateVasculature(Process):
+    def __init__(self, name, dt):
+        super().__init__('UpdateVasculature', dt)
+        self.is_global = True
+    def __call__(self, world: World):
+        #print('UpdateVasculature')
+        n = world.vessels_killed_by_pressure()
+        world.vasculature_growth(n)
+        world.compute_oxygen_map()
