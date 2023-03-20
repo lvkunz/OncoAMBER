@@ -9,6 +9,7 @@ import sys
 from Vessel import *
 from BasicGeometries import *
 #np.set_printoptions(threshold=sys.maxsize)
+from ScalarField import *
 
 class World:
     def __init__(self, half_length, number_of_voxels : int = 20):
@@ -22,6 +23,7 @@ class World:
                     self.voxel_list.append(Voxel(position, half_length/number_of_voxels, voxel_number = i*number_of_voxels**2 + j*number_of_voxels + k))
         self.number_of_voxels = number_of_voxels
         self.vasculature = self.generate_vasculature(10)
+        self.oxygen_map = None
 
     def generate_vasculature(self, num_vessels):
         points = self.random_points_for_voxels_concentration(num_vessels+1, 'VEGF')
@@ -59,6 +61,21 @@ class World:
             if voxel.voxel_number % 100 == 0: print('--- Currently computing for voxel #', voxel.voxel_number, 'out of ', self.total_number_of_voxels)
             distance = self.vasculature.closest_distance(voxel.position)
             voxel.oxygen = 1/(1 + distance**2)
+        return
+
+    def compute_oxygen_map_v2(self, kernel : Kernel, resolution = 1): #need to be coherent with the world coordinates
+        print('-- Computing oxygen map v2')
+        finite_map = np.zeros((self.number_of_voxels*resolution, self.number_of_voxels*resolution, self.number_of_voxels*resolution))
+        for vessel in self.vasculature.list_of_vessels:
+            points = vessel.generate_random_points_along_axis(10)
+            for point in points:
+                for i in range(finite_map.shape[0]):
+                    for j in range(finite_map.shape[1]):
+                        for k in range(finite_map.shape[2]):
+                            print(i,j,k)
+                            finite_map[i,j,k] += kernel(i,j,k, point, scale = 1)
+
+        self.oxygen_map = finite_map
         return
 
     def update_biology_after_RT(self):

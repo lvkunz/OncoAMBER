@@ -44,7 +44,7 @@ class Voxel(object):
                 if len(self.list_of_cells) == 0:
                         return 0
                 packing_density = self.occupied_volume/self.volume
-                ratio = (1+packing_density+packing_density**2-packing_density**3)/(1-packing_density**3)
+                ratio = (1+packing_density+packing_density**2-packing_density**3)/(1-packing_density**3) #using Carrahan-Sterling equation
                 pressure = (NkT*ratio)/self.volume
                 return pressure
 

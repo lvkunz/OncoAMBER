@@ -48,6 +48,16 @@ class Vessel:
         # Translate the points to the correct position
         return points
 
+    def generate_random_points_along_axis(self, n):
+        #generate random points along the axis of the vessel
+        z = np.random.uniform(0, self.length, n)
+        points = np.zeros((n,3))
+        points[:,2] = z
+        # Rotate the points to align with the cylinder
+        points = np.dot(points, self.rotation_matrix)
+        # Translate the points to the correct position
+        return points + self.origin
+
 
     def closest_point(self, p):
         """
@@ -67,7 +77,9 @@ class Vessel:
         return np.linalg.norm(p - closest_point)
 
 class VasculatureNetwork:
-    def __init__(self, list_of_vessels = []):
+    def __init__(self, list_of_vessels=None):
+        if list_of_vessels is None:
+            list_of_vessels = []
         self.list_of_vessels = list_of_vessels
         self.next_vessel_number = len(list_of_vessels)
 
@@ -122,7 +134,7 @@ class VasculatureNetwork:
             x = [vessel.origin[0], vessel.end[0]]
             y = [vessel.origin[1], vessel.end[1]]
             z = [vessel.origin[2], vessel.end[2]]
-            ax.plot(x, y, z, color='black', linewidth=1, alpha=1)
+            ax.plot(x, y, z, color='red', linewidth=1, alpha=0.3)
 
     def save(self, filename):
         with open(filename, 'w') as f:
