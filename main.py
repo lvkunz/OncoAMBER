@@ -69,7 +69,7 @@ if CellDynamics:
     for i in range(initial_number_cells):
         if i % 100000 == 0: print('Adding healthy cell number: ', i)
         voxel1 = world.find_voxel(np.random.uniform(-15, 15, 3))
-        voxel1.add_cell(HealthyCell(0.01, cycle_hours=30, life_expectancy=5000, color='my green'))
+        voxel1.add_cell(HealthyCell(0.01, cycle_hours=10, life_expectancy=5000, color='my green'))
 
     # for i in range(100):
     #     print('Adding tumor cell number: ', i)
@@ -107,8 +107,8 @@ if CellDynamics:
 
     ##########################################################################################
 
-    end_time = 60 # in hours (simulation time)
-    dt = 20 # in hours (time step)
+    end_time = 20 # in hours (simulation time)
+    dt = 1.0 # in hours (time step)
 
     # if show:
         # matrix = world.compute_exchange_matrix(dt)

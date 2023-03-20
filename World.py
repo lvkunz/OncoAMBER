@@ -23,7 +23,6 @@ class World:
                     self.voxel_list.append(Voxel(position, half_length/number_of_voxels, voxel_number = i*number_of_voxels**2 + j*number_of_voxels + k))
         self.number_of_voxels = number_of_voxels
         self.vasculature = self.generate_vasculature(10)
-        self.oxygen_map = None
 
     def generate_vasculature(self, num_vessels):
         points = self.random_points_for_voxels_concentration(num_vessels+1, 'VEGF')
@@ -31,12 +30,14 @@ class World:
         self.vasculature.add_vessel(points[0], points[1], 0.01)
         self.vasculature.grow_vasculature(points[2:])
         self.update_list_of_vessels_in_voxels()
+        self.update_volume_occupied_by_vessels()
         return self.vasculature
 
     def vasculature_growth(self, num_vessels):
         points = self.random_points_for_voxels_concentration(num_vessels, 'VEGF')
         self.vasculature.grow_vasculature(points)
         self.update_list_of_vessels_in_voxels()
+        self.update_volume_occupied_by_vessels()
         return
 
     def random_points_for_voxels_concentration(self, num_points, molecule : str):
@@ -56,26 +57,45 @@ class World:
         return points
 
     def compute_oxygen_map(self):
+        CONST = 10.0
         print('-- Computing oxygen map')
-        for voxel in self.voxel_list: ##this doesnt make sense as typical vasculature is smaller than a voxel
+        for voxel in self.voxel_list:
             if voxel.voxel_number % 100 == 0: print('--- Currently computing for voxel #', voxel.voxel_number, 'out of ', self.total_number_of_voxels)
-            distance = self.vasculature.closest_distance(voxel.position)
-            voxel.oxygen = 1/(1 + distance**2)
+            voxel.oxygen = voxel.vessel_volume*CONST
         return
+        # for voxel in self.voxel_list: ##this doesnt make sense as typical vasculature is smaller than a voxel
+        #     if voxel.voxel_number % 100 == 0: print('--- Currently computing for voxel #', voxel.voxel_number, 'out of ', self.total_number_of_voxels)
+        #     distance = self.vasculature.closest_distance(voxel.position)
+        #     voxel.oxygen = 1/(1 + distance**2)
+        # return
 
-    def compute_oxygen_map_v2(self, kernel : Kernel, resolution = 1): #need to be coherent with the world coordinates
-        print('-- Computing oxygen map v2')
-        finite_map = np.zeros((self.number_of_voxels*resolution, self.number_of_voxels*resolution, self.number_of_voxels*resolution))
+    # def compute_oxygen_map_v2(self, kernel : Kernel, resolution = 1): #need to be coherent with the world coordinates
+    #     print('-- Computing oxygen map v2')
+    #     finite_map = np.zeros((self.number_of_voxels*resolution, self.number_of_voxels*resolution, self.number_of_voxels*resolution))
+    #     for vessel in self.vasculature.list_of_vessels:
+    #         points = vessel.generate_random_points_along_axis(10)
+    #         for point in points:
+    #             for i in range(finite_map.shape[0]):
+    #                 for j in range(finite_map.shape[1]):
+    #                     for k in range(finite_map.shape[2]):
+    #                         print(i,j,k)
+    #                         finite_map[i,j,k] += kernel(i,j,k, point, scale = 1)
+    #
+    #     self.oxygen_map = finite_map
+    #     return
+
+    def update_volume_occupied_by_vessels(self, resolution = 10):
+        scorer = np.zeros((self.total_number_of_voxels))
+        print('-- Computing volume occupied by vessels in each voxel')
         for vessel in self.vasculature.list_of_vessels:
-            points = vessel.generate_random_points_along_axis(10)
+            if vessel.id % 100 == 0: print('--- Currently computing for vessel #', vessel.id, 'out of ', len(self.vasculature.list_of_vessels))
+            points = vessel.generate_points_along_axis(resolution)
             for point in points:
-                for i in range(finite_map.shape[0]):
-                    for j in range(finite_map.shape[1]):
-                        for k in range(finite_map.shape[2]):
-                            print(i,j,k)
-                            finite_map[i,j,k] += kernel(i,j,k, point, scale = 1)
-
-        self.oxygen_map = finite_map
+                voxel_n = self.find_voxel_number(point)
+                scorer[voxel_n] += np.pi*(vessel.length/resolution)*vessel.radius**2
+        print('-- Finishing up')
+        for voxel in self.voxel_list:
+            voxel.vessel_volume = scorer[voxel.voxel_number]
         return
 
     def update_biology_after_RT(self):
@@ -85,7 +105,7 @@ class World:
         self.vessels_killed_by_dose()
         self.compute_oxygen_map()
     def vessels_killed_by_pressure(self):
-        death = lambda pressure: sigmoid(1, pressure, 12000, 0.001)
+        death = lambda pressure: sigmoid(1, pressure, 12500, 0.001)
         count = 0
         for voxel in self.voxel_list:
             for vessel in voxel.list_of_vessels_ids:

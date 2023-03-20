@@ -19,10 +19,11 @@ class Voxel(object):
                 self.dose = 0
                 self.number_cells = len(self.list_of_cells)
                 self.molecular_factors = {'EGF': 0, 'FGF': 0, 'HGF': 0, 'IGF': 0, 'TGF': 0, 'VEGF': 0, 'WNT': 0}
-                self.molecular_factors['VEGF'] = 0.1
-                # if np.linalg.norm(self.position) < 7.0:
-                #         self.molecular_factors['VEGF'] = 1.0
+                self.molecular_factors['VEGF'] = 0
+                if np.linalg.norm(self.position) < 7.0:
+                        self.molecular_factors['VEGF'] = 1.0
                 self.list_of_vessels_ids = []
+                self.vessel_volume = 0
         def pressure(self): #units of pressure are pascals
                 # print('x', len(self.list_of_cells))
                 # print('y', self.occupied_volume)
@@ -100,8 +101,8 @@ class Voxel(object):
         def update_cells_for_oxygen_state(self):
                 #print('updating cells for oxygen state')
                 #define sigmoid function depending on oxygen (logistic function)
-                death = lambda pO2: sigmoid(1, pO2, 0.15, 30)
-                senescence = lambda pO2: sigmoid(1, pO2, 0.4, 10)
+                death = lambda pO2: sigmoid(1, pO2, 0.5, 30)
+                senescence = lambda pO2: sigmoid(1, pO2, 1.5 , 10)
                 for cell in self.list_of_cells:
                         sample = np.random.random()
                         if sample > death(self.oxygen):
