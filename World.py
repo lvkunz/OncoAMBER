@@ -10,6 +10,8 @@ from Vessel import *
 from BasicGeometries import *
 #np.set_printoptions(threshold=sys.maxsize)
 from ScalarField import *
+from matplotlib.colors import Normalize
+
 
 class World:
     def __init__(self, half_length, number_of_voxels : int = 20):
@@ -22,7 +24,7 @@ class World:
                     position = np.array([i*2*half_length/number_of_voxels - half_length, j*2*half_length/number_of_voxels - half_length, k*2*half_length/number_of_voxels - half_length])
                     self.voxel_list.append(Voxel(position, half_length/number_of_voxels, voxel_number = i*number_of_voxels**2 + j*number_of_voxels + k))
         self.number_of_voxels = number_of_voxels
-        self.vasculature = self.generate_vasculature(10)
+        self.vasculature : VasculatureNetwork
 
     def generate_vasculature(self, num_vessels):
         points = self.random_points_for_voxels_concentration(num_vessels+1, 'VEGF')
@@ -34,18 +36,34 @@ class World:
         return self.vasculature
 
     def vasculature_growth(self, num_vessels):
+        print('-- Growing ' + str(num_vessels) + ' new vessels')
         points = self.random_points_for_voxels_concentration(num_vessels, 'VEGF')
+        print('-- Adding new vessels')
         self.vasculature.grow_vasculature(points)
         self.update_list_of_vessels_in_voxels()
         self.update_volume_occupied_by_vessels()
         return
 
+    def read_vasculature(self, path):
+        self.vasculature = VasculatureNetwork()
+        self.vasculature.read(path)
+        self.update_list_of_vessels_in_voxels()
+        self.update_volume_occupied_by_vessels()
+        return
+
     def random_points_for_voxels_concentration(self, num_points, molecule : str):
+        if num_points == 0:
+            return []
         if num_points % 1000 == 0:
             print('-- Generating ' + str(num_points) + ' random points for ' + molecule + ' concentration, if no progress is shown, VEGF concentration might be too low')
         points = []
+        copy = self.voxel_list.copy()
         while len(points) < num_points:
-            copy = self.voxel_list.copy()
+            copy = [voxel for voxel in copy if voxel.molecular_factors[molecule] > 0]
+            if len(copy) == 0:
+                print('No more voxels with ' + molecule + ' concentration')
+                return []
+            copy = np.array(copy)
             np.random.shuffle(copy)
             for voxel in copy:
                 mol = voxel.molecular_factors[molecule]
@@ -56,39 +74,11 @@ class World:
         np.random.shuffle(points)
         return points
 
-    def compute_oxygen_map(self):
-        CONST = 10.0
-        print('-- Computing oxygen map')
-        for voxel in self.voxel_list:
-            if voxel.voxel_number % 100 == 0: print('--- Currently computing for voxel #', voxel.voxel_number, 'out of ', self.total_number_of_voxels)
-            voxel.oxygen = voxel.vessel_volume*CONST
-        return
-        # for voxel in self.voxel_list: ##this doesnt make sense as typical vasculature is smaller than a voxel
-        #     if voxel.voxel_number % 100 == 0: print('--- Currently computing for voxel #', voxel.voxel_number, 'out of ', self.total_number_of_voxels)
-        #     distance = self.vasculature.closest_distance(voxel.position)
-        #     voxel.oxygen = 1/(1 + distance**2)
-        # return
-
-    # def compute_oxygen_map_v2(self, kernel : Kernel, resolution = 1): #need to be coherent with the world coordinates
-    #     print('-- Computing oxygen map v2')
-    #     finite_map = np.zeros((self.number_of_voxels*resolution, self.number_of_voxels*resolution, self.number_of_voxels*resolution))
-    #     for vessel in self.vasculature.list_of_vessels:
-    #         points = vessel.generate_random_points_along_axis(10)
-    #         for point in points:
-    #             for i in range(finite_map.shape[0]):
-    #                 for j in range(finite_map.shape[1]):
-    #                     for k in range(finite_map.shape[2]):
-    #                         print(i,j,k)
-    #                         finite_map[i,j,k] += kernel(i,j,k, point, scale = 1)
-    #
-    #     self.oxygen_map = finite_map
-    #     return
 
     def update_volume_occupied_by_vessels(self, resolution = 10):
         scorer = np.zeros((self.total_number_of_voxels))
         print('-- Computing volume occupied by vessels in each voxel')
         for vessel in self.vasculature.list_of_vessels:
-            if vessel.id % 100 == 0: print('--- Currently computing for vessel #', vessel.id, 'out of ', len(self.vasculature.list_of_vessels))
             points = vessel.generate_points_along_axis(resolution)
             for point in points:
                 voxel_n = self.find_voxel_number(point)
@@ -104,8 +94,8 @@ class World:
             voxel.update_cells_afterRT()
         self.vessels_killed_by_dose()
         self.compute_oxygen_map()
-    def vessels_killed_by_pressure(self):
-        death = lambda pressure: sigmoid(1, pressure, 12500, 0.001)
+    def vessels_killed_by_pressure(self, pressure_killing_threshold, pressure_killing_slope):
+        death = lambda pressure: sigmoid(1, pressure, pressure_killing_threshold, pressure_killing_slope)
         count = 0
         for voxel in self.voxel_list:
             for vessel in voxel.list_of_vessels_ids:
@@ -114,8 +104,6 @@ class World:
                     voxel.list_of_vessels_ids.remove(vessel)
                     count += 1
         return count
-
-
     def vessels_killed_by_dose(self):
         death = lambda dose: sigmoid(1, dose, 6e-8, 200000000)
         count = 0
@@ -175,8 +163,7 @@ class World:
             if vessel.id not in current_list:
                 current_list.append(vessel.id)
         return
-    def compute_exchange_matrix(self, dt):
-        VISCOSITY = 0.001 #viscosity of the medium
+    def compute_exchange_matrix(self, dt, pressure_threshold):
         hL = self.voxel_list[0].half_length #half length of the voxel
         #computes the matrix that describes the exchange of cells between voxels
         #returns the matrix
@@ -187,10 +174,10 @@ class World:
             neighbors_voxel = self.find_neighbors(voxel)
             for neighbor in neighbors_voxel:
                 DeltaP = voxel.pressure() - neighbor.pressure()
-                if DeltaP <= 0: #if the pressure in the neighbor is higher than in the voxel, no exchange,
+                if DeltaP <= pressure_threshold: #if the pressure in the neighbor is higher than in the voxel, no exchange,
                     exchange_matrix[voxel.voxel_number][neighbor.voxel_number] = 0
                 else:
-                    t_res = 3 * hL ** 2 / (DeltaP * VISCOSITY)
+                    t_res = 3 * hL ** 2 / (DeltaP * voxel.viscosity)
                     ratio = t_res / dt
                     exchange_matrix[voxel.voxel_number][neighbor.voxel_number] = ratio * np.exp(-ratio)#this is the probability of a cell moving from voxel i to voxel j
         return exchange_matrix
@@ -226,27 +213,49 @@ class World:
         for voxel in self.voxel_list:
             voxel.dose = doses[voxel.voxel_number]
         return
+
+    def compute_oxygen_map(self, o2_per_volume=10, diffusion_number=5):
+        print('-- Computing oxygen map')
+        for voxel in self.voxel_list:
+            voxel.oxygen = voxel.vessel_volume * o2_per_volume
+        for i in range(diffusion_number):
+            new_oxygen_map = np.zeros(self.total_number_of_voxels)
+            print('--- o2 map computing', i, 'out of', diffusion_number)
+            for voxel in self.voxel_list:
+                sum = voxel.oxygen
+                for neighbor in self.find_neighbors(voxel):
+                    sum += neighbor.oxygen
+                new_oxygen_map[voxel.voxel_number] = sum / (1 + len(self.find_neighbors(voxel)))
+            for voxel in self.voxel_list:
+                voxel.oxygen = new_oxygen_map[voxel.voxel_number]
+        return
     #function to plot cells
 
-    def show_voxels(self, ax, fig):
-        #plots all the voxels in the world
-        for voxel in self.voxel_list:
-            voxel.plot_vox(ax,fig)
-        return fig, ax
-    def show_voxels_centers(self, ax, fig):
+    def show_voxels_centers(self, ax, fig, slice = False):
         print('-- Plotting Cell Population')
+
+        #central z slice of world first voxel is at z = 0
+        if slice:
+            middle_slice = self.number_of_voxels // 2
+            first_voxel = middle_slice * self.number_of_voxels**2
+            last_voxel = (middle_slice + 1) * self.number_of_voxels**2 -1
+            list = self.voxel_list[first_voxel:last_voxel]
+            size = 250/self.number_of_voxels
+        else:
+            list = self.voxel_list
+            size = 1
         number = []
         positions = []
         # collect doses and positions for all voxels
-        for voxel in self.voxel_list:
+        for voxel in list:
             number.append(voxel.number_cells)
             positions.append(voxel.position)
+
         ax.scatter(
         [p[0] for p in positions],
         [p[1] for p in positions],
         [p[2] for p in positions],
-        c=number, cmap='BuGn', alpha=0.3, vmin=min(number), vmax=max(number)
-        )
+        c=number, cmap='YlGn', alpha= 0.5, vmin=min(number), vmax=max(number), s= size)
         # add colorbar
         fig.colorbar(ax.collections[0])
         return fig, ax
@@ -283,59 +292,86 @@ class World:
             [p[0] for p in positions],
             [p[1] for p in positions],
             [p[2] for p in positions],
-            c=doses, cmap='BuPu', alpha=0.3, vmin=min(doses), vmax=max(doses)
+            c=doses, cmap='BuPu', alpha=0.5, vmin=min(doses), vmax=max(doses)
         )
         # add colorbar
         fig.colorbar(ax.collections[0])
         return fig, ax
 
-    def show_voxels_centers_oxygen(self, ax, fig):
+    def show_voxels_centers_oxygen(self, ax, fig, slice = False):
         print('-- Plotting Oxygen')
+        if slice:
+            middle_slice = self.number_of_voxels // 2
+            first_voxel = middle_slice * self.number_of_voxels**2
+            last_voxel = (middle_slice + 1) * self.number_of_voxels**2 -1
+            list = self.voxel_list[first_voxel:last_voxel]
+            size = 250/self.number_of_voxels
+        else:
+            list = self.voxel_list
+            size = 1
         oxygen = []
         positions = []
         # collect doses and positions for all voxels
-        for voxel in self.voxel_list:
+        for voxel in list:
             oxygen.append(voxel.oxygen)
             positions.append(voxel.position)
         ax.scatter(
             [p[0] for p in positions],
             [p[1] for p in positions],
             [p[2] for p in positions],
-            c=oxygen, cmap='Blues', alpha=0.3, vmin=min(oxygen), vmax=max(oxygen)
+            c=oxygen, cmap='Blues', alpha=0.5, vmin=min(oxygen), vmax=max(oxygen), s= size
         )
         # add colorbar
         fig.colorbar(ax.collections[0])
         return fig, ax
-    def show_voxels_centers_pressure(self, ax, fig):
+    def show_voxels_centers_pressure(self, ax, fig, slice = False):
         print('-- Plotting Pressure')
+        if slice:
+            middle_slice = self.number_of_voxels // 2
+            first_voxel = middle_slice * self.number_of_voxels ** 2
+            last_voxel = (middle_slice + 1) * self.number_of_voxels ** 2 - 1
+            list = self.voxel_list[first_voxel:last_voxel]
+            size = 250 / self.number_of_voxels
+        else:
+            list = self.voxel_list
+            size = 1
         pressure = []
         positions = []
-        for voxel in self.voxel_list:
+        for voxel in list:
             pressure.append(voxel.pressure())
             positions.append(voxel.position)
         ax.scatter(
             [p[0] for p in positions],
             [p[1] for p in positions],
             [p[2] for p in positions],
-            c=pressure, cmap='RdPu', alpha=0.3, vmin=min(pressure), vmax=max(pressure)
+            c=pressure, cmap='RdPu', alpha=0.5, vmin=min(pressure), vmax=max(pressure), s=size
         )
         # add colorbar
         fig.colorbar(ax.collections[0])
         return fig, ax
 
-    def show_voxels_centers_molecules(self, ax, fig, molecule : str):
+    def show_voxels_centers_molecules(self, ax, fig, molecule : str, slice = False):
         print('-- Plotting Molecules')
+        if slice:
+            middle_slice = self.number_of_voxels // 2
+            first_voxel = middle_slice * self.number_of_voxels ** 2
+            last_voxel = (middle_slice + 1) * self.number_of_voxels ** 2 - 1
+            list = self.voxel_list[first_voxel:last_voxel]
+            size = 250 / self.number_of_voxels
+        else:
+            list = self.voxel_list
+            size = 1
         molecules = []
         positions = []
         # collect doses and positions for all voxels
-        for voxel in self.voxel_list:
+        for voxel in list:
             molecules.append(voxel.molecular_factors[molecule])
             positions.append(voxel.position)
         ax.scatter(
             [p[0] for p in positions],
             [p[1] for p in positions],
             [p[2] for p in positions],
-            c=molecules, cmap='Oranges', alpha=0.3, vmin=min(molecules), vmax=max(molecules)
+            c=molecules, cmap='Oranges', alpha=0.5, vmin=min(molecules), vmax=max(molecules), s=size
         )
         # add colorbar
         fig.colorbar(ax.collections[0])

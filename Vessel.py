@@ -173,8 +173,10 @@ class VasculatureNetwork:
     def read(self, filename):
         print('-- Reading vasculature from file: ', filename)
         self.list_of_vessels = []
+        self.next_vessel_number = 0
         with open(filename, 'r') as f:
             for line in f:
                 line = line.split()
-                self.list_of_vessels.append(Vessel([float(line[0]), float(line[1]), float(line[2])], [float(line[3]), float(line[4]), float(line[5])], float(line[6])))
+                self.list_of_vessels.append(Vessel([float(line[0]), float(line[1]), float(line[2])], [float(line[3]), float(line[4]), float(line[5])], float(line[6]), id = self.next_vessel_number))
+                self.next_vessel_number += 1
         print('-- Vasculature read from file: ', filename)

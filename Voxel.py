@@ -19,28 +19,12 @@ class Voxel(object):
                 self.dose = 0
                 self.number_cells = len(self.list_of_cells)
                 self.molecular_factors = {'EGF': 0, 'FGF': 0, 'HGF': 0, 'IGF': 0, 'TGF': 0, 'VEGF': 0, 'WNT': 0}
-                self.molecular_factors['VEGF'] = 0
-                if np.linalg.norm(self.position) < 7.0:
-                        self.molecular_factors['VEGF'] = 1.0
+                # if np.linalg.norm(self.position) < 5:
+                #         self.molecular_factors['VEGF'] = 1.0
                 self.list_of_vessels_ids = []
                 self.vessel_volume = 0
-        def pressure(self): #units of pressure are pascals
-                # print('x', len(self.list_of_cells))
-                # print('y', self.occupied_volume)
-                # B = 5.7e-4 #system of hard spheres interacting via hard core repulsion at 37 degrees C
-                # kT = 4.1e-3 #4.1e-21 #kT at 37 degrees C
-                # if len(self.list_of_cells) == 0:
-                #         return 0
-                # packing_density = self.occupied_volume/self.volume
-                # print('packing density', packing_density)
-                # number_density = packing_density
-                # print('number density', number_density)
-                # ratio = number_density/(1-number_density)
-                # print('ratio', ratio)
-                # ratio2 = ratio**2
-                # pressure = kT * ratio - B * ratio2
-                # print('pressure', pressure)
-                # return pressure
+                self.viscosity = 0.001
+        def pressure(self):
                 NkT = 1e5 #use somethig sensitive to make sense of this
                 if len(self.list_of_cells) == 0:
                         return 0
@@ -66,31 +50,10 @@ class Voxel(object):
                 id = np.where(self.list_of_cells == cell)
                 self.list_of_cells = np.delete(self.list_of_cells, id)
                 self.number_cells = self.number_cells - 1
-        def plot_vox(self, ax, fig, color='black'):
-                plot_cube(ax, fig, self.position, self.half_length, color,)
-                return fig, ax
 
-        def plot_cells(self):
-                fig = plt.figure()
-                ax = fig.add_subplot(111, projection='3d')
-                points = self.random_points_in_voxel(len(self.list_of_cells))
-                color = sum([cell.color for cell in self.list_of_cells])
-                color = color/len(self.list_of_cells)
-                ax.scatter(points[:,0], points[:,1], points[:,2], color = color, alpha=0.5)
 
-        def plot_vox_and_cells(self):
-                fig, ax = self.plot_vox()
-                points = self.random_points_in_voxel(len(self.list_of_cells))
-                i = 0
-                for cell in self.list_of_cells:
-                        ax.scatter(points[i, 0], points[i, 1], points[i, 2], color=cell.color, alpha=0.5)
-                        i = i + 1
-                return fig, ax
-
-        def update_cells_afterRT(self):
-               RADIOSENSITIVITY = 0.1 #1% of cells killed per Gy
-               expected_deaths = self.dose*RADIOSENSITIVITY
-               expected_senescent = expected_deaths * 10
+        def update_cells_afterRT(self, radio_sensitivity):
+               expected_deaths = self.dose*radio_sensitivity
                # Use a Poisson distribution to model the number of cell deaths
                num_deaths = np.random.poisson(expected_deaths)
                num_deaths = min(num_deaths, len(self.list_of_cells))
@@ -98,27 +61,23 @@ class Voxel(object):
                for cell in cells_to_remove:
                        cell.state = 'dead' # kill the cell
 
-        def update_cells_for_oxygen_state(self):
+        def update_cells_for_oxygen_state(self, vitality_threshold, vitality_slope):
                 #print('updating cells for oxygen state')
                 #define sigmoid function depending on oxygen (logistic function)
-                death = lambda pO2: sigmoid(1, pO2, 0.5, 30)
-                senescence = lambda pO2: sigmoid(1, pO2, 1.5 , 10)
+                vitality = lambda pO2: sigmoid(1, pO2, vitality_threshold, vitality_slope)
                 for cell in self.list_of_cells:
-                        sample = np.random.random()
-                        if sample > death(self.oxygen):
-                                cell.state = 'dead'
-                        elif sample > senescence(self.oxygen):
-                                cell.state = 'senescent'
-                        else:
-                                cell.state = 'cycling'
+                        cell.vitality = vitality(self.oxygen)
 
-        def update_molecules(self, dt):
+
+
+        def update_molecules(self, dt, VEGF_production_per_cell):
                 #print('updating molecules')
                 count = 0
                 for cell in self.list_of_cells:
-                        if cell.state == 'cycling':
+                        if cell is TumorCell:
+                                print('cell is tumor cell')
                                 count = count + 1
-                self.molecular_factors['VEGF'] = min(1, count*0.001)
+                self.molecular_factors['VEGF'] = min(1, count*VEGF_production_per_cell)
 
 
 
