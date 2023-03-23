@@ -11,6 +11,7 @@ from BasicGeometries import *
 #np.set_printoptions(threshold=sys.maxsize)
 from ScalarField import *
 from matplotlib.colors import Normalize
+from pickle import dump, load
 
 
 class World:
@@ -163,24 +164,37 @@ class World:
             if vessel.id not in current_list:
                 current_list.append(vessel.id)
         return
+
     def compute_exchange_matrix(self, dt, pressure_threshold):
-        hL = self.voxel_list[0].half_length #half length of the voxel
-        #computes the matrix that describes the exchange of cells between voxels
-        #returns the matrix
-        #the matrix is a list of lists
-        #the first index is the voxel number
-        exchange_matrix = csr_matrix((self.total_number_of_voxels, self.total_number_of_voxels)).toarray()
-        for voxel in self.voxel_list:
-            neighbors_voxel = self.find_neighbors(voxel)
-            for neighbor in neighbors_voxel:
-                DeltaP = voxel.pressure() - neighbor.pressure()
-                if DeltaP <= pressure_threshold: #if the pressure in the neighbor is higher than in the voxel, no exchange,
-                    exchange_matrix[voxel.voxel_number][neighbor.voxel_number] = 0
-                else:
-                    t_res = 3 * hL ** 2 / (DeltaP * voxel.viscosity)
-                    ratio = t_res / dt
-                    exchange_matrix[voxel.voxel_number][neighbor.voxel_number] = ratio * np.exp(-ratio)#this is the probability of a cell moving from voxel i to voxel j
-        return exchange_matrix
+        V = self.voxel_list[0].volume
+        total_voxels = self.total_number_of_voxels
+
+        # Extract pressure and viscosity values for all voxels
+        pressures = np.array([voxel.pressure() for voxel in self.voxel_list])
+        viscosities = np.array([voxel.viscosity for voxel in self.voxel_list])
+
+        # Initialize migration matrix with zeros
+        migration_matrix = np.zeros((total_voxels, total_voxels))
+
+        for i in range(total_voxels):
+            voxel_i = self.voxel_list[i]
+            voxel_pressure = pressures[i]
+            viscosity = viscosities[i]
+
+            # Find neighbors of the current voxel
+            neighbors = self.find_neighbors(voxel_i)
+
+            for neighbor in neighbors:
+                j = neighbor.voxel_number
+
+                pressure_diff = voxel_pressure - pressures[j]
+                if pressure_diff > 0:
+                    t_res = (V / pressure_diff) * viscosity
+                    n_events = dt / t_res
+                    migration_matrix[i, j] = n_events
+
+        return migration_matrix
+
 
     def topas_param_file(self, name : str):
         print('-- Creating parameter file for topas simulation, file :', name)
@@ -248,7 +262,7 @@ class World:
         positions = []
         # collect doses and positions for all voxels
         for voxel in list:
-            number.append(voxel.number_cells)
+            number.append(voxel.number_of_cells())
             positions.append(voxel.position)
 
         ax.scatter(

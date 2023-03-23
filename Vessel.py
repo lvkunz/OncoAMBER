@@ -6,6 +6,7 @@ import math
 from BasicPlots import *
 from BasicGeometries import *
 
+
 # def rotation_matrix_from_vectors(u, v):
 #     # Find the rotation matrix that aligns vec1 to vec2
 #     # https://stackoverflow.com/questions/43507479/how-to-calculate-rotation-matrix-to-align-vector-a-to-vector-b-in-3d
@@ -26,38 +27,38 @@ def rotation_matrix_from_vectors(vec1, vec2):
     """
     a, b = (vec1 / np.linalg.norm(vec1)).reshape(3), (vec2 / np.linalg.norm(vec2)).reshape(3)
     v = np.cross(a, b)
-    if any(v): #if not all zeros then
+    if any(v):  # if not all zeros then
         c = np.dot(a, b)
         s = np.linalg.norm(v)
         kmat = np.array([[0, -v[2], v[1]], [v[2], 0, -v[0]], [-v[1], v[0], 0]])
         return np.eye(3) + kmat + kmat.dot(kmat) * ((1 - c) / (s ** 2))
 
     else:
-        return np.eye(3) #cross of all zeros only occurs on identical directions
+        return np.eye(3)  # cross of all zeros only occurs on identical directions
+
 
 class Vessel:
-    def __init__(self, origin, end, radius, id = 0):
-
-
+    def __init__(self, origin, end, radius, id=0):
         self.origin = np.array(origin)
         self.end = np.array(end)
         self.radius = radius
         self.direction_vector = self.end - self.origin
         self.length = np.linalg.norm(self.direction_vector)
         self.direction_vector = self.direction_vector / self.length
-        self.rotation_matrix = np.array(rotation_matrix_from_vectors(self.direction_vector, [0, 0, 1] ))
+        self.rotation_matrix = np.array(rotation_matrix_from_vectors(self.direction_vector, [0.0, 0.0, 1.0]))
         self.id = id
-        self.center = (self.origin + self.end) / 2 # center of the vessel
+        self.center = (self.origin + self.end) / 2  # center of the vessel
+
     def __iter__(self):
         return self
 
     def print(self):
-        print('Vessel ::' + 'origin: '+ str(self.origin) + ' end: '+ str(self.end) + ' radius: '+  str(self.radius))
+        print('Vessel ::' + 'origin: ' + str(self.origin) + ' end: ' + str(self.end) + ' radius: ' + str(self.radius))
 
     def generate_random_points(self, n):
         # Generate random points in a bounding box that encloses the cylinder
         x = np.random.uniform(-self.radius, self.radius, n)
-        y = np.random.uniform(-self.radius,self.radius, n)
+        y = np.random.uniform(-self.radius, self.radius, n)
         z = np.random.uniform(0, self.length, n)
         points = np.array([x, y, z]).T
         # Rotate the points to align with the cylinder
@@ -67,7 +68,7 @@ class Vessel:
         return points
 
     def generate_points_along_axis(self, n):
-        #generate random points along the axis of the vessel
+        # generate random points along the axis of the vessel
         z = np.linspace(0, self.length, n)
         x = np.zeros(n)
         y = np.zeros(n)
@@ -77,7 +78,6 @@ class Vessel:
         # Translate the points to the correct position
         points = points + self.origin
         return points
-
 
     def closest_point(self, p):
         """
@@ -102,6 +102,7 @@ class Vessel:
         z = [self.origin[2], self.end[2]]
         ax.plot(x, y, z, color='red', linewidth=1, alpha=0.3)
         return fig, ax
+
 
 class VasculatureNetwork:
     def __init__(self, list_of_vessels=None):
@@ -131,18 +132,21 @@ class VasculatureNetwork:
             if closest_distance is None or current_distance < closest_distance:
                 closest_distance = current_distance
         return closest_distance
-    def grow_vasculature(self, random_points = []):
+
+    def grow_vasculature(self, random_points=None):
+        if random_points is None:
+            random_points = []
         if len(self.list_of_vessels) == 0:
             raise ValueError('You need at least one initial vessel to grow a vasculature network')
         for i in range(0, len(random_points)):
             if i % 100 == 0: print('Growing Vasculature, current number of vessels added: ', i)
             end = random_points[i]
-            self.list_of_vessels.append(Vessel(self.closest_point(end), end, 0.1, id = self.next_vessel_number))
+            self.list_of_vessels.append(Vessel(self.closest_point(end), end, 0.1, id=self.next_vessel_number))
             self.next_vessel_number = self.next_vessel_number + 1
         return self.list_of_vessels
 
     def add_vessel(self, origin, end, radius):
-        self.list_of_vessels.append(Vessel(origin, end, radius, id = self.next_vessel_number))
+        self.list_of_vessels.append(Vessel(origin, end, radius, id=self.next_vessel_number))
         self.next_vessel_number += 1
 
     def remove_vessel(self, id):
@@ -150,11 +154,13 @@ class VasculatureNetwork:
             if vessel.id == id:
                 self.list_of_vessels.remove(vessel)
                 break
+
     def find_vessel(self, id):
         for vessel in self.list_of_vessels:
             if vessel.id == id:
                 return vessel
         return None
+
     def plot(self, fig, ax):
         print('-- Plotting Vasculature')
         for vessel in self.list_of_vessels:
@@ -167,7 +173,8 @@ class VasculatureNetwork:
         with open(filename, 'w') as f:
             for vessel in self.list_of_vessels:
                 f.write(str(vessel.origin[0]) + ' ' + str(vessel.origin[1]) + ' ' + str(vessel.origin[2]) + ' ' \
-                        + str(vessel.end[0]) + ' ' + str(vessel.end[1]) + ' ' + str(vessel.end[2]) + ' ' + str(vessel.radius) + '\n')
+                        + str(vessel.end[0]) + ' ' + str(vessel.end[1]) + ' ' + str(vessel.end[2]) + ' ' + str(
+                    vessel.radius) + '\n')
         print('-- Vasculature saved to file: ', filename)
 
     def read(self, filename):
@@ -177,6 +184,8 @@ class VasculatureNetwork:
         with open(filename, 'r') as f:
             for line in f:
                 line = line.split()
-                self.list_of_vessels.append(Vessel([float(line[0]), float(line[1]), float(line[2])], [float(line[3]), float(line[4]), float(line[5])], float(line[6]), id = self.next_vessel_number))
+                self.list_of_vessels.append(Vessel([float(line[0]), float(line[1]), float(line[2])],
+                                                   [float(line[3]), float(line[4]), float(line[5])], float(line[6]),
+                                                   id=self.next_vessel_number))
                 self.next_vessel_number += 1
         print('-- Vasculature read from file: ', filename)
