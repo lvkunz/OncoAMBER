@@ -15,7 +15,7 @@ class Simulator:
 
     def show(self, world: World, t = 0, slice = False):
 
-        Vasculature_show = False
+        Vasculature_show = True
 
 
         if slice:
@@ -26,19 +26,36 @@ class Simulator:
             angle = 30
             angle2 = 60
 
-        DPI = 100
+        DPI = 200
 
         fig = plt.figure()
-        #set fig size
+        # set fig size
         fig.set_size_inches(10, 10)
         fig.set_dpi(DPI)
         ax = fig.add_subplot(111, projection='3d')
         ax.view_init(angle, angle2)
-        world.show_voxels_centers(ax, fig, slice = slice)
+        ax.set_xlim(-0.5, 0.5)
+        ax.set_ylim(-0.5, 0.5)
+        ax.set_zlim(-0.5, 0.5)
+        world.show_tumor(ax, fig)
         if Vasculature_show: world.vasculature.plot(fig, ax)
         plt.title('Cells in voxels at time t = ' + str(t) + ' hours')
-        plt.savefig('Plots/Video/t'+ str(t) + '.png')
+        plt.savefig('Plots/Video/t' + str(t) + '.png')
         plt.show()
+
+
+
+        # fig = plt.figure()
+        # #set fig size
+        # fig.set_size_inches(10, 10)
+        # fig.set_dpi(DPI)
+        # ax = fig.add_subplot(111, projection='3d')
+        # ax.view_init(angle, angle2)
+        # world.show_voxels_centers(ax, fig, slice = slice)
+        # if Vasculature_show: world.vasculature.plot(fig, ax)
+        # plt.title('Cells in voxels at time t = ' + str(t) + ' hours')
+        # plt.savefig('Plots/Video/t'+ str(t) + '.png')
+        # plt.show()
 
         # figA = plt.figure()
         # figA.set_size_inches(10, 10)
@@ -51,27 +68,27 @@ class Simulator:
         # plt.savefig('Plots/Video/t'+ str(t) + '_VEGF.png')
         # plt.show()
 
-        # figB = plt.figure()
-        # figB.set_size_inches(10, 10)
-        # figB.set_dpi(DPI)
-        # axB = figB.add_subplot(111, projection='3d')
-        # axB.view_init(angle, angle2)
-        # world.show_voxels_centers_oxygen(axB, figB, slice = slice)
-        # if Vasculature_show: world.vasculature.plot(figB, axB)
-        # plt.title('Oxygen in voxels at time t = ' + str(t) + ' hours')
-        # plt.savefig('Plots/Video/t'+ str(t) + '_Oxygen.png')
-        # plt.show()
-
-        figC = plt.figure()
-        figC.set_size_inches(10, 10)
-        figC.set_dpi(DPI)
-        axC = figC.add_subplot(111, projection='3d')
-        axC.view_init(angle, angle2)
-        world.show_voxels_centers_pressure(axC, figC, slice = slice)
-        if Vasculature_show: world.vasculature.plot(figC, axC)
-        plt.title('Pressure in voxels at time t = ' + str(t) + ' hours')
-        plt.savefig('Plots/Video/t'+ str(t) + '_Pressure.png')
+        figB = plt.figure()
+        figB.set_size_inches(10, 10)
+        figB.set_dpi(DPI)
+        axB = figB.add_subplot(111, projection='3d')
+        axB.view_init(angle, angle2)
+        world.show_voxels_centers_oxygen(axB, figB, slice = slice)
+        if Vasculature_show: world.vasculature.plot(figB, axB)
+        plt.title('Oxygen in voxels at time t = ' + str(t) + ' hours')
+        plt.savefig('Plots/Video/t'+ str(t) + '_Oxygen.png')
         plt.show()
+
+        # figC = plt.figure()
+        # figC.set_size_inches(10, 10)
+        # figC.set_dpi(DPI)
+        # axC = figC.add_subplot(111, projection='3d')
+        # axC.view_init(angle, angle2)
+        # world.show_voxels_centers_pressure(axC, figC, slice = slice)
+        # if Vasculature_show: world.vasculature.plot(figC, axC)
+        # plt.title('Pressure in voxels at time t = ' + str(t) + ' hours')
+        # plt.savefig('Plots/Video/t'+ str(t) + '_Pressure.png')
+        # plt.show()
 
         # figO = plt.figure()
         # axO = figO.add_subplot(111, projection='3d')
@@ -126,7 +143,7 @@ class CellDivision(Process):
         #print('CellDivision')
         if voxel.pressure() < self.pressure_threshold:
             for cell in voxel.list_of_cells:
-                if cell.vitality > self.cycling_threshold:
+                if cell.vitality() > self.cycling_threshold:
                     # Calculate the expected number of cell divisions in the time step
                     expected_divisions = self.dt / cell.doubling_time
                     # Use a Poisson distribution to model the number of cell divisions
@@ -144,17 +161,14 @@ class CellApoptosis(Process):
         self.apoptosis_threshold = apoptosis_threshold
 
     def __call__(self, voxel):
-        for cell in voxel.list_of_cells:
-            if cell.vitality < self.apoptosis_threshold :
-                voxel.remove_cell(cell)
+        pass
 
 class CellAging(Process):
     def __init__(self, name, dt):
         super().__init__('CellAging', dt)
     def __call__(self, voxel):
         #print('CellAging')
-        for cell in voxel.list_of_cells:
-            cell.age = cell.age + self.dt
+        pass
 
 
 class CellMigration(Process):
@@ -167,17 +181,13 @@ class CellMigration(Process):
         exchange_matrix = world.compute_exchange_matrix(self.dt, pressure_threshold=self.pressure_threshold)
         for voxel in world.voxel_list:
             voxel_num = voxel.voxel_number
-
-            if voxel_num % 10000 == 0:
-                print('voxel number = ', voxel_num)
-
+            if voxel_num % 10000 == 0: print('voxel number = ', voxel_num)
             list_of_neighbors = world.find_neighbors(voxel)
-
+            np.random.shuffle(list_of_neighbors)
             for neighbor in list_of_neighbors:
                 n_events = exchange_matrix[voxel_num, neighbor.voxel_number]
                 n_moving_cells = np.random.poisson(n_events)
                 n_moving_cells = min(n_moving_cells, len(voxel.list_of_cells))
-
                 if n_moving_cells > 0:
                     list_of_moving_cells = np.random.choice(voxel.list_of_cells, n_moving_cells, replace=False)
                     for cell in list_of_moving_cells:
@@ -186,21 +196,19 @@ class CellMigration(Process):
 
 
 class UpdateCellState(Process):
-    def __init__(self, name, dt, vitality_o2_threshold, vitality_slope):
+    def __init__(self, name, dt, spread_gaussian_o2):
         super().__init__('UpdateState', dt)
-        self.vitality_o2_threshold = vitality_o2_threshold
-        self.vitality_slope = vitality_slope
+        self.spread_gaussian_o2 = spread_gaussian_o2
 
     def __call__(self, voxel: Voxel):
-        #print('UpdateState')
-        voxel.update_cells_for_oxygen_state(vitality_slope=self.vitality_slope, vitality_threshold=self.vitality_o2_threshold)
+        voxel.update_cells_oxygen_state(self.spread_gaussian_o2)
 class UpdateVoxelMolecules(Process):
-    def __init__(self, name, dt, VEGF_production_per_cell):
+    def __init__(self, name, dt, VEGF_production_per_cell, threshold_for_VEGF_production):
         super().__init__('UpdateMolecules', dt)
         self.VEGF_production_per_cell = VEGF_production_per_cell
+        self.threshold_for_VEGF_production = threshold_for_VEGF_production
     def __call__(self, voxel: Voxel):
-        #print('UpdateMolecules')
-        voxel.update_molecules(self.dt, self.VEGF_production_per_cell)
+        voxel.update_molecules(self.dt, self.VEGF_production_per_cell, self.threshold_for_VEGF_production)
 class UpdateVasculature(Process):
     def __init__(self, name, dt, pressure_killing_threshold, pressure_killing_slope, vasculature_growth_factor, o2_per_volume, diffusion_number):
         super().__init__('UpdateVasculature', dt)
@@ -211,7 +219,6 @@ class UpdateVasculature(Process):
         self.o2_per_volume = o2_per_volume
         self.diffusion_number = diffusion_number
     def __call__(self, world: World):
-        #print('UpdateVasculature')
         print('Killing vessels')
         n_killed = world.vessels_killed_by_pressure(pressure_killing_threshold=self.pressure_killing_threshold, pressure_killing_slope=self.pressure_killing_slope)
         print('Killed vessels: ', n_killed)

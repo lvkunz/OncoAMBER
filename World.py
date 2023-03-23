@@ -11,8 +11,9 @@ from BasicGeometries import *
 #np.set_printoptions(threshold=sys.maxsize)
 from ScalarField import *
 from matplotlib.colors import Normalize
-from pickle import dump, load
-
+from mpl_toolkits.mplot3d import Axes3D
+import pyvista as pv
+from scipy import ndimage
 
 class World:
     def __init__(self, half_length, number_of_voxels : int = 20):
@@ -269,31 +270,42 @@ class World:
         [p[0] for p in positions],
         [p[1] for p in positions],
         [p[2] for p in positions],
-        c=number, cmap='YlGn', alpha= 0.5, vmin=min(number), vmax=max(number), s= size)
+        c=number, cmap='YlGn', alpha= 0.5, vmin=0, vmax=2000, s= size)
         # add colorbar
         fig.colorbar(ax.collections[0])
         return fig, ax
 
-    def show_voxels_centers_celltype(self, ax, fig):
-        for voxel in self.voxel_list:
-            # print(voxel)
-            # print(voxel.position)
-            # print(len(voxel.list_of_cells))
-            average_color = (0, 0, 0)
-            for cell in voxel.list_of_cells:
-                # transform the string color into rgb
-                rgb = to_rgb(cell.color)
-                average_color = (average_color[0] + rgb[0], average_color[1] + rgb[1], average_color[2] + rgb[2])
-            if len(voxel.list_of_cells) > 0:  # if the voxel is empty we'd have an error
-                average_color = (
-                average_color[0] / len(voxel.list_of_cells), average_color[1] / len(voxel.list_of_cells),
-                average_color[2] / len(voxel.list_of_cells))
-                average_color = (int(average_color[0]), int(average_color[1]), int(average_color[2]))
-            color = rgb_to_hex(average_color)
-            ax.scatter(voxel.position[0], voxel.position[1], voxel.position[2], s=len(voxel.list_of_cells), color=color,
-                       alpha=0.3)
-        return fig, ax
+    def show_tumor(self, ax, fig, slice = False):
+        print('-- Plotting Cell Population')
 
+        #central z slice of world first voxel is at z = 0
+        if slice:
+            middle_slice = self.number_of_voxels // 2
+            first_voxel = middle_slice * self.number_of_voxels**2
+            last_voxel = (middle_slice + 1) * self.number_of_voxels**2 -1
+            list = self.voxel_list[first_voxel:last_voxel]
+            size = 500/self.number_of_voxels
+        else:
+            list = self.voxel_list
+            size = 1
+        size = 30
+        number = []
+        positions = []
+        # collect doses and positions for all voxels
+        for voxel in list:
+            count = voxel.number_of_tumor_cells()
+            if count > 0:
+                number.append(count)
+                positions.append(voxel.position)
+
+        ax.scatter(
+        [p[0] for p in positions],
+        [p[1] for p in positions],
+        [p[2] for p in positions],
+        c=number, cmap='plasma', alpha= 0.5, vmin=30, vmax=500, s= size)
+        # add colorbar
+        fig.colorbar(ax.collections[0])
+        return fig, ax
     def show_voxels_centers_dose(self, ax, fig):
         print('-- Plotting Dose')
         doses = []
@@ -390,3 +402,44 @@ class World:
         # add colorbar
         fig.colorbar(ax.collections[0])
         return fig, ax
+
+    def show_tumor_surface(self):
+        print('-- Plotting Tumor Surface')
+
+        threshold = 20
+
+        voxel_data = np.zeros((self.number_of_voxels, self.number_of_voxels, self.number_of_voxels))
+        for i in range(self.number_of_voxels):
+            for j in range(self.number_of_voxels):
+                for k in range(self.number_of_voxels):
+                    voxel = self.voxel_list[i * self.number_of_voxels ** 2 + j * self.number_of_voxels + k]
+                    if voxel.number_of_tumor_cells() > threshold:
+                        voxel_data[i, j, k] = 1
+        print('ok')
+        # Label connected regions of the tumor cells
+        labels, num_features = ndimage.label(voxel_data)
+
+        # Convert the labeled volume data to a StructuredGrid object
+        grid = pv.wrap(labels)
+
+        # Extract the surface using the contour method
+        mesh = grid.contour([0.5])
+
+        # Create a PyVista plotter
+        plotter = pv.Plotter()
+
+        # Add the mesh to the plotter
+        plotter.add_mesh(mesh, cmap="viridis")
+
+        # Set plot title
+        plotter.add_title("Tumor Surface")
+        #add axis labels
+        plotter.add_axes()
+
+        # Show the plot
+        #save
+        plotter.show(screenshot='tumor_surface.png')
+        plotter.show()
+
+        return
+

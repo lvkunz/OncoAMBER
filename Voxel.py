@@ -7,7 +7,7 @@ import random
 def sigmoid(L, x, x0, k):
     return L/(1 + np.exp(-k*(x-x0)))
 
-class Voxel(object):
+class Voxel(object): #extra parameters are max_occupancy, viscosity
         def __init__(self, position = np.array([0,0,0]), half_length = 0.1, list_of_cells_in=None, oxygen = 0, voxel_number = 0):
                 if list_of_cells_in is None:
                         list_of_cells_in = []
@@ -27,6 +27,13 @@ class Voxel(object):
 
         def number_of_cells(self):
                 return len(self.list_of_cells)
+
+        def number_of_tumor_cells(self):
+                number = 0
+                for cell in self.list_of_cells:
+                        if isinstance(cell, TumorCell):
+                                number = number + 1
+                return number
 
         def occupied_volume(self):
                 volume = 0.0
@@ -49,8 +56,9 @@ class Voxel(object):
                 points = points + self.position
                 return points
         def add_cell(self, cell):
-                if self.pressure() > 0.998:
-                        print('Voxel is full, pressure is', self.pressure())
+                max_occupancy = 0.7 #hard spheres is 0.64, + consider a little bit of compression
+                if self.pressure() > max_occupancy:
+                        print('Voxel is full, pressure is', self.pressure(), ' number of cells is', self.number_of_cells())
                         return False
                 else:
                         self.list_of_cells = np.append(cell, self.list_of_cells)
@@ -61,7 +69,6 @@ class Voxel(object):
                 self.list_of_cells = np.delete(self.list_of_cells, id)
                 return True
 
-
         def update_cells_afterRT(self, radio_sensitivity):
                expected_deaths = self.dose*radio_sensitivity
                # Use a Poisson distribution to model the number of cell deaths
@@ -71,13 +78,12 @@ class Voxel(object):
                for cell in cells_to_remove:
                        cell.state = 'dead' # kill the cell
 
-        def update_cells_for_oxygen_state(self, vitality_threshold, vitality_slope):
-                #print('updating cells for oxygen state')
-                #define sigmoid function depending on oxygen (logistic function)
-                vitality = lambda pO2: sigmoid(1, pO2, vitality_threshold, vitality_slope)
-                for cell in self.list_of_cells:
-                        cell.vitality = vitality(self.oxygen)
-
+        def update_cells_oxygen_state(self, spread_gaussian_o2):
+                mean_oxygen = self.oxygen/self.number_of_cells()
+                sample_gaussian_o2 = np.random.normal(mean_oxygen, spread_gaussian_o2, self.number_of_cells())
+                for i in range(self.number_of_cells()):
+                        self.list_of_cells[i].oxygen = sample_gaussian_o2[i]
+                return
         def update_occupied_volume(self):
                 #print('updating occupied volume')
                 volume = 0
@@ -86,15 +92,13 @@ class Voxel(object):
                 self.occupied_volume = volume
                 return volume
 
-
-        def update_molecules(self, dt, VEGF_production_per_cell):
-                #print('updating molecules')
-                count = 0
+        def update_molecules(self, dt, VEGF_production_per_cell, threshold_for_VEGF_production):
+                VEGF = 0
                 for cell in self.list_of_cells:
-                        if isinstance(cell, TumorCell):
-                                count = count + 1
-                self.molecular_factors['VEGF'] = min(1, count*VEGF_production_per_cell)
-
+                        if cell.oxygen < threshold_for_VEGF_production:
+                                VEGF = VEGF + VEGF_production_per_cell
+                self.molecular_factors['VEGF'] = VEGF
+                return
 
 
 

@@ -167,7 +167,7 @@ class VasculatureNetwork:
             x = [vessel.origin[0], vessel.end[0]]
             y = [vessel.origin[1], vessel.end[1]]
             z = [vessel.origin[2], vessel.end[2]]
-            ax.plot(x, y, z, color='black', linewidth=1, alpha=1.0)
+            ax.plot(x, y, z, color='black', linewidth=1, alpha=0.5)
 
     def save(self, filename):
         with open(filename, 'w') as f:
