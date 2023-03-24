@@ -37,7 +37,7 @@ class Simulator:
         ax.set_xlim(-0.5, 0.5)
         ax.set_ylim(-0.5, 0.5)
         ax.set_zlim(-0.5, 0.5)
-        world.show_tumor(ax, fig)
+        world.show_tumor(ax, fig, slice = slice)
         if Vasculature_show: world.vasculature.plot(fig, ax)
         plt.title('Cells in voxels at time t = ' + str(t) + ' hours')
         plt.savefig('Plots/Video/t' + str(t) + '.png')
@@ -68,16 +68,16 @@ class Simulator:
         # plt.savefig('Plots/Video/t'+ str(t) + '_VEGF.png')
         # plt.show()
 
-        figB = plt.figure()
-        figB.set_size_inches(10, 10)
-        figB.set_dpi(DPI)
-        axB = figB.add_subplot(111, projection='3d')
-        axB.view_init(angle, angle2)
-        world.show_voxels_centers_oxygen(axB, figB, slice = slice)
-        if Vasculature_show: world.vasculature.plot(figB, axB)
-        plt.title('Oxygen in voxels at time t = ' + str(t) + ' hours')
-        plt.savefig('Plots/Video/t'+ str(t) + '_Oxygen.png')
-        plt.show()
+        # figB = plt.figure()
+        # figB.set_size_inches(10, 10)
+        # figB.set_dpi(DPI)
+        # axB = figB.add_subplot(111, projection='3d')
+        # axB.view_init(angle, angle2)
+        # world.show_voxels_centers_oxygen(axB, figB, slice = slice)
+        # if Vasculature_show: world.vasculature.plot(figB, axB)
+        # plt.title('Oxygen in voxels at time t = ' + str(t) + ' hours')
+        # plt.savefig('Plots/Video/t'+ str(t) + '_Oxygen.png')
+        # plt.show()
 
         # figC = plt.figure()
         # figC.set_size_inches(10, 10)
@@ -104,7 +104,7 @@ class Simulator:
         process_local = [process for process in self.list_of_process if (not process.is_global)]
         process_global = [process for process in self.list_of_process if process.is_global]
 
-        self.show(world, self.time, slice = True)
+        self.show(world, self.time, slice = False)
 
         while self.time < self.finish_time:
             print('Time: {} hours'.format(self.time) + ' / ' + str(self.finish_time) + ' hours')
@@ -118,7 +118,7 @@ class Simulator:
                 for process in process_local:
                     process(voxel)
             self.time = self.time + self.dt
-            if video: self.show(world, self.time, slice = True)
+            if video: self.show(world, self.time, slice = False)
         print('Simulation finished')
         self.show(world, self.time, slice = True)
         return
@@ -153,7 +153,6 @@ class CellDivision(Process):
                         voxel.add_cell(new_cell)
         else:
             print('pressure = ', voxel.pressure(), ' > ', self.pressure_threshold, ' so no cell division')
-
         return
 class CellApoptosis(Process):
     def __init__(self, name, dt, apoptosis_threshold):
@@ -161,7 +160,9 @@ class CellApoptosis(Process):
         self.apoptosis_threshold = apoptosis_threshold
 
     def __call__(self, voxel):
-        pass
+        for cell in voxel.list_of_cells:
+            if cell.vitality() < self.apoptosis_threshold:
+                voxel.remove_cell(cell)
 
 class CellAging(Process):
     def __init__(self, name, dt):
@@ -208,7 +209,7 @@ class UpdateVoxelMolecules(Process):
         self.VEGF_production_per_cell = VEGF_production_per_cell
         self.threshold_for_VEGF_production = threshold_for_VEGF_production
     def __call__(self, voxel: Voxel):
-        voxel.update_molecules(self.dt, self.VEGF_production_per_cell, self.threshold_for_VEGF_production)
+        voxel.update_vegf(self.dt, self.VEGF_production_per_cell, self.threshold_for_VEGF_production)
 class UpdateVasculature(Process):
     def __init__(self, name, dt, pressure_killing_threshold, pressure_killing_slope, vasculature_growth_factor, o2_per_volume, diffusion_number):
         super().__init__('UpdateVasculature', dt)

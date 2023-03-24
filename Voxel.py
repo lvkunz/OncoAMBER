@@ -92,7 +92,7 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                 self.occupied_volume = volume
                 return volume
 
-        def update_molecules(self, dt, VEGF_production_per_cell, threshold_for_VEGF_production):
+        def update_vegf(self, dt, VEGF_production_per_cell, threshold_for_VEGF_production):
                 VEGF = 0
                 for cell in self.list_of_cells:
                         if cell.oxygen < threshold_for_VEGF_production:

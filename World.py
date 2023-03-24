@@ -6,7 +6,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from BasicPlots import *
 from scipy.sparse import csr_matrix
 import sys
-from Vessel import *
+from Vessel_old import *
 from BasicGeometries import *
 #np.set_printoptions(threshold=sys.maxsize)
 from ScalarField import *
@@ -302,7 +302,7 @@ class World:
         [p[0] for p in positions],
         [p[1] for p in positions],
         [p[2] for p in positions],
-        c=number, cmap='plasma', alpha= 0.5, vmin=30, vmax=500, s= size)
+        c=number, cmap='viridis', alpha= 0.8, vmin=30, vmax=500, s= size*3)
         # add colorbar
         fig.colorbar(ax.collections[0])
         return fig, ax
@@ -439,7 +439,6 @@ class World:
         # Show the plot
         #save
         plotter.show(screenshot='tumor_surface.png')
-        plotter.show()
 
         return
 

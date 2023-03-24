@@ -8,6 +8,7 @@ from Process import *
 from Terminal import *
 import os
 from ReadAndWrite import *
+from Vessel_old import *
 
 # time the simulation
 import time
@@ -32,7 +33,7 @@ PARAMETERS = dict()
 #PARAMETERS = read_parameters('parameters.txt')
 
 PARAMETERS['half_length_world'] = 1.5
-PARAMETERS['voxel_per_side'] = 50
+PARAMETERS['voxel_per_side'] = 30
 
 PARAMETERS['dt'] = 10
 PARAMETERS['endtime'] = 80
@@ -41,9 +42,9 @@ PARAMETERS['TOPAS_file'] = 'nobeam'
 PARAMETERS['vessel_number'] = 2000
 
 PARAMETERS['initial_number_cells'] = 10
-PARAMETERS['initial_number_tumor_cells'] = 30000
+PARAMETERS['initial_number_tumor_cells'] = 10000
 PARAMETERS['doubling_time'] = 10000000000
-PARAMETERS['doubling_time_tumor'] = 18
+PARAMETERS['doubling_time_tumor'] = 6
 PARAMETERS['radius_tumor'] = 0.0013
 PARAMETERS['radius_healthy'] = 0.0013
 
@@ -51,9 +52,9 @@ PARAMETERS['pressure_threshold_migration'] = 0
 
 PARAMETERS['spread_gaussian_o2'] = 0.1
 
-PARAMETERS['vitality_cycling_threshold'] = 0.5
-PARAMETERS['vitality_apoptosis_threshold'] = 0.1
-PARAMETERS['pressure_threshold_division'] = 10000
+PARAMETERS['vitality_cycling_threshold'] = 0.0001 #threshold in cell vitality for cycling [0,1]
+PARAMETERS['vitality_apoptosis_threshold'] = 0.0 #threshold in cell vitality for apoptosis [0,1]
+PARAMETERS['pressure_threshold_division'] = 0.68 #threshold in pressure for division [0,1]
 
 
 PARAMETERS['VEGF_production_per_cell'] = 0.0 #VEGF production per TumorCell per timestep
@@ -62,7 +63,7 @@ PARAMETERS['pressure_threshold_death'] = 100000 #threshold of sigmoid where vess
 PARAMETERS['pressure_threshold_slope'] = 30  #slope of the sigmoid where vessels start to die
 PARAMETERS['Vasculature Growth Rate'] = 10 #how many vessels are added per 1 VEGF concentration unit
 
-PARAMETERS['o2_per_volume'] = 1000 #oxygen concentration in voxel per volume of vessel
+PARAMETERS['o2_per_volume'] = 1000000 #oxygen concentration in voxel per volume of vessel
 
 PARAMETERS['diffusion_number'] = 10 #number of diffusion steps per timestep
 
@@ -82,12 +83,12 @@ world.update_dose(doses)
 
 if Vasculature:
     # world.generate_vasculature(PARAMETERS['vessel_number'])
-    world.vasculature = VasculatureNetwork([Vessel([0, 0, 0],[0, 0, 0.5], 0.1)])
-    world.vasculature.grow_vasculature(Cube(world.half_length, [0, 0, 0]).generate_random_points(80))
-    world.vasculature.grow_vasculature(Sphere(0.3, [0, 0, 0]).generate_random_points(500))
-    world.vasculature.save('Vasculature/vasculature_current.txt')
+    #world.vasculature = VasculatureNetwork([Vessel_old([0, 0, 0], [0, 0, 0.5], 0.1)])
+    # world.vasculature.grow_vasculature(Cube(0.5, [0, 0, 0]).generate_random_points(80))
+    # world.vasculature.grow_vasculature(Sphere(0.3, [0, 0, 0]).generate_random_points(500))
+    # world.vasculature.save('Vasculature/vasculature_current.txt')
 
-    # world.read_vasculature('Vasculature/vasculature_current.txt')
+    world.read_vasculature('Vasculature/vasculature_current.txt')
     world.compute_oxygen_map(diffusion_number=PARAMETERS['diffusion_number'])
     figO = plt.figure()
     figO.set_size_inches(10, 10)
@@ -177,18 +178,7 @@ if CellDynamics:
         plt.savefig('Plots/tumor_final.png')
         plt.show()
 
-        world.show_tumor_surface()
-
-        fig2 = plt.figure()
-        ax2 = fig2.add_subplot(111, projection='3d')
-        ax2.figure.set_dpi(DPI)
-        # view from above
-        # ax2.view_init(90, 0)
-        world.show_voxels_centers(ax2, fig2)
-        world.vasculature.plot(fig2, ax2)
-        plt.title('Final cells in voxels at time t = ' + str(end_time) + ' hours')
-        plt.savefig('Plots/final.png')
-        plt.show()
+        # world.show_tumor_surface()
 
 
 print('total time: ', time.time() - start_time, ' seconds')

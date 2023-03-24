@@ -14,8 +14,10 @@ class Cell (object):
         return Cell(self.radius, self.doubling_time)
 
     def vitality(self):
-        factor = 1
-        return self.oxygen * factor #needs to be normalized between 0 and 1
+        factor = 1.0
+        vitality = self.oxygen * factor
+        vitality = min(vitality, 1.0)
+        return vitality #needs to be normalized between 0 and 1
 
 class TumorCell(Cell):
     def __init__(self, radius, cycle_hours = 5, life_expectancy = 1000, color = 'my purple'):

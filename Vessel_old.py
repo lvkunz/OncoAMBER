@@ -6,19 +6,6 @@ import math
 from BasicPlots import *
 from BasicGeometries import *
 
-
-# def rotation_matrix_from_vectors(u, v):
-#     # Find the rotation matrix that aligns vec1 to vec2
-#     # https://stackoverflow.com/questions/43507479/how-to-calculate-rotation-matrix-to-align-vector-a-to-vector-b-in-3d
-#     u = u / np.linalg.norm(u)
-#     v = v / np.linalg.norm(v)
-#     c = np.dot(u, v)
-#     print(c)
-#     s = np.sqrt(1 - c ** 2)
-#     k = np.cross(u, v)
-#     K = np.array([[0, -k[2], k[1]], [k[2], 0, -k[0]], [-k[1], k[0], 0]])
-#     R = np.identity(3) + s * K + (1 - c) * np.dot(K, K)
-#     return R
 def rotation_matrix_from_vectors(vec1, vec2):
     """ Find the rotation matrix that aligns vec1 to vec2
     :param vec1: A 3d "source" vector
@@ -37,7 +24,7 @@ def rotation_matrix_from_vectors(vec1, vec2):
         return np.eye(3)  # cross of all zeros only occurs on identical directions
 
 
-class Vessel:
+class Vessel_old:
     def __init__(self, origin, end, radius, id=0):
         self.origin = np.array(origin)
         self.end = np.array(end)
@@ -100,7 +87,7 @@ class Vessel:
         x = [self.origin[0], self.end[0]]
         y = [self.origin[1], self.end[1]]
         z = [self.origin[2], self.end[2]]
-        ax.plot(x, y, z, color='red', linewidth=1, alpha=0.3)
+        ax.plot(x, y, z, color='orangered', linewidth=1, alpha=0.3)
         return fig, ax
 
 
@@ -141,12 +128,12 @@ class VasculatureNetwork:
         for i in range(0, len(random_points)):
             if i % 100 == 0: print('Growing Vasculature, current number of vessels added: ', i)
             end = random_points[i]
-            self.list_of_vessels.append(Vessel(self.closest_point(end), end, 0.1, id=self.next_vessel_number))
+            self.list_of_vessels.append(Vessel_old(self.closest_point(end), end, 0.1, id=self.next_vessel_number))
             self.next_vessel_number = self.next_vessel_number + 1
         return self.list_of_vessels
 
     def add_vessel(self, origin, end, radius):
-        self.list_of_vessels.append(Vessel(origin, end, radius, id=self.next_vessel_number))
+        self.list_of_vessels.append(Vessel_old(origin, end, radius, id=self.next_vessel_number))
         self.next_vessel_number += 1
 
     def remove_vessel(self, id):
@@ -167,7 +154,7 @@ class VasculatureNetwork:
             x = [vessel.origin[0], vessel.end[0]]
             y = [vessel.origin[1], vessel.end[1]]
             z = [vessel.origin[2], vessel.end[2]]
-            ax.plot(x, y, z, color='black', linewidth=1, alpha=0.5)
+            ax.plot(x, y, z, color='crimson', linewidth=1.5, alpha=0.7)
 
     def save(self, filename):
         with open(filename, 'w') as f:
@@ -184,8 +171,8 @@ class VasculatureNetwork:
         with open(filename, 'r') as f:
             for line in f:
                 line = line.split()
-                self.list_of_vessels.append(Vessel([float(line[0]), float(line[1]), float(line[2])],
-                                                   [float(line[3]), float(line[4]), float(line[5])], float(line[6]),
-                                                   id=self.next_vessel_number))
+                self.list_of_vessels.append(Vessel_old([float(line[0]), float(line[1]), float(line[2])],
+                                                       [float(line[3]), float(line[4]), float(line[5])], float(line[6]),
+                                                       id=self.next_vessel_number))
                 self.next_vessel_number += 1
         print('-- Vasculature read from file: ', filename)
