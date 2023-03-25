@@ -99,7 +99,8 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                                 VEGF = VEGF + VEGF_production_per_cell
                 self.molecular_factors['VEGF'] = VEGF
                 return
-
+        def vegf_gradient_map(self):
+                vegf_gradient = ScalarField(self.position, self.half_length)
 
 
 

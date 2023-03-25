@@ -229,7 +229,7 @@ class World:
             voxel.dose = doses[voxel.voxel_number]
         return
 
-    def compute_oxygen_map(self, o2_per_volume=10, diffusion_number=5):
+    def update_oxygen(self, o2_per_volume=10, diffusion_number=5):
         print('-- Computing oxygen map')
         for voxel in self.voxel_list:
             voxel.oxygen = voxel.vessel_volume * o2_per_volume
@@ -244,7 +244,39 @@ class World:
             for voxel in self.voxel_list:
                 voxel.oxygen = new_oxygen_map[voxel.voxel_number]
         return
-    #function to plot cells
+
+    def oxygen_map(self):
+        values = []
+        positions = []
+        for voxel in self.voxel_list:
+            values.append(voxel.oxygen)
+            positions.append(voxel.position)
+
+        step = self.half_length*2/self.number_of_voxels
+        o2_map = ScalarField(positions, values, step)
+        return o2_map
+
+    def pressure_map(self):
+        values = []
+        positions = []
+        for voxel in self.voxel_list:
+            values.append(voxel.pressure())
+            positions.append(voxel.position)
+
+        step = self.half_length*2/self.number_of_voxels
+        pressure_map = ScalarField(positions, values, step)
+        return pressure_map
+
+    def vegf_map(self):
+        values = []
+        positions = []
+        for voxel in self.voxel_list:
+            values.append(voxel.molecular_factors['VEGF'])
+            positions.append(voxel.position)
+
+        step = self.half_length*2/self.number_of_voxels
+        vegf_map = ScalarField(positions, values, step)
+        return vegf_map
 
     def show_voxels_centers(self, ax, fig, slice = False):
         print('-- Plotting Cell Population')
