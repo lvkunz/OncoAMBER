@@ -28,6 +28,21 @@ class Sphere(Shape):
         points = points[:n]
         return points
 
+    def generate_random_points_on_surface(sphere, n):
+        points = []
+        for i in range(n):
+            # generate a random point on a unit sphere
+            point = np.random.normal(size=3)
+            point /= np.linalg.norm(point)
+
+            # scale the point by the sphere's radius and translate it to the sphere's center
+            point *= sphere.radius
+            point += sphere.center
+
+            points.append(point)
+
+        return points
+
 class Cube(Shape):
     def __init__(self, half_side: float = 1.0, center = np.array([0,0,0]) , name: str = "Cube"):
         super().__init__(name)

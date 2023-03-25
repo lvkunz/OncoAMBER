@@ -5,6 +5,7 @@ import random
 import math
 from BasicPlots import *
 from BasicGeometries import *
+import networkx as nx
 
 
 class Vessel:
@@ -14,7 +15,7 @@ class Vessel:
         self.id = id(self)
         self.parent_id = parent_id
         self.children_ids = []
-        self.step_size = 0.5
+        self.step_size = 0.05
         self.in_growth = True
 
     def __iter__(self):
@@ -61,7 +62,7 @@ class Vessel:
         return np.pi * self.radius ** 2 * self.step_size
 
     def plot(self, ax, color='blue'):
-        ax.plot(self.path[:, 0], self.path[:, 1], self.path[:, 2], color=color, alpha=0.5)
+        ax.plot(self.path[:, 0], self.path[:, 1], self.path[:, 2], color=color, alpha=0.5, linewidth= self.radius)
 
     def choose_random_point(self):
         #choose random point on the path, not the first or last point
@@ -125,17 +126,23 @@ class VasculatureNetwork:
         self.list_of_vessels.remove(vessel)
 
     def update_vessels_radius(self, final_radius):
-        for vessel in self.list_of_vessels:
-            if vessel.children_ids == []:
+        def update_radius_recursive(vessel_id):
+            vessel = self.get_vessel(vessel_id)
+            if not vessel.children_ids:
                 vessel.radius = final_radius
-        for vessel in self.list_of_vessels:
-            if vessel.children_ids != []:
-                r = 0
+            else:
                 for child_id in vessel.children_ids:
-                    child_vessel = self.get_vessel(child_id)
-                    r += child_vessel.radius ** 3
-                r = r ** (1 / 3)
-                vessel.radius = r
+                    update_radius_recursive(child_id)
+
+                r_cubed_sum = sum([self.get_vessel(child_id).radius**3 for child_id in vessel.children_ids])
+                vessel.radius = r_cubed_sum**(1/3)
+
+        # Find all root vessels with parent_id=None
+        root_vessels = [v for v in self.list_of_vessels if v.parent_id is None]
+
+        # Call update_radius_recursive for each root vessel
+        for root_vessel in root_vessels:
+            update_radius_recursive(root_vessel.id)
 
     def volume_occupied(self):
         points = []
@@ -157,16 +164,39 @@ class VasculatureNetwork:
             vessel.plot(ax, color)
 
 
-    def grow_and_split(self,splitting_rate, vegf_gradient, pressure, macro_steps=1, weight_direction=0.5, weight_vegf=0.5, pressure_threshold=0.5, weight_pressure=0.5):
-        dt = 5
-        mini_steps = 10 * dt
+    def grow_and_split(self,splitting_rate, vegf_gradient, pressure, macro_steps=1, micro_steps=10, weight_direction=0.5, weight_vegf=0.5, pressure_threshold=0.5, weight_pressure=0.5):
+        dt = 10
+        micro_steps = micro_steps*dt
         for i in range(macro_steps):
             print("Macro step {}".format(i))
             for vessel in self.list_of_vessels:
                 print('current number of vessels {}'.format(len(self.list_of_vessels)))
                 if vessel.in_growth:
-                    vessel.grow(vegf_gradient, pressure, mini_steps, weight_direction, weight_vegf, pressure_threshold, weight_pressure)
+                    vessel.grow(vegf_gradient, pressure, micro_steps, weight_direction, weight_vegf, pressure_threshold, weight_pressure)
                     if vessel.path.shape[0] > 1:
                         if random.uniform(0, 1) < splitting_rate*dt:
                             branching_point = vessel.choose_random_point()
                             self.branching(vessel.id, branching_point)
+
+    def print_vessel_tree_recursive(self, vessels, children_ids, indent):
+        for child_id in children_ids:
+            child_vessel = next((v for v in vessels if v.id == child_id), None)
+            if child_vessel is not None:
+                print(' ' * indent, f"ID: {child_vessel.id}  Radius: {child_vessel.radius:.2f}")
+                if child_vessel.children_ids:
+                    self.print_vessel_tree_recursive(vessels, child_vessel.children_ids, indent + 2)
+
+
+    def print_vessel_tree(self, indent=0):
+        vessels = self.list_of_vessels
+        # get the root vessels (i.e. vessels with no parent)
+        root_vessels = [v for v in vessels if v.parent_id is None]
+
+        # recursively print the vessel tree
+        for root_vessel in root_vessels:
+            print(' ' * indent, f"ID: {root_vessel.id}  Radius: {root_vessel.radius:.2f}")
+            if root_vessel.children_ids:
+                self.print_vessel_tree_recursive(vessels, root_vessel.children_ids, indent + 2)
+
+
+
