@@ -34,6 +34,12 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                                 number = number + 1
                 return number
 
+        def number_of_necrotic_cells(self):
+                number = 0
+                for cell in self.list_of_cells:
+                        if cell.necrotic:
+                                number = number + 1
+                return number
         def occupied_volume(self):
                 volume = 0.0
                 for cell in self.list_of_cells:

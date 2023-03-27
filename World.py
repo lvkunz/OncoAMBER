@@ -6,7 +6,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from BasicPlots import *
 from scipy.sparse import csr_matrix
 import sys
-from Vesselv2 import *
+from Vessel import *
 from BasicGeometries import *
 #np.set_printoptions(threshold=sys.maxsize)
 from ScalarField import *
@@ -14,6 +14,7 @@ from matplotlib.colors import Normalize
 from mpl_toolkits.mplot3d import Axes3D
 import pyvista as pv
 from scipy import ndimage
+from scipy.stats import qmc
 
 class World:
     def __init__(self, half_length, number_of_voxels : int = 20):
@@ -26,24 +27,69 @@ class World:
                     position = np.array([i*2*half_length/number_of_voxels - half_length, j*2*half_length/number_of_voxels - half_length, k*2*half_length/number_of_voxels - half_length])
                     self.voxel_list.append(Voxel(position, half_length/number_of_voxels, voxel_number = i*number_of_voxels**2 + j*number_of_voxels + k))
         self.number_of_voxels = number_of_voxels
-        self.vasculature : VasculatureNetwork
+        self.vasculature = VasculatureNetwork()
 
     def initiate_vasculature(self, list_of_mother_vessels):
         self.vasculature = VasculatureNetwork(list_of_mother_vessels)
         return
 
-    def vasculature_growth(self, dt, splitting_rate, macro_steps=1, micro_steps=10, weight_direction=0.5, weight_vegf=0.5, pressure_threshold=0.5, weight_pressure=0.5, radius_pressure_sensitive = False):
+    def vasculature_growth(self, dt, splitting_rate, macro_steps=1, micro_steps=10, weight_direction=0.5, weight_vegf=0.5, weight_pressure=0.5, radius_pressure_sensitive = False):
         print('Vasculature growth')
-        pressure_map = self.pressure_map()
-        print(1)
+        pressure_map = self.pressure_map(step_voxel=5)
         def pressure(point): return pressure_map.evaluate(point)
-        print(2)
-        vegf = self.vegf_map()
-        print(3)
+        vegf = self.vegf_map(step_voxel=5)
+
         def vegf_gradient(point): return vegf.gradient(point)
 
-        self.vasculature.grow_and_split(dt, splitting_rate, vegf_gradient, pressure, macro_steps, micro_steps, weight_direction, weight_vegf, pressure_threshold, weight_pressure)
+        self.vasculature.grow_and_split(dt, splitting_rate, vegf_gradient, pressure, macro_steps, micro_steps, weight_direction, weight_vegf, weight_pressure)
         self.vasculature.update_vessels_radius(1.0,radius_pressure_sensitive, pressure)
+        return
+
+    def generate_healthy_vasculature(self, initial_vessel_number):
+        sampler = qmc.Halton(2)
+        points_z = (sampler.random(initial_vessel_number)[:,0] - 0.5) * self.half_length*2
+        points_y = (sampler.random(initial_vessel_number)[:,1] - 0.5) * self.half_length*2
+        points_x = np.append(self.half_length * np.ones(initial_vessel_number//2), -self.half_length * np.ones(initial_vessel_number//2))
+        points = []
+        for i in range(len(points_x)):
+            points.append([points_x[i], points_y[i], points_z[i]])
+        points = np.array(points)
+        points2 = []
+        for i in range(len(points)):
+            if points[i][0] == self.half_length:
+                points2.append([points[i][0] - 0.01, points[i][1], points[i][2]])
+            else:
+                points2.append([points[i][0] + 0.01, points[i][1], points[i][2]])
+        points2 = np.array(points2)
+
+        list_of_vessels = []
+        for j in range(len(points)):
+            print(points[j])
+            print(points2[j])
+            list_of_vessels.append(Vessel([points[j], points2[j]], 0.5))
+        self.initiate_vasculature(list_of_vessels)
+        def pressure(point):
+            return self.half_length - abs(point[0])
+        def vegf_gradient(point):
+            if point[0] > 0:
+                return np.array([-self.half_length - point[0],0,0])
+            else:
+                return np.array([self.half_length - point[0],0,0])
+
+
+        self.vasculature.grow_and_split(
+            dt=1,
+            splitting_rate=0.05,
+            vegf_gradient= vegf_gradient,
+            pressure= pressure,
+            macro_steps=30,
+            micro_steps=6,
+            weight_direction=3.0,
+            weight_vegf=0.8,
+            pressure_threshold=0.0,
+            weight_pressure=0.3
+        )
+        self.vasculature.update_vessels_radius(1.0, False, pressure)
         return
 
     def read_vasculature(self, path):
@@ -72,7 +118,6 @@ class World:
         np.random.shuffle(points)
         return points
 
-
     def update_volume_occupied_by_vessels(self):
         scorer = np.zeros((self.total_number_of_voxels))
         print('-- Computing volume occupied by vessels in each voxel')
@@ -94,9 +139,12 @@ class World:
         #self.vessels_killed_by_dose()
         #self.update_oxygen()
     def vessels_killed_by_pressure(self, radius_threshold = 1e-3):
+        radius_threshold = 0.3
         for vessel in self.vasculature.list_of_vessels:
+            print(vessel.radius)
             if vessel.radius < radius_threshold:
                 self.vasculature.kill_vessel(vessel.id)
+                print('vessel ' + str(vessel.id) + ' killed by pressure')
         return
     def find_voxel_number(self, position):
         #doesn't handle the case where the position is outside the world
@@ -232,27 +280,26 @@ class World:
         o2_map = ScalarField(positions, values, step)
         return o2_map
 
-    def pressure_map(self):
+    def pressure_map(self, step_voxel = 3):
         values = []
         positions = []
         for voxel in self.voxel_list:
             values.append(voxel.pressure())
             positions.append(voxel.position)
 
-        step = self.half_length*2/self.number_of_voxels
-        print(step)
+        step = (self.half_length*2/self.number_of_voxels)*step_voxel
         pressure_map = ScalarField(positions, values, step)
         print('ok')
         return pressure_map
 
-    def vegf_map(self):
+    def vegf_map(self, step_voxel = 3):
         values = []
         positions = []
         for voxel in self.voxel_list:
             values.append(voxel.molecular_factors['VEGF'])
             positions.append(voxel.position)
 
-        step = (self.half_length*2/self.number_of_voxels)*4
+        step = (self.half_length*2/self.number_of_voxels)*step_voxel
         vegf_map = ScalarField(positions, values, step)
         return vegf_map
 
@@ -296,8 +343,8 @@ class World:
             list = self.voxel_list[first_voxel:last_voxel]
         else:
             list = self.voxel_list
-            size = 1
-        size = 500 / self.number_of_voxels
+
+        size = 750 / self.number_of_voxels
         number = []
         positions = []
         # collect doses and positions for all voxels
@@ -311,7 +358,7 @@ class World:
         [p[0] for p in positions],
         [p[1] for p in positions],
         [p[2] for p in positions],
-        c=number, cmap='viridis', alpha= 0.8, vmin=30, vmax=500, s= size*3)
+        c=number, cmap='viridis', alpha= 0.7, vmin=30, vmax=2000, s=size, marker='h', edgecolors= 'none')
         # add colorbar
         fig.colorbar(ax.collections[0])
         return fig, ax
@@ -348,8 +395,9 @@ class World:
         positions = []
         # collect doses and positions for all voxels
         for voxel in list:
-            oxygen.append(voxel.oxygen)
-            positions.append(voxel.position)
+            if voxel.oxygen > 0:
+                oxygen.append(voxel.oxygen)
+                positions.append(voxel.position)
         ax.scatter(
             [p[0] for p in positions],
             [p[1] for p in positions],
@@ -373,8 +421,9 @@ class World:
         pressure = []
         positions = []
         for voxel in list:
-            pressure.append(voxel.pressure())
-            positions.append(voxel.position)
+            if voxel.pressure() > 0:
+                pressure.append(voxel.pressure())
+                positions.append(voxel.position)
         ax.scatter(
             [p[0] for p in positions],
             [p[1] for p in positions],
@@ -400,8 +449,9 @@ class World:
         positions = []
         # collect doses and positions for all voxels
         for voxel in list:
-            molecules.append(voxel.molecular_factors[molecule])
-            positions.append(voxel.position)
+            if voxel.molecular_factors[molecule] > 0:
+                molecules.append(voxel.molecular_factors[molecule])
+                positions.append(voxel.position)
         ax.scatter(
             [p[0] for p in positions],
             [p[1] for p in positions],

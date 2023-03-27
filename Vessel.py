@@ -6,10 +6,16 @@ import math
 from BasicPlots import *
 from BasicGeometries import *
 import networkx as nx
+import json
 
+seed = random.randint(0, 1000000)
+rng = np.random.default_rng(seed)
 
 class Vessel:
     def __init__(self, path, radius, parent_id=None):
+        for point in path:
+            if not isinstance(point, np.ndarray) or len(point.shape) != 1 or point.shape[0] != 3:
+                raise ValueError("Each point in the 'path' list must be a 3D array with shape (3,)")
         self.path = np.array(path)
         self.radius = radius
         self.id = id(self)
@@ -18,6 +24,16 @@ class Vessel:
         self.step_size = 0.01
         self.in_growth = True
 
+    def to_dict(self):
+        return {
+            "path": self.path.tolist(),
+            "radius": self.radius,
+            "id": self.id,
+            "parent_id": self.parent_id,
+            "children_ids": self.children_ids,
+            "step_size": self.step_size,
+            "in_growth": self.in_growth,
+        }
     def __iter__(self):
         return self
 
@@ -28,49 +44,52 @@ class Vessel:
 
     def step(self, vegf_gradient, pressure, weight_direction=0.5, weight_vegf=0.5, pressure_threshold=0.5,
              weight_pressure=0.5):
-            last_point = np.array(self.path[-1])
-            prev_point = np.array(self.path[-2]) if len(self.path) > 1 else last_point
-            direction = last_point - prev_point
+        if not isinstance(self.path, np.ndarray) or len(self.path.shape) != 2 or self.path.shape[1] != 3:
+            raise ValueError("The 'self.path' array must be a 3D array with shape (n, 3)")
+        last_point = np.array(self.path[-1])
+        prev_point = np.array(self.path[-2]) if len(self.path) > 1 else last_point
+        direction = last_point - prev_point
 
-            # Get VEGF gradient at the last point
-            vegf_grad = np.array(vegf_gradient(last_point))
+        # Get VEGF gradient at the last point
+        vegf_grad = np.array(vegf_gradient(last_point))
+        local_pressure = pressure(last_point)
 
-            local_pressure = pressure(last_point)
+        # Normalize direction and VEGF gradient
+        direction_norm = direction / np.linalg.norm(direction) if np.linalg.norm(direction) != 0 else direction
+        vegf_grad_norm = vegf_grad / np.linalg.norm(vegf_grad) if np.linalg.norm(vegf_grad) != 0 else vegf_grad
 
-            # Normalize direction and VEGF gradient
-            direction_norm = direction / np.linalg.norm(direction) if np.linalg.norm(direction) != 0 else direction
-            vegf_grad_norm = vegf_grad / np.linalg.norm(vegf_grad) if np.linalg.norm(vegf_grad) != 0 else vegf_grad
+        # Calculate the weighted direction based on vessel direction and VEGF gradient
+        weighted_dir = weight_direction * direction_norm + weight_vegf * vegf_grad_norm
 
-            # Calculate the weighted direction based on vessel direction and VEGF gradient
-            weighted_dir = weight_direction * direction_norm + weight_vegf * vegf_grad_norm
+        pressure_vec = -weighted_dir
+        weighted_dir += weight_pressure * pressure_vec * local_pressure
 
-            if local_pressure > pressure_threshold:
-                pressure_vec = -weighted_dir
-                weighted_dir += weight_pressure * pressure_vec
+            # Add random noise
+        noise = np.array([random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1)])
+        weighted_dir += noise
 
-                # Add random noise
-            noise = np.array([random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1)])
-            weighted_dir += noise
+        # Normalize the weighted direction
+        weighted_dir /= np.linalg.norm(weighted_dir)
 
-            # Normalize the weighted direction
-            weighted_dir /= np.linalg.norm(weighted_dir)
-
-            # Calculate the new point and add it
-            new_point = last_point + self.step_size * weighted_dir
-            self.path = np.append(self.path, [new_point], axis=0)
+        # Calculate the new point and add it
+        new_point = last_point + self.step_size * weighted_dir
+        self.path = np.append(self.path, [new_point], axis=0)
     def volume_per_point(self):
         return np.pi * self.radius ** 2 * self.step_size
 
-    def plot(self,fig, ax, color='blue'):
+    def plot(self,fig, ax, color='crimson'):
         ax.plot(self.path[:, 0], self.path[:, 1], self.path[:, 2], color=color, alpha=0.5, linewidth= self.radius)
         return fig, ax
     def choose_random_point(self):
         #choose random point on the path, not the first or last point
         if len(self.path) < 3:
             return
-        return random.choice(self.path[1:-1])
+        return rng.choice(self.path[1:-1])
     def mean_pressure(self, pressure):
-        return np.mean([pressure(point) for point in self.path])
+        if len(self.path) < 2:
+            return 0
+        else:
+            return np.mean([pressure(point) for point in self.path])
 
     def max_pressure(self, pressure):
         return np.max([pressure(point) for point in self.path])
@@ -151,7 +170,7 @@ class VasculatureNetwork:
 
         if pressure_sensitive:
             for vessel in self.list_of_vessels:
-                vessel.radius = vessel.radius / (1 + (vessel.mean_pressure(pressure)))
+                vessel.radius = vessel.radius / ((1 + (vessel.mean_pressure(pressure)))**5)
 
     def volume_occupied(self):
         points = []
@@ -168,9 +187,10 @@ class VasculatureNetwork:
             if vessel.in_growth:
                 vessel.grow(vegf_gradient, pressure, steps, weight_direction, weight_vegf, pressure_threshold, weight_pressure)
 
-    def plot(self, ax, color='crimson'):
+    def plot(self, fig, ax, color='crimson'):
         for vessel in self.list_of_vessels:
-            vessel.plot(ax, color)
+            vessel.plot(fig, ax, color)
+        return fig, ax
 
 
     def grow_and_split(self, dt, splitting_rate, vegf_gradient, pressure, macro_steps=1, micro_steps=10, weight_direction=0.5, weight_vegf=0.5, pressure_threshold=0.5, weight_pressure=0.5):
@@ -181,7 +201,7 @@ class VasculatureNetwork:
                 print('current number of vessels {}'.format(len(self.list_of_vessels)))
                 if vessel.in_growth:
                     vessel.grow(vegf_gradient, pressure, micro_steps, weight_direction, weight_vegf, pressure_threshold, weight_pressure)
-                    if vessel.path.shape[0] > 1:
+                    if vessel.path.shape[0] > 3:
                         if random.uniform(0, 1) < splitting_rate*dt:
                             branching_point = vessel.choose_random_point()
                             self.branching(vessel.id, branching_point)
@@ -206,5 +226,29 @@ class VasculatureNetwork:
             if root_vessel.children_ids:
                 self.print_vessel_tree_recursive(vessels, root_vessel.children_ids, indent + 2)
 
+    def save_vessels(self, filename):
+        with open(filename, 'w') as f:
+            json.dump(self.list_of_vessels, f, cls=VesselEncoder)
 
+    def load_vessels(self, filename):
+        with open(filename, 'r') as f:
+            self.list_of_vessels = json.load(f, cls=VesselDecoder)
 
+class VesselEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Vessel):
+            return obj.to_dict()
+        return json.JSONEncoder.default(self, obj)
+
+class VesselDecoder(json.JSONDecoder):
+    def __init__(self, *args, **kwargs):
+        json.JSONDecoder.__init__(self, object_hook=self.object_hook, *args, **kwargs)
+
+    def object_hook(self, obj):
+        if 'path' in obj:
+            return Vessel(
+                path=np.array(obj['path']),
+                radius=obj['radius'],
+                parent_id=obj['parent_id']
+            )
+        return obj

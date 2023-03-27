@@ -14,6 +14,8 @@ class Cell (object):
         return Cell(self.radius, self.doubling_time)
 
     def vitality(self):
+        if self.oxygen < 0.05:
+            self.necrotic = True
         factor = 1.0
         vitality = self.oxygen * factor
         vitality = min(vitality, 1.0)
@@ -26,4 +28,6 @@ class TumorCell(Cell):
 class HealthyCell (Cell):
     def __init__(self, radius, cycle_hours=10, life_expectancy=1000, color='my green'):
         Cell.__init__(self, radius, cycle_hours)
+
+
 

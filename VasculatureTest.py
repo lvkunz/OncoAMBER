@@ -1,5 +1,5 @@
 
-from Vesselv2 import *
+from Vessel import *
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -42,10 +42,15 @@ def central_pressure(point):
 
 #vegf_gradient constant upwards
 def upwards_vegf_gradient(point):
-    return np.array([0,0,1])
-
+    if point[2] > 0:
+        return np.array([0,0,1])
+    else:
+        return np.array([0,0,-1])
 def upwards_pressure(point):
-    return (point[2]+20)/10
+    if point[2] > 5:
+        return (point[2])
+    else:
+        return (point[2])
 
 
 #create a grid of points
@@ -55,24 +60,19 @@ n = 10
 for i in range(n):
     for j in range(n):
         for k in range(n):
+            i, j, k = i - n/2, j - n/2, k - n/2
             points.append([i,j,k])
             values.append(upwards_pressure([i,j,k]))
 
-print(points)
-print(values)
-
 field = ScalarField(points,values, 1)
 
-print(field.evaluate([5.0,5.53,20.0]))
 
 fig = plt.figure()
 fig.set_size_inches(10, 10)
 ax = fig.add_subplot(111, projection='3d')
-field.show_all(fig, ax, 10.0)
+ax.view_init(0, 0)
+field.show_values(fig,ax, cmap='jet', vmin=None, vmax=None)
 plt.show()
-
-
-
 
 n = 30
 Sphere = Sphere(20,[0,0,0])
@@ -106,7 +106,7 @@ ax = fig.add_subplot(111, projection='3d')
 ax.set_xlim(-size, size)
 ax.set_ylim(-size, size)
 ax.set_zlim(-size, size)
-network.plot(ax)
+network.plot(fig, ax)
 plt.show()
 
 

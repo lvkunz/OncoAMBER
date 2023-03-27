@@ -8,13 +8,14 @@ from Process import *
 from Terminal import *
 import os
 from ReadAndWrite import *
-from Vessel_old import *
 
 # time the simulation
 import time
 
 #set seed for reproducibility
-np.random.seed(0)
+seed = random.randint(0, 1000000)
+np.random.seed(seed)
+print('seed: ', seed)
 
 start_time = time.time()
 
@@ -27,8 +28,6 @@ Vasculature = True
 Generate = False
 
 #define dictionnary containing all the parameters
-CONFIG = dict()
-
 CONFIG = read_config_file('CONFIG.txt')
 
 world = World(CONFIG['half_length_world'], CONFIG['voxel_per_side'])
@@ -56,23 +55,30 @@ if Topas:
 #########################################################################################
 
 if CellDynamics:
+
+
+
     for i in range(world.total_number_of_voxels):
         if i %10000 == 0: print('Adding healthy cells to voxel number: ', i, ' out of ', world.total_number_of_voxels)
         for j in range(CONFIG['initial_number_cells']):
             world.voxel_list[i].add_cell(HealthyCell(CONFIG['radius_healthy'], cycle_hours=CONFIG['doubling_time']))
 
-
-    points = Sphere(0.2, [0, 0, 0]).generate_random_points(CONFIG['initial_number_tumor_cells'])
+    points = Sphere(0.5, [0, 0, 0]).generate_random_points(CONFIG['initial_number_tumor_cells'])
     for i in range(CONFIG['initial_number_tumor_cells']):
         if i %10000 == 0: print('Adding tumor cells ', i, ' out of ', CONFIG['initial_number_tumor_cells'])
         voxel = world.find_voxel(points[i])
         voxel.add_cell(TumorCell(CONFIG['radius_tumor'], cycle_hours=CONFIG['doubling_time_tumor']))
 
+    world.generate_healthy_vasculature(CONFIG['vessel_number'])
+    world.vasculature.save_vessels('Vasculature/vasculature_new2')
+    world.update_volume_occupied_by_vessels()
+    world.update_oxygen(diffusion_number=CONFIG['diffusion_number'])
+
     if Vasculature:
-        Sphere = Sphere(2.0, [0, 0, 0])
-        points = Sphere.generate_random_points_on_surface(CONFIG['vessel_number'])
-        points2 = [points[i] - points[i]/20.0 for i in range(len(points))]
-        size = world.half_length
+        # Sphere = Sphere(2.0, [0, 0, 0])
+        # points = Sphere.generate_random_points_on_surface(CONFIG['vessel_number'])
+        # points2 = [points[i] - points[i]/20.0 for i in range(len(points))]
+        # size = world.half_length
 
         # points_x = np.random.uniform(-size, size, PARAMETERS['vessel_number'])
         # points_y = np.random.uniform(-size, size, PARAMETERS['vessel_number'])
@@ -88,11 +94,11 @@ if CellDynamics:
         #     points2.append([points[i][0], points[i][1], points[i][2] + 0.05])
         # print(points2)
 
-        vessels = []
-        for i in range(len(points)):
-            vessels.append(Vessel([points[i], points2[i]], 1))
+        # vessels = []
+        # for i in range(len(points)):
+        #     vessels.append(Vessel([points[i], points2[i]], 1))
 
-        world.initiate_vasculature(vessels)
+        # world.initiate_vasculature(vessels)
 
         # world.read_vasculature('Vasculature/vasculature_current.txt')
         # world.update_oxygen(diffusion_number=PARAMETERS['diffusion_number'])
@@ -134,6 +140,7 @@ if CellDynamics:
     update_cell_state = UpdateCellState('update_cell_state', dt, CONFIG['spread_gaussian_o2'])
     update_molecules = UpdateVoxelMolecules('update_molecules', dt, CONFIG['VEGF_production_per_cell'], CONFIG['threshold_for_VEGF_production'])
     update_vessels = UpdateVasculature('update_vessels', dt, CONFIG['pressure_threshold_death'], CONFIG['o2_per_volume'], CONFIG['diffusion_number'], CONFIG['splitting_rate'], CONFIG['macro_steps'], CONFIG['micro_steps'], CONFIG['weight_direction'], CONFIG['weight_vegf'], CONFIG['pressure_threshold_death'], CONFIG['weight_pressure'], CONFIG['radius_pressure_sensitive'])
+
 
     list_of_processes = [update_molecules, update_vessels, update_cell_state, cellaging, cellapoptosis, celldivision, cellmigration]
 
