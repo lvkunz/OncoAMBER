@@ -316,11 +316,10 @@ class World:
             first_voxel = middle_slice * self.number_of_voxels**2
             last_voxel = (middle_slice + 1) * self.number_of_voxels**2 -1
             list = self.voxel_list[first_voxel:last_voxel]
-            size = 500/self.number_of_voxels
         else:
             list = self.voxel_list
             size = 1
-        size = 30
+        size = 500 / self.number_of_voxels
         number = []
         positions = []
         # collect doses and positions for all voxels

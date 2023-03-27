@@ -33,7 +33,7 @@ PARAMETERS = dict()
 #PARAMETERS = read_parameters('parameters.txt')
 
 PARAMETERS['half_length_world'] = 1.5
-PARAMETERS['voxel_per_side'] = 30
+PARAMETERS['voxel_per_side'] = 60
 
 PARAMETERS['dt'] = 10
 PARAMETERS['endtime'] = 80
@@ -42,7 +42,7 @@ PARAMETERS['TOPAS_file'] = 'nobeam'
 PARAMETERS['vessel_number'] = 2000
 
 PARAMETERS['initial_number_cells'] = 10
-PARAMETERS['initial_number_tumor_cells'] = 10000
+PARAMETERS['initial_number_tumor_cells'] = 60000
 PARAMETERS['doubling_time'] = 10000000000
 PARAMETERS['doubling_time_tumor'] = 6
 PARAMETERS['radius_tumor'] = 0.0013
@@ -65,7 +65,7 @@ PARAMETERS['Vasculature Growth Rate'] = 10 #how many vessels are added per 1 VEG
 
 PARAMETERS['o2_per_volume'] = 1000000 #oxygen concentration in voxel per volume of vessel
 
-PARAMETERS['diffusion_number'] = 10 #number of diffusion steps per timestep
+PARAMETERS['diffusion_number'] = 0 #number of diffusion steps per timestep
 
 PARAMETERS['threshold_for_VEGF_production'] = 0.3 #threshold for VEGF production
 
@@ -82,13 +82,13 @@ n, doses = DoseOnWorld('TopasSimulation/' + PARAMETERS['TOPAS_file'] + '.csv')
 world.update_dose(doses)
 
 if Vasculature:
-    # world.generate_vasculature(PARAMETERS['vessel_number'])
-    #world.vasculature = VasculatureNetwork([Vessel_old([0, 0, 0], [0, 0, 0.5], 0.1)])
-    # world.vasculature.grow_vasculature(Cube(0.5, [0, 0, 0]).generate_random_points(80))
-    # world.vasculature.grow_vasculature(Sphere(0.3, [0, 0, 0]).generate_random_points(500))
-    # world.vasculature.save('Vasculature/vasculature_current.txt')
+    #world.generate_vasculature(PARAMETERS['vessel_number'])
+    world.vasculature = VasculatureNetwork([Vessel_old([0, 0, 0], [0, 0, 0.5], 0.1)])
+    world.vasculature.grow_vasculature(Cube(0.5, [0, 0, 0]).generate_random_points(80))
+    world.vasculature.grow_vasculature(Sphere(0.3, [0, 0, 0]).generate_random_points(500))
+    world.vasculature.save('Vasculature/vasculature_current.txt')
 
-    world.read_vasculature('Vasculature/vasculature_current.txt')
+    #world.read_vasculature('Vasculature/vasculature_current.txt')
     world.compute_oxygen_map(diffusion_number=PARAMETERS['diffusion_number'])
     figO = plt.figure()
     figO.set_size_inches(10, 10)

@@ -26,7 +26,7 @@ class Simulator:
             angle = 30
             angle2 = 60
 
-        DPI = 200
+        DPI = 100
 
         fig = plt.figure()
         # set fig size
