@@ -27,6 +27,7 @@ class Simulator:
             angle2 = 60
 
         DPI = 200
+        size = world.half_length
 
         fig = plt.figure()
         # set fig size
@@ -34,9 +35,9 @@ class Simulator:
         fig.set_dpi(DPI)
         ax = fig.add_subplot(111, projection='3d')
         ax.view_init(angle, angle2)
-        ax.set_xlim(-0.5, 0.5)
-        ax.set_ylim(-0.5, 0.5)
-        ax.set_zlim(-0.5, 0.5)
+        ax.set_xlim(-size, size)
+        ax.set_ylim(-size, size)
+        ax.set_zlim(-size, size)
         world.show_tumor(ax, fig, slice = slice)
         if Vasculature_show: world.vasculature.plot(fig, ax)
         plt.title('Cells in voxels at time t = ' + str(t) + ' hours')
@@ -62,12 +63,17 @@ class Simulator:
         # figA.set_dpi(DPI)
         # axA = figA.add_subplot(111, projection='3d')
         # axA.view_init(angle, angle2)
-        # world.show_voxels_centers_molecules(axA, figA, 'VEGF', slice = slice)
+        # #world.show_voxels_centers_molecules(axA, figA, 'VEGF', slice = slice)
+        # print('de')
+        # vegf_map = world.vegf_map()
+        # print('de2')
+        # #vegf_map.show_gradient(figA, axA, length_scale=0.2)
+        # print('de3')
         # if Vasculature_show: world.vasculature.plot(figA, axA)
         # plt.title('VEGF in voxels at time t = ' + str(t) + ' hours')
         # plt.savefig('Plots/Video/t'+ str(t) + '_VEGF.png')
         # plt.show()
-
+        #
         # figB = plt.figure()
         # figB.set_size_inches(10, 10)
         # figB.set_dpi(DPI)
@@ -78,7 +84,7 @@ class Simulator:
         # plt.title('Oxygen in voxels at time t = ' + str(t) + ' hours')
         # plt.savefig('Plots/Video/t'+ str(t) + '_Oxygen.png')
         # plt.show()
-
+        #
         # figC = plt.figure()
         # figC.set_size_inches(10, 10)
         # figC.set_dpi(DPI)
@@ -101,12 +107,14 @@ class Simulator:
 
     def run(self, world: World, video = False):
         print('Running simulation for {} hours'.format(self.finish_time), ' with dt = ', self.dt)
+        number_cells = []
         process_local = [process for process in self.list_of_process if (not process.is_global)]
         process_global = [process for process in self.list_of_process if process.is_global]
 
         self.show(world, self.time, slice = False)
 
         while self.time < self.finish_time:
+            count_cells = 0
             print('Time: {} hours'.format(self.time) + ' / ' + str(self.finish_time) + ' hours')
             for process in process_global:
                 print('Currently running global process : ', process.name)
@@ -115,12 +123,22 @@ class Simulator:
             # copy_voxel_list = world.voxel_list.copy()
             # np.random.shuffle(copy_voxel_list)
             for voxel in world.voxel_list:
+                count_cells += voxel.number_of_tumor_cells()
                 for process in process_local:
                     process(voxel)
             self.time = self.time + self.dt
             if video: self.show(world, self.time, slice = False)
+            number_cells.append(count_cells)
         print('Simulation finished')
         self.show(world, self.time, slice = True)
+        fig_final = plt.figure()
+        #plot number of cells evolution
+        plt.plot(np.linspace(0, self.finish_time, len(number_cells)), number_cells, 'purple')
+        plt.title('Number of cells evolution')
+        plt.xlabel('Time (hours)')
+        plt.ylabel('Number of cells')
+        plt.savefig('Plots/Number_cells_evolution.png')
+        plt.show()
         return
 
 
@@ -211,23 +229,31 @@ class UpdateVoxelMolecules(Process):
     def __call__(self, voxel: Voxel):
         voxel.update_vegf(self.dt, self.VEGF_production_per_cell, self.threshold_for_VEGF_production)
 class UpdateVasculature(Process):
-    def __init__(self, name, dt, pressure_killing_threshold, pressure_killing_slope, vasculature_growth_factor, o2_per_volume, diffusion_number):
+    def __init__(self, name, dt, pressure_killing_threshold, o2_per_volume, diffusion_number, splitting_rate, macro_steps, micro_steps, weight_direction, weight_vegf, pressure_threshold, weight_pressure, radius_pressure_sensitive):
         super().__init__('UpdateVasculature', dt)
         self.is_global = True
-        self.pressure_killing_threshold = pressure_killing_threshold
-        self.pressure_killing_slope = pressure_killing_slope
-        self.vasculature_growth_factor = vasculature_growth_factor
+        self.pressure_killing_radius_threshold = pressure_killing_threshold
         self.o2_per_volume = o2_per_volume
         self.diffusion_number = diffusion_number
+        self.dt = dt
+        self.splitting_rate = splitting_rate
+        self.macro_steps = macro_steps
+        self.micro_steps = micro_steps
+        self.weight_direction = weight_direction
+        self.weight_vegf = weight_vegf
+        self.pressure_threshold = pressure_threshold
+        self.weight_pressure = weight_pressure
+        self.radius_pressure_sensitive = radius_pressure_sensitive
+
+
     def __call__(self, world: World):
         print('Killing vessels')
-        n_killed = world.vessels_killed_by_pressure(pressure_killing_threshold=self.pressure_killing_threshold, pressure_killing_slope=self.pressure_killing_slope)
+        n_killed = world.vessels_killed_by_pressure()
         print('Killed vessels: ', n_killed)
         print('Growing vessels')
         total_VEGF = 0
         for voxel in world.voxel_list:
             total_VEGF += voxel.molecular_factors['VEGF']
-        n = int(total_VEGF * self.vasculature_growth_factor)
-        world.vasculature_growth(n)
-        print('Computing oxygen map')
-        world.compute_oxygen_map(o2_per_volume = self.o2_per_volume, diffusion_number=self.diffusion_number)
+        world.vasculature_growth(self.dt, self.splitting_rate, self.macro_steps, self.micro_steps, self.weight_direction, self.weight_vegf, self.pressure_threshold, self.weight_pressure, self.radius_pressure_sensitive)
+        world.update_volume_occupied_by_vessels()
+        world.update_oxygen(o2_per_volume = self.o2_per_volume, diffusion_number=self.diffusion_number)

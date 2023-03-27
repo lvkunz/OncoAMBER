@@ -21,9 +21,8 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                 self.molecular_factors = {'EGF': 0, 'FGF': 0, 'HGF': 0, 'IGF': 0, 'TGF': 0, 'VEGF': 0, 'WNT': 0}
                 # if np.linalg.norm(self.position) < 5:
                 #         self.molecular_factors['VEGF'] = 1.0
-                self.list_of_vessels_ids = []
-                self.vessel_volume = 0
                 self.viscosity = 10
+                self.vessel_volume = 0
 
         def number_of_cells(self):
                 return len(self.list_of_cells)

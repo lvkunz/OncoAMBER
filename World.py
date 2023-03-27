@@ -6,7 +6,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from BasicPlots import *
 from scipy.sparse import csr_matrix
 import sys
-from Vessel_old import *
+from Vesselv2 import *
 from BasicGeometries import *
 #np.set_printoptions(threshold=sys.maxsize)
 from ScalarField import *
@@ -28,30 +28,26 @@ class World:
         self.number_of_voxels = number_of_voxels
         self.vasculature : VasculatureNetwork
 
-    def generate_vasculature(self, num_vessels):
-        points = self.random_points_for_voxels_concentration(num_vessels+1, 'VEGF')
-        self.vasculature = VasculatureNetwork()
-        self.vasculature.add_vessel(points[0], points[1], 0.01)
-        self.vasculature.grow_vasculature(points[2:])
-        self.update_list_of_vessels_in_voxels()
-        self.update_volume_occupied_by_vessels()
-        return self.vasculature
+    def initiate_vasculature(self, list_of_mother_vessels):
+        self.vasculature = VasculatureNetwork(list_of_mother_vessels)
+        return
 
-    def vasculature_growth(self, num_vessels):
-        print('-- Growing ' + str(num_vessels) + ' new vessels')
-        points = self.random_points_for_voxels_concentration(num_vessels, 'VEGF')
-        print('-- Adding new vessels')
-        self.vasculature.grow_vasculature(points)
-        self.update_list_of_vessels_in_voxels()
-        self.update_volume_occupied_by_vessels()
+    def vasculature_growth(self, dt, splitting_rate, macro_steps=1, micro_steps=10, weight_direction=0.5, weight_vegf=0.5, pressure_threshold=0.5, weight_pressure=0.5, radius_pressure_sensitive = False):
+        print('Vasculature growth')
+        pressure_map = self.pressure_map()
+        print(1)
+        def pressure(point): return pressure_map.evaluate(point)
+        print(2)
+        vegf = self.vegf_map()
+        print(3)
+        def vegf_gradient(point): return vegf.gradient(point)
+
+        self.vasculature.grow_and_split(dt, splitting_rate, vegf_gradient, pressure, macro_steps, micro_steps, weight_direction, weight_vegf, pressure_threshold, weight_pressure)
+        self.vasculature.update_vessels_radius(1.0,radius_pressure_sensitive, pressure)
         return
 
     def read_vasculature(self, path):
-        self.vasculature = VasculatureNetwork()
-        self.vasculature.read(path)
-        self.update_list_of_vessels_in_voxels()
-        self.update_volume_occupied_by_vessels()
-        return
+        pass
 
     def random_points_for_voxels_concentration(self, num_points, molecule : str):
         if num_points == 0:
@@ -77,15 +73,16 @@ class World:
         return points
 
 
-    def update_volume_occupied_by_vessels(self, resolution = 10):
+    def update_volume_occupied_by_vessels(self):
         scorer = np.zeros((self.total_number_of_voxels))
         print('-- Computing volume occupied by vessels in each voxel')
         for vessel in self.vasculature.list_of_vessels:
-            points = vessel.generate_points_along_axis(resolution)
-            for point in points:
+            for point in vessel.path:
                 voxel_n = self.find_voxel_number(point)
-                scorer[voxel_n] += np.pi*(vessel.length/resolution)*vessel.radius**2
-        print('-- Finishing up')
+                if voxel_n == -1:
+                    continue
+                scorer[voxel_n] += vessel.volume_per_point()
+        print('-- Finishing up -- CHECK IF NECESSARY')
         for voxel in self.voxel_list:
             voxel.vessel_volume = scorer[voxel.voxel_number]
         return
@@ -94,29 +91,13 @@ class World:
         print('-- Updating biology after RT')
         for voxel in self.voxel_list:
             voxel.update_cells_afterRT()
-        self.vessels_killed_by_dose()
-        self.compute_oxygen_map()
-    def vessels_killed_by_pressure(self, pressure_killing_threshold, pressure_killing_slope):
-        death = lambda pressure: sigmoid(1, pressure, pressure_killing_threshold, pressure_killing_slope)
-        count = 0
-        for voxel in self.voxel_list:
-            for vessel in voxel.list_of_vessels_ids:
-                if np.random.random() < death(voxel.pressure()):
-                    self.vasculature.remove_vessel(vessel)
-                    voxel.list_of_vessels_ids.remove(vessel)
-                    count += 1
-        return count
-    def vessels_killed_by_dose(self):
-        death = lambda dose: sigmoid(1, dose, 6e-8, 200000000)
-        count = 0
-        for voxel in self.voxel_list:
-            for vessel in voxel.list_of_vessels_ids:
-                if np.random.random() < death(voxel.dose):
-                    self.vasculature.remove_vessel(vessel)
-                    voxel.list_of_vessels_ids.remove(id)
-                    count += 1
-        return count
-
+        #self.vessels_killed_by_dose()
+        #self.update_oxygen()
+    def vessels_killed_by_pressure(self, radius_threshold = 1e-3):
+        for vessel in self.vasculature.list_of_vessels:
+            if vessel.radius < radius_threshold:
+                self.vasculature.kill_vessel(vessel.id)
+        return
     def find_voxel_number(self, position):
         #doesn't handle the case where the position is outside the world
         num_voxels = self.number_of_voxels
@@ -125,7 +106,8 @@ class World:
         k = int((position[2] + self.half_length) * num_voxels / (2 * self.half_length))
         n = i * num_voxels ** 2 + j * num_voxels + k
         if n >= self.total_number_of_voxels or n < 0:
-            raise ValueError('position ' +str(position) + ' is outside the world (voxel number = ' + str(n) + ')' )
+            print('position ' +str(position) + ' is outside the world (voxel number = ' + str(n) + ')' )
+            return -1
         return n
     def find_voxel(self, position):
         #find the voxel that contains the position given
@@ -158,13 +140,6 @@ class World:
         neighbors = [n for n in neighbors if 0 <= n < num_voxels ** 3]
         neighbors_voxels = [self.voxel_list[n] for n in neighbors]
         return neighbors_voxels
-
-    def update_list_of_vessels_in_voxels(self):
-        for vessel in self.vasculature.list_of_vessels:
-            current_list = self.find_voxel(vessel.center).list_of_vessels_ids
-            if vessel.id not in current_list:
-                current_list.append(vessel.id)
-        return
 
     def compute_exchange_matrix(self, dt, pressure_threshold):
         V = self.voxel_list[0].volume
@@ -233,6 +208,7 @@ class World:
         print('-- Computing oxygen map')
         for voxel in self.voxel_list:
             voxel.oxygen = voxel.vessel_volume * o2_per_volume
+
         for i in range(diffusion_number):
             new_oxygen_map = np.zeros(self.total_number_of_voxels)
             print('--- o2 map computing', i, 'out of', diffusion_number)
@@ -264,7 +240,9 @@ class World:
             positions.append(voxel.position)
 
         step = self.half_length*2/self.number_of_voxels
+        print(step)
         pressure_map = ScalarField(positions, values, step)
+        print('ok')
         return pressure_map
 
     def vegf_map(self):
@@ -274,7 +252,7 @@ class World:
             values.append(voxel.molecular_factors['VEGF'])
             positions.append(voxel.position)
 
-        step = self.half_length*2/self.number_of_voxels
+        step = (self.half_length*2/self.number_of_voxels)*4
         vegf_map = ScalarField(positions, values, step)
         return vegf_map
 

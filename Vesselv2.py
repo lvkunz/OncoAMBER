@@ -15,7 +15,7 @@ class Vessel:
         self.id = id(self)
         self.parent_id = parent_id
         self.children_ids = []
-        self.step_size = 0.05
+        self.step_size = 0.01
         self.in_growth = True
 
     def __iter__(self):
@@ -61,14 +61,19 @@ class Vessel:
     def volume_per_point(self):
         return np.pi * self.radius ** 2 * self.step_size
 
-    def plot(self, ax, color='blue'):
+    def plot(self,fig, ax, color='blue'):
         ax.plot(self.path[:, 0], self.path[:, 1], self.path[:, 2], color=color, alpha=0.5, linewidth= self.radius)
-
+        return fig, ax
     def choose_random_point(self):
         #choose random point on the path, not the first or last point
         if len(self.path) < 3:
             return
         return random.choice(self.path[1:-1])
+    def mean_pressure(self, pressure):
+        return np.mean([pressure(point) for point in self.path])
+
+    def max_pressure(self, pressure):
+        return np.max([pressure(point) for point in self.path])
 class VasculatureNetwork:
     def __init__(self, list_of_vessels=None):
         if list_of_vessels is None:
@@ -125,7 +130,7 @@ class VasculatureNetwork:
         # remove from the list of vessels
         self.list_of_vessels.remove(vessel)
 
-    def update_vessels_radius(self, final_radius):
+    def update_vessels_radius(self, final_radius, pressure_sensitive=False, pressure=None):
         def update_radius_recursive(vessel_id):
             vessel = self.get_vessel(vessel_id)
             if not vessel.children_ids:
@@ -144,6 +149,10 @@ class VasculatureNetwork:
         for root_vessel in root_vessels:
             update_radius_recursive(root_vessel.id)
 
+        if pressure_sensitive:
+            for vessel in self.list_of_vessels:
+                vessel.radius = vessel.radius / (1 + (vessel.mean_pressure(pressure)))
+
     def volume_occupied(self):
         points = []
         volume = []
@@ -159,14 +168,13 @@ class VasculatureNetwork:
             if vessel.in_growth:
                 vessel.grow(vegf_gradient, pressure, steps, weight_direction, weight_vegf, pressure_threshold, weight_pressure)
 
-    def plot(self, ax, color='blue'):
+    def plot(self, ax, color='crimson'):
         for vessel in self.list_of_vessels:
             vessel.plot(ax, color)
 
 
-    def grow_and_split(self,splitting_rate, vegf_gradient, pressure, macro_steps=1, micro_steps=10, weight_direction=0.5, weight_vegf=0.5, pressure_threshold=0.5, weight_pressure=0.5):
-        dt = 10
-        micro_steps = micro_steps*dt
+    def grow_and_split(self, dt, splitting_rate, vegf_gradient, pressure, macro_steps=1, micro_steps=10, weight_direction=0.5, weight_vegf=0.5, pressure_threshold=0.5, weight_pressure=0.5):
+        micro_steps = micro_steps * dt
         for i in range(macro_steps):
             print("Macro step {}".format(i))
             for vessel in self.list_of_vessels:
