@@ -1,5 +1,5 @@
 from Voxel import Voxel
-from Cell import Cell, TumorCell, HealthyCell
+from Cell import *
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -7,7 +7,7 @@ from World import World
 from Process import *
 from Terminal import *
 import os
-from ReadAndWrite import *
+import ReadAndWrite as rw
 
 # time the simulation
 import time
@@ -22,57 +22,34 @@ start_time = time.time()
 DPI = 100
 
 show = True
-Topas = False
 CellDynamics = True
 Vasculature = True
 Generate = False
 
 #define dictionnary containing all the parameters
-CONFIG = read_config_file('CONFIG.txt')
+CONFIG = rw.read_config_file('CONFIG.txt')
 
 world = World(CONFIG['half_length_world'], CONFIG['voxel_per_side'])
-
-
-if Topas:
-    world.topas_param_file(param_file)
-    RunTopasSimulation(param_file)
-    os.rename('TopasSimulation/MyScorer.csv', 'TopasSimulation/' + CONFIG['TOPAS_file'] + '.csv')
-    n, doses = DoseOnWorld('TopasSimulation/' + CONFIG['TOPAS_file'] + '.csv')
-    world.update_dose(doses)
-# read in the csv file
-
-
-if Topas:
-    fig3 = plt.figure()
-    ax3 = fig3.add_subplot(111, projection='3d')
-    ax3.figure.set_dpi(DPI)
-    # ax3.view_init(90, 0)
-    world.show_voxels_centers_dose(ax3, fig3)
-    plt.title('Dose in voxels')
-    plt.savefig('Plots/dose_' + param_file + '.png')
-    plt.show()
 
 #########################################################################################
 
 if CellDynamics:
 
-
-
     for i in range(world.total_number_of_voxels):
         if i %10000 == 0: print('Adding healthy cells to voxel number: ', i, ' out of ', world.total_number_of_voxels)
-        for j in range(CONFIG['initial_number_cells']):
-            world.voxel_list[i].add_cell(HealthyCell(CONFIG['radius_healthy'], cycle_hours=CONFIG['doubling_time']))
+        for j in range(CONFIG['initial_number_healthy_cells']):
+            world.voxel_list[i].add_cell(Cell(CONFIG['radius_healthy_cells'], cycle_hours=CONFIG['doubling_time_healthy'], type='HealthyCell'))
 
-    points = Sphere(0.5, [0, 0, 0]).generate_random_points(CONFIG['initial_number_tumor_cells'])
+    points = Sphere(CONFIG['tumor_initial_radius'], [0, 0, 0]).generate_random_points(CONFIG['initial_number_tumor_cells'])
     for i in range(CONFIG['initial_number_tumor_cells']):
         if i %10000 == 0: print('Adding tumor cells ', i, ' out of ', CONFIG['initial_number_tumor_cells'])
         voxel = world.find_voxel(points[i])
-        voxel.add_cell(TumorCell(CONFIG['radius_tumor'], cycle_hours=CONFIG['doubling_time_tumor']))
+        voxel.add_cell(Cell(CONFIG['radius_tumor_cells'], cycle_hours=CONFIG['doubling_time_tumor'], type='TumorCell'))
 
     world.generate_healthy_vasculature(CONFIG['vessel_number'])
     world.vasculature.save_vessels('Vasculature/vasculature_new2')
     world.update_volume_occupied_by_vessels()
-    world.update_oxygen(diffusion_number=CONFIG['diffusion_number'])
+    world.update_oxygen(o2_per_volume=CONFIG['o2_per_volume'], diffusion_number=CONFIG['diffusion_number'])
 
     if Vasculature:
         # Sphere = Sphere(2.0, [0, 0, 0])
@@ -133,18 +110,44 @@ if CellDynamics:
     end_time = CONFIG['endtime'] # in hours (simulation time)
     dt = CONFIG['dt'] # in hours (time step)
 
-    celldivision = CellDivision('cell_division', dt, CONFIG['vitality_cycling_threshold'], CONFIG['pressure_threshold_division'])
-    cellapoptosis = CellApoptosis('cell_apoptosis', dt, CONFIG['vitality_apoptosis_threshold'])
+    celldivision = CellDivision('cell_division', dt,
+                                            cycling_threshold=CONFIG['vitality_cycling_threshold'],
+                                            pressure_threshold=CONFIG['pressure_threshold_division'])
+
+    cellapoptosis = CellApoptosis('cell_apoptosis', dt,
+                                            apoptosis_threshold=CONFIG['vitality_apoptosis_threshold'],
+                                            apoptosis_probability=CONFIG['probability_apoptosis'])
+
+    cellnecrosis = CellNecrosis('cell_necrosis', dt,
+                                            necrosis_threshold=CONFIG['vitality_necrosis_threshold'],
+                                            necrosis_probability=CONFIG['probability_necrosis'])
+
     cellaging = CellAging('cell_aging', dt)
-    cellmigration = CellMigration('cell_migration', dt, pressure_threshold=CONFIG['pressure_threshold_migration'])
-    update_cell_state = UpdateCellState('update_cell_state', dt, CONFIG['spread_gaussian_o2'])
-    update_molecules = UpdateVoxelMolecules('update_molecules', dt, CONFIG['VEGF_production_per_cell'], CONFIG['threshold_for_VEGF_production'])
-    update_vessels = UpdateVasculature('update_vessels', dt, CONFIG['pressure_threshold_death'], CONFIG['o2_per_volume'], CONFIG['diffusion_number'], CONFIG['splitting_rate'], CONFIG['macro_steps'], CONFIG['micro_steps'], CONFIG['weight_direction'], CONFIG['weight_vegf'], CONFIG['pressure_threshold_death'], CONFIG['weight_pressure'], CONFIG['radius_pressure_sensitive'])
+
+    cellmigration = CellMigration('cell_migration', dt,
+                                            pressure_threshold=CONFIG['pressure_threshold_migration'])
+
+    update_cell_state = UpdateCellOxygen('update_cell_state', dt,
+                                            spread_gaussian_o2=CONFIG['spread_gaussian_o2'])
+
+    update_molecules = UpdateVoxelMolecules('update_molecules', dt,
+                                            VEGF_production_per_cell=CONFIG['VEGF_production_per_cell'],
+                                            threshold_for_VEGF_production=CONFIG['o2_threshold_for_VEGF_production'])
+
+    update_vessels = UpdateVasculature('update_vessels', dt,
+                                           pressure_killing_radius_threshold=['pressure_radius_killing_threshold'],
+                                           o2_per_volume=CONFIG['o2_per_volume'],
+                                           diffusion_number=CONFIG['diffusion_number'],
+                                           splitting_rate=CONFIG['splitting_rate_vasculature'],
+                                           macro_steps=CONFIG['macro_steps'],
+                                           micro_steps=CONFIG['micro_steps'],
+                                           weight_direction=CONFIG['weight_direction'],
+                                           weight_vegf=CONFIG['weight_vegf'],
+                                           weight_pressure=CONFIG['weight_pressure'],
+                                           radius_pressure_sensitive=CONFIG['radius_pressure_sensitive'])
 
 
-    list_of_processes = [update_molecules, update_vessels, update_cell_state, cellaging, cellapoptosis, celldivision, cellmigration]
-
-    #world.update_biology_after_RT()
+    list_of_processes = [cellmigration, update_vessels, update_cell_state, cellaging, cellnecrosis, cellapoptosis, celldivision]
 
     sim = Simulator(list_of_processes, end_time, dt)
     sim.run(world, video=True)

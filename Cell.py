@@ -1,33 +1,29 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+import ReadAndWrite as rw
+
+CONFIG = rw.read_config_file('CONFIG.txt')
+
 
 class Cell (object):
-    def __init__(self, radius, cycle_hours = 10):
+    def __init__(self, radius, cycle_hours = 10, type = 'HealthyCell'):
         self.radius = radius
         self.necrotic = False
         self.doubling_time = cycle_hours
         self.volume = 4/3 * np.pi * self.radius**3
         self.oxygen = 0.0
+        self.type = type
 
     def duplicate(self):
-        return Cell(self.radius, self.doubling_time)
+        return Cell(self.radius, self.doubling_time, self.type)
 
     def vitality(self):
-        if self.oxygen < 0.05:
-            self.necrotic = True
-        factor = 1.0
+        factor = CONFIG['o2_to_vitality_factor']
         vitality = self.oxygen * factor
         vitality = min(vitality, 1.0)
         return vitality #needs to be normalized between 0 and 1
 
-class TumorCell(Cell):
-    def __init__(self, radius, cycle_hours = 5, life_expectancy = 1000, color = 'my purple'):
-        Cell.__init__(self, radius, cycle_hours)
-
-class HealthyCell (Cell):
-    def __init__(self, radius, cycle_hours=10, life_expectancy=1000, color='my green'):
-        Cell.__init__(self, radius, cycle_hours)
 
 
 

@@ -7,9 +7,12 @@ from BasicPlots import *
 from BasicGeometries import *
 import networkx as nx
 import json
+import ReadAndWrite as rw
 
 seed = random.randint(0, 1000000)
 rng = np.random.default_rng(seed)
+
+CONFIG = rw.read_config_file('CONFIG.txt')
 
 class Vessel:
     def __init__(self, path, radius, parent_id=None):
@@ -21,7 +24,7 @@ class Vessel:
         self.id = id(self)
         self.parent_id = parent_id
         self.children_ids = []
-        self.step_size = 0.01
+        self.step_size = CONFIG['vessel_step_size']
         self.in_growth = True
 
     def to_dict(self):
@@ -78,7 +81,7 @@ class Vessel:
         return np.pi * self.radius ** 2 * self.step_size
 
     def plot(self,fig, ax, color='crimson'):
-        ax.plot(self.path[:, 0], self.path[:, 1], self.path[:, 2], color=color, alpha=0.5, linewidth= self.radius)
+        ax.plot(self.path[:, 0], self.path[:, 1], self.path[:, 2], color=color, alpha=0.5, linewidth= self.radius*500)
         return fig, ax
     def choose_random_point(self):
         #choose random point on the path, not the first or last point
@@ -150,6 +153,7 @@ class VasculatureNetwork:
         self.list_of_vessels.remove(vessel)
 
     def update_vessels_radius(self, final_radius, pressure_sensitive=False, pressure=None):
+        print("Updating vessels radius")
         def update_radius_recursive(vessel_id):
             vessel = self.get_vessel(vessel_id)
             if not vessel.children_ids:
@@ -170,7 +174,7 @@ class VasculatureNetwork:
 
         if pressure_sensitive:
             for vessel in self.list_of_vessels:
-                vessel.radius = vessel.radius / ((1 + (vessel.mean_pressure(pressure)))**5)
+                vessel.radius = vessel.radius / ((1 + (vessel.mean_pressure(pressure)))**CONFIG['radius_decrease_exponent'])
 
     def volume_occupied(self):
         points = []
@@ -197,15 +201,16 @@ class VasculatureNetwork:
         micro_steps = micro_steps * dt
         for i in range(macro_steps):
             print("Macro step {}".format(i))
+            j = 0
             for vessel in self.list_of_vessels:
-                print('current number of vessels {}'.format(len(self.list_of_vessels)))
+                if j % 1000 == 0: print('current number of vessels {}'.format(len(self.list_of_vessels)))
                 if vessel.in_growth:
                     vessel.grow(vegf_gradient, pressure, micro_steps, weight_direction, weight_vegf, pressure_threshold, weight_pressure)
                     if vessel.path.shape[0] > 3:
                         if random.uniform(0, 1) < splitting_rate*dt:
                             branching_point = vessel.choose_random_point()
                             self.branching(vessel.id, branching_point)
-
+                j += 1
     def print_vessel_tree_recursive(self, vessels, children_ids, indent):
         for child_id in children_ids:
             child_vessel = next((v for v in vessels if v.id == child_id), None)

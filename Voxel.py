@@ -1,11 +1,14 @@
-from Cell import Cell, TumorCell, HealthyCell
+from Cell import *
 from BasicPlots import *
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import random
+import ReadAndWrite as rw
 def sigmoid(L, x, x0, k):
     return L/(1 + np.exp(-k*(x-x0)))
+
+CONFIG = rw.read_config_file('CONFIG.txt')
 
 class Voxel(object): #extra parameters are max_occupancy, viscosity
         def __init__(self, position = np.array([0,0,0]), half_length = 0.1, list_of_cells_in=None, oxygen = 0, voxel_number = 0):
@@ -14,6 +17,7 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                 self.position = position
                 self.half_length = half_length
                 self.list_of_cells = list_of_cells_in
+                self.list_of_necrotic_cells = []
                 self.oxygen = oxygen
                 self.volume = 8*half_length**3
                 self.voxel_number = voxel_number
@@ -21,33 +25,30 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                 self.molecular_factors = {'EGF': 0, 'FGF': 0, 'HGF': 0, 'IGF': 0, 'TGF': 0, 'VEGF': 0, 'WNT': 0}
                 # if np.linalg.norm(self.position) < 5:
                 #         self.molecular_factors['VEGF'] = 1.0
-                self.viscosity = 10
+                self.viscosity = CONFIG['viscosity']
                 self.vessel_volume = 0
-
-        def number_of_cells(self):
-                return len(self.list_of_cells)
 
         def number_of_tumor_cells(self):
                 number = 0
                 for cell in self.list_of_cells:
-                        if isinstance(cell, TumorCell):
+                        if cell.type == 'TumorCell':
                                 number = number + 1
                 return number
 
         def number_of_necrotic_cells(self):
-                number = 0
-                for cell in self.list_of_cells:
-                        if cell.necrotic:
-                                number = number + 1
-                return number
+                return len(self.list_of_necrotic_cells)
+        def number_of_alive_cells(self):
+                return len(self.list_of_cells)
         def occupied_volume(self):
                 volume = 0.0
                 for cell in self.list_of_cells:
                         volume = volume + cell.volume
+                for cell in self.list_of_necrotic_cells:
+                        volume = volume + cell.volume
                 return volume
 
         def pressure(self):
-                packing_density = ( self.occupied_volume() /self.volume)
+                packing_density = (self.occupied_volume() /self.volume)
                 # NkT = 1 #use somethig sensitive to make sense of this
                 # if len(self.list_of_cells) == 0:
                 #         return 0
@@ -61,9 +62,9 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                 points = points + self.position
                 return points
         def add_cell(self, cell):
-                max_occupancy = 0.7 #hard spheres is 0.64, + consider a little bit of compression
+                max_occupancy = CONFIG['max_occupancy'] #hard spheres is 0.64, + consider a little bit of compression
                 if self.pressure() > max_occupancy:
-                        print('Voxel is full, pressure is', self.pressure(), ' number of cells is', self.number_of_cells())
+                        print('Voxel is full, pressure is', self.pressure(), ' number of cells is', self.number_of_alive_cells(), ' and number of necrotic cells is', self.number_of_necrotic_cells())
                         return False
                 else:
                         self.list_of_cells = np.append(cell, self.list_of_cells)
@@ -74,38 +75,43 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                 self.list_of_cells = np.delete(self.list_of_cells, id)
                 return True
 
-        def update_cells_afterRT(self, radio_sensitivity):
-               expected_deaths = self.dose*radio_sensitivity
-               # Use a Poisson distribution to model the number of cell deaths
-               num_deaths = np.random.poisson(expected_deaths)
-               num_deaths = min(num_deaths, len(self.list_of_cells))
-               cells_to_remove = np.random.choice(self.list_of_cells, size=num_deaths, replace=False)
-               for cell in cells_to_remove:
-                       cell.state = 'dead' # kill the cell
+        def cell_becomes_necrotic(self, cell):
+                self.list_of_cells = np.delete(self.list_of_cells, np.where(self.list_of_cells == cell))
+                cell.necrotic = True
+                self.list_of_necrotic_cells = np.append(cell, self.list_of_necrotic_cells)
+                return True
 
-        def update_cells_oxygen_state(self, spread_gaussian_o2):
-                mean_oxygen = self.oxygen/self.number_of_cells()
-                sample_gaussian_o2 = np.random.normal(mean_oxygen, spread_gaussian_o2, self.number_of_cells())
-                for i in range(self.number_of_cells()):
-                        self.list_of_cells[i].oxygen = sample_gaussian_o2[i]
-                return
-        def update_occupied_volume(self):
-                #print('updating occupied volume')
-                volume = 0
+        def oxygen_histogram(self, ax, fig):
+                oxygen = []
                 for cell in self.list_of_cells:
-                        volume = volume + cell.volume
-                self.occupied_volume = volume
-                return volume
+                        oxygen = np.append(oxygen, cell.oxygen)
+                ax.hist(oxygen, bins = 20, color = 'blue', alpha = 0.5, range = (0,max(oxygen)))
+                ax.set_xlim(0, max(oxygen))
+                ax.set_xlabel('Oxygen for mean = ' + str(self.oxygen/self.number_of_alive_cells()) + ' and spread = ' + str(CONFIG['spread_gaussian_o2']))
+                ax.set_ylabel('Number of cells')
+                ax.set_title('Oxygen histogram')
+                return ax, fig
 
-        def update_vegf(self, dt, VEGF_production_per_cell, threshold_for_VEGF_production):
-                VEGF = 0
+        def vitality_histogram(self, ax, fig):
+                vitality = []
                 for cell in self.list_of_cells:
-                        if cell.oxygen < threshold_for_VEGF_production:
-                                VEGF = VEGF + VEGF_production_per_cell
-                self.molecular_factors['VEGF'] = VEGF
-                return
-        def vegf_gradient_map(self):
-                vegf_gradient = ScalarField(self.position, self.half_length)
+                        vitality.append(cell.vitality())
+                ax.hist(vitality, bins=20, color='orange', alpha=0.5, range=(0, 1))
+                ax.vlines(CONFIG['vitality_cycling_threshold'], 0, ax.get_ylim()[1], colors='darkgreen',
+                          linestyles='dashed')
+                ax.vlines(CONFIG['vitality_apoptosis_threshold'], 0, ax.get_ylim()[1], colors='darkred',
+                          linestyles='dashed')
+                ax.vlines(CONFIG['vitality_necrosis_threshold'], 0, ax.get_ylim()[1], colors='black',
+                          linestyles='dashed')
+                ax.set_xlim(0, 1)
+                ax.set_xlabel(
+                        f'Vitality, Oxygen in voxel was = {self.oxygen} and spread = {CONFIG["spread_gaussian_o2"]}')
+                ax.set_ylabel('Number of cells')
+                ax.set_title('Vitality histogram')
+                return ax, fig
+
+
+
 
 
 

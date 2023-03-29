@@ -1,5 +1,5 @@
 from Voxel import *
-from Cell import Cell, TumorCell, HealthyCell
+from Cell import *
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -15,6 +15,9 @@ from mpl_toolkits.mplot3d import Axes3D
 import pyvista as pv
 from scipy import ndimage
 from scipy.stats import qmc
+import ReadAndWrite as rw
+
+CONFIG = rw.read_config_file('CONFIG.txt')
 
 class World:
     def __init__(self, half_length, number_of_voxels : int = 20):
@@ -42,7 +45,7 @@ class World:
         def vegf_gradient(point): return vegf.gradient(point)
 
         self.vasculature.grow_and_split(dt, splitting_rate, vegf_gradient, pressure, macro_steps, micro_steps, weight_direction, weight_vegf, weight_pressure)
-        self.vasculature.update_vessels_radius(1.0,radius_pressure_sensitive, pressure)
+        self.vasculature.update_vessels_radius(0.001,radius_pressure_sensitive, pressure)
         return
 
     def generate_healthy_vasculature(self, initial_vessel_number):
@@ -64,8 +67,6 @@ class World:
 
         list_of_vessels = []
         for j in range(len(points)):
-            print(points[j])
-            print(points2[j])
             list_of_vessels.append(Vessel([points[j], points2[j]], 0.5))
         self.initiate_vasculature(list_of_vessels)
         def pressure(point):
@@ -89,7 +90,7 @@ class World:
             pressure_threshold=0.0,
             weight_pressure=0.3
         )
-        self.vasculature.update_vessels_radius(1.0, False, pressure)
+        self.vasculature.update_vessels_radius(0.001, False, pressure)
         return
 
     def read_vasculature(self, path):
@@ -141,7 +142,6 @@ class World:
     def vessels_killed_by_pressure(self, radius_threshold = 1e-3):
         radius_threshold = 0.3
         for vessel in self.vasculature.list_of_vessels:
-            print(vessel.radius)
             if vessel.radius < radius_threshold:
                 self.vasculature.kill_vessel(vessel.id)
                 print('vessel ' + str(vessel.id) + ' killed by pressure')
@@ -154,7 +154,7 @@ class World:
         k = int((position[2] + self.half_length) * num_voxels / (2 * self.half_length))
         n = i * num_voxels ** 2 + j * num_voxels + k
         if n >= self.total_number_of_voxels or n < 0:
-            print('position ' +str(position) + ' is outside the world (voxel number = ' + str(n) + ')' )
+            #print('position ' +str(position) + ' is outside the world (voxel number = ' + str(n) + ')' )
             return -1
         return n
     def find_voxel(self, position):
@@ -214,6 +214,7 @@ class World:
                 pressure_diff = voxel_pressure - pressures[j]
                 if pressure_diff > 0:
                     t_res = (V / pressure_diff) * viscosity
+                    print('t_res = ', t_res)
                     n_events = dt / t_res
                     migration_matrix[i, j] = n_events
 
@@ -289,7 +290,6 @@ class World:
 
         step = (self.half_length*2/self.number_of_voxels)*step_voxel
         pressure_map = ScalarField(positions, values, step)
-        print('ok')
         return pressure_map
 
     def vegf_map(self, step_voxel = 3):
@@ -302,35 +302,6 @@ class World:
         step = (self.half_length*2/self.number_of_voxels)*step_voxel
         vegf_map = ScalarField(positions, values, step)
         return vegf_map
-
-    def show_voxels_centers(self, ax, fig, slice = False):
-        print('-- Plotting Cell Population')
-
-        #central z slice of world first voxel is at z = 0
-        if slice:
-            middle_slice = self.number_of_voxels // 2
-            first_voxel = middle_slice * self.number_of_voxels**2
-            last_voxel = (middle_slice + 1) * self.number_of_voxels**2 -1
-            list = self.voxel_list[first_voxel:last_voxel]
-            size = 250/self.number_of_voxels
-        else:
-            list = self.voxel_list
-            size = 1
-        number = []
-        positions = []
-        # collect doses and positions for all voxels
-        for voxel in list:
-            number.append(voxel.number_of_cells())
-            positions.append(voxel.position)
-
-        ax.scatter(
-        [p[0] for p in positions],
-        [p[1] for p in positions],
-        [p[2] for p in positions],
-        c=number, cmap='YlGn', alpha= 0.5, vmin=0, vmax=2000, s= size)
-        # add colorbar
-        fig.colorbar(ax.collections[0])
-        return fig, ax
 
     def show_tumor(self, ax, fig, slice = False):
         print('-- Plotting Cell Population')
@@ -358,7 +329,38 @@ class World:
         [p[0] for p in positions],
         [p[1] for p in positions],
         [p[2] for p in positions],
-        c=number, cmap='viridis', alpha= 0.7, vmin=30, vmax=2000, s=size, marker='h', edgecolors= 'none')
+        c=number, cmap='viridis', alpha= 0.7, vmin=0, vmax=1000, s=size, marker='h', edgecolors= 'none')
+        # add colorbar
+        fig.colorbar(ax.collections[0])
+        return fig, ax
+
+    def show_necrosis(self, ax, fig, slice = False):
+        print('-- Plotting Cell Population')
+
+        #central z slice of world first voxel is at z = 0
+        if slice:
+            middle_slice = self.number_of_voxels // 2
+            first_voxel = middle_slice * self.number_of_voxels**2
+            last_voxel = (middle_slice + 1) * self.number_of_voxels**2 -1
+            list = self.voxel_list[first_voxel:last_voxel]
+        else:
+            list = self.voxel_list
+
+        size = 750 / self.number_of_voxels
+        number = []
+        positions = []
+        # collect doses and positions for all voxels
+        for voxel in list:
+            count = voxel.number_of_necrotic_cells()
+            if count > 0:
+                number.append(count)
+                positions.append(voxel.position)
+
+        ax.scatter(
+        [p[0] for p in positions],
+        [p[1] for p in positions],
+        [p[2] for p in positions],
+        c=number, cmap='viridis', alpha= 0.7, vmin=0, vmax=100, s=size, marker='h', edgecolors= 'none')
         # add colorbar
         fig.colorbar(ax.collections[0])
         return fig, ax
@@ -395,14 +397,13 @@ class World:
         positions = []
         # collect doses and positions for all voxels
         for voxel in list:
-            if voxel.oxygen > 0:
                 oxygen.append(voxel.oxygen)
                 positions.append(voxel.position)
         ax.scatter(
             [p[0] for p in positions],
             [p[1] for p in positions],
             [p[2] for p in positions],
-            c=oxygen, cmap='Blues', alpha=0.5, vmin=min(oxygen), vmax=max(oxygen), s= size
+            c=oxygen, cmap='RdBu', alpha=0.5, vmin=0, vmax=max(oxygen)*0.5, s= size
         )
         # add colorbar
         fig.colorbar(ax.collections[0])
@@ -428,7 +429,7 @@ class World:
             [p[0] for p in positions],
             [p[1] for p in positions],
             [p[2] for p in positions],
-            c=pressure, cmap='RdPu', alpha=0.5, vmin=min(pressure), vmax=max(pressure), s=size
+            c=pressure, cmap='RdPu', alpha=0.5, vmin=0, vmax=0.7, s=size
         )
         # add colorbar
         fig.colorbar(ax.collections[0])
@@ -474,7 +475,6 @@ class World:
                     voxel = self.voxel_list[i * self.number_of_voxels ** 2 + j * self.number_of_voxels + k]
                     if voxel.number_of_tumor_cells() > threshold:
                         voxel_data[i, j, k] = 1
-        print('ok')
         # Label connected regions of the tumor cells
         labels, num_features = ndimage.label(voxel_data)
 
@@ -500,4 +500,5 @@ class World:
         plotter.show(screenshot='tumor_surface.png')
 
         return
+
 
