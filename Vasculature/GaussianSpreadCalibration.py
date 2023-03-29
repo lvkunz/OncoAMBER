@@ -48,6 +48,9 @@ b = 1 #um/100
 fig, axes = plt.subplots(4, 5, figsize=(15, 12))
 axes = axes.flatten()
 
+alpha_values = []
+beta_values = []
+
 for n_idx, n in enumerate(n_values):
     sampler = qmc.Halton(2)
     points_x = sampler.random(n)[:,0] * side
@@ -83,6 +86,9 @@ for n_idx, n in enumerate(n_values):
     # Plot the histogram
     axes[n_idx].hist(o2_values, bins=100, density=True)
 
+    alpha_values.append(alpha)
+    beta_values.append(beta_param)
+
     # Plot the fitted beta distribution
     x = np.linspace(0, 1, 1000)
     y = beta.pdf(x, alpha, beta_param)
@@ -96,6 +102,15 @@ for n_idx, n in enumerate(n_values):
 
 # Adjust the layout and display the plots
 plt.tight_layout()
+plt.show()
+
+plt.figure()
+plt.plot(n_values, alpha_values, 'o-', label='Alpha')
+plt.plot(n_values, beta_values, 'o-', label='Beta')
+plt.xlabel('n')
+plt.ylabel('Parameters')
+plt.legend()
+plt.title('Alpha and Beta Parameters vs. n')
 plt.show()
 
 
