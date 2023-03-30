@@ -35,9 +35,9 @@ class Vessel:
 
         return distance - self.radius
 
-side = 6 #um/100
+side = 10 #um/100
 radius = 0.1
-n_values = list(range(1, 101))
+n_values = list(range(1, 51))
 
 def sigmoid(x, a=1, b=0.8):
     return 1 / (1 + np.exp(-a*(x-b)))
@@ -45,60 +45,57 @@ def sigmoid(x, a=1, b=0.8):
 a = -7 #um/100 give hypoxia threshold above 70 to 150um
 b = 1 #um/100
 
-# Set up the plot grid
-fig, axes = plt.subplots(4, 5, figsize=(15, 12))
-axes = axes.flatten()
-
 alpha_values = []
 beta_values = []
 all_n_values = []
 all_side_values = []
 
-for _ in range(10):
-    print('Iteration', _+1, 'of 10')
+for _ in range(5):
+    print('Iteration', _+1)
     for n_idx, n in enumerate(n_values):
-        for side in [6]:#, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 30, 35, 40, 45, 50]:
-            print('n =', n)
-            print('side =', side)
-            sampler = qmc.Halton(2)
-            points_x = sampler.random(n)[:,0] * side
-            points_y = sampler.random(n)[:,1] * side
-            # points_x = np.random.uniform(0, side, n)
-            # points_y = np.random.uniform(0, side, n)
+        print('n =', n)
+        print('side =', side)
+        sampler = qmc.Halton(2)
+        points_x = sampler.random(n)[:,0] * side
+        points_y = sampler.random(n)[:,1] * side
+        # points_x = np.random.uniform(0, side, n)
+        # points_y = np.random.uniform(0, side, n)
 
 
-            vessels = []
-            for i in range(len(points_x)):
-                vessels.append(Vessel([points_x[i], points_y[i]], radius))
+        vessels = []
+        for i in range(len(points_x)):
+            vessels.append(Vessel([points_x[i], points_y[i]], radius))
 
-            points = []
-            for i in range(5000):
-                point = [np.random.uniform(0, side), np.random.uniform(0, side), np.random.uniform(0, side)]
-                distances = []
-                for vessel in vessels:
-                    distances.append(vessel.closest_distance(point))
-                points.append(min(distances))
+        points = []
+        for i in range(3000):
+            point = [np.random.uniform(0, side), np.random.uniform(0, side), np.random.uniform(0, side)]
+            distances = []
+            for vessel in vessels:
+                distances.append(vessel.closest_distance(point))
+            points.append(min(distances))
 
-            o2_values = []
-            for point in points:
-                o2_values.append(sigmoid(point, a=a, b=b))
+        o2_values = []
+        for point in points:
+            o2_values.append(sigmoid(point, a=a, b=b))
 
-            hist_values, bin_edges = np.histogram(o2_values, bins=100)
+        # Normalize the histogram values
+        #hist_values_normalized = hist_values / len(o2_values)
 
-            # Normalize the histogram values
-            #hist_values_normalized = hist_values / len(o2_values)
+        # Fit a beta distribution to the data
+        alpha, beta_param, _, _ = beta.fit(o2_values, floc=0, fscale=1)
 
-            # Fit a beta distribution to the data
-            alpha, beta_param, _, _ = beta.fit(o2_values, floc=0, fscale=1)
+        # plt.figure()
+        # plt.hist(o2_values, bins=100, density=True)
+        # plt.plot(np.linspace(0, 1, 100), beta.pdf(np.linspace(0, 1, 100), alpha, beta_param))
+        # plt.title('n = ' + str(n) + ', side = ' + str(side))
+        # plt.xlabel('O2')
+        # plt.ylabel('Frequency')
+        # plt.show()
 
-            #plt.figure()
-            # Plot the histogram
-            #axes[n_idx].hist(o2_values, bins=100, density=True)
-
-            alpha_values = np.append(alpha_values, alpha)
-            beta_values = np.append(beta_values, beta_param)
-            all_side_values = np.append(all_side_values, side)
-            all_n_values = np.append(all_n_values, n)
+        alpha_values = np.append(alpha_values, alpha)
+        beta_values = np.append(beta_values, beta_param)
+        all_side_values = np.append(all_side_values, side)
+        all_n_values = np.append(all_n_values, n)
 
 #save all the alpha and beta values
 np.save('alpha_values.npy', alpha_values)

@@ -14,11 +14,11 @@ all_side_values = np.load('all_side_values.npy')
 
 #plot surface, alpha, and beta values vs. n and side
 
-def model_alpha(n, A, B, C, D, E):
-    return A * np.exp(B * n) + C * n  + E
+def model_alpha(n, A, B, C, D):
+    return A * np.exp(B * n) + C * n  + D
 
-def model_beta(n, A, B, C, D, E):
-    return A * np.exp(-B * n) + C * n + E
+def model_beta(n, A, B, C, D):
+    return A * np.exp(-B * n) + C * n + D
 all_n_values = np.array(all_n_values)
 all_side_values = np.array(all_side_values)
 alpha_values = np.array(alpha_values)
@@ -33,7 +33,7 @@ beta_values = np.array(beta_values)
 new_alpha_values = []
 new_beta_values = []
 
-max = 30
+max = 50
 for i in range(1, max+1):
     new_alpha_values.append(np.mean(alpha_values[all_n_values == i]))
     new_beta_values.append(np.mean(beta_values[all_n_values == i]))
@@ -60,10 +60,10 @@ all_n_values = np.array(range(1, max+1))
 
 
 # # Fit the alpha function
-alpha_params, _ = curve_fit(model_alpha, all_n_values, alpha_values,[12.0,0.03,-5,-30.0, 0.0], maxfev=100000)
+alpha_params, _ = curve_fit(model_alpha, all_n_values, alpha_values,[12.0, 0.03, -5, 0.0], maxfev=100000)
 # w
 # # Fit the beta function
-beta_params, _ = curve_fit(model_beta, all_n_values, beta_values,[0.4,0.02,-2.0,-40,0.5], maxfev=100000)
+beta_params, _ = curve_fit(model_beta, all_n_values, beta_values,[0.5,0.05,-2.0,0.5], maxfev=100000)
 #
 # # Print the estimated parameters
 print("Alpha parameters: A, B, C, D =", alpha_params)
