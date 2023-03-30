@@ -2,7 +2,8 @@ import numpy as np
 from scipy.stats import qmc
 import matplotlib.pyplot as plt
 from scipy.stats import beta
-
+from scipy.optimize import curve_fit
+from mpl_toolkits.mplot3d import Axes3D
 
 class Vessel:
     def __init__(self, origin, radius):
@@ -36,7 +37,7 @@ class Vessel:
 
 side = 6 #um/100
 radius = 0.1
-n_values = list(range(1, 21))
+n_values = list(range(1, 101))
 
 def sigmoid(x, a=1, b=0.8):
     return 1 / (1 + np.exp(-a*(x-b)))
@@ -50,68 +51,62 @@ axes = axes.flatten()
 
 alpha_values = []
 beta_values = []
+all_n_values = []
+all_side_values = []
 
-for n_idx, n in enumerate(n_values):
-    sampler = qmc.Halton(2)
-    points_x = sampler.random(n)[:,0] * side
-    points_y = sampler.random(n)[:,1] * side
-    # points_x = np.random.uniform(0, side, n)
-    # points_y = np.random.uniform(0, side, n)
+for _ in range(10):
+    print('Iteration', _+1, 'of 10')
+    for n_idx, n in enumerate(n_values):
+        for side in [6]:#, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 30, 35, 40, 45, 50]:
+            print('n =', n)
+            print('side =', side)
+            sampler = qmc.Halton(2)
+            points_x = sampler.random(n)[:,0] * side
+            points_y = sampler.random(n)[:,1] * side
+            # points_x = np.random.uniform(0, side, n)
+            # points_y = np.random.uniform(0, side, n)
 
 
-    vessels = []
-    for i in range(len(points_x)):
-        vessels.append(Vessel([points_x[i], points_y[i]], radius))
+            vessels = []
+            for i in range(len(points_x)):
+                vessels.append(Vessel([points_x[i], points_y[i]], radius))
 
-    points = []
-    for i in range(100000):
-        point = [np.random.uniform(0, side), np.random.uniform(0, side), np.random.uniform(0, side)]
-        distances = []
-        for vessel in vessels:
-            distances.append(vessel.closest_distance(point))
-        points.append(min(distances))
+            points = []
+            for i in range(5000):
+                point = [np.random.uniform(0, side), np.random.uniform(0, side), np.random.uniform(0, side)]
+                distances = []
+                for vessel in vessels:
+                    distances.append(vessel.closest_distance(point))
+                points.append(min(distances))
 
-    o2_values = []
-    for point in points:
-        o2_values.append(sigmoid(point, a=a, b=b))
+            o2_values = []
+            for point in points:
+                o2_values.append(sigmoid(point, a=a, b=b))
 
-    hist_values, bin_edges = np.histogram(o2_values, bins=100)
+            hist_values, bin_edges = np.histogram(o2_values, bins=100)
 
-    # Normalize the histogram values
-    #hist_values_normalized = hist_values / len(o2_values)
+            # Normalize the histogram values
+            #hist_values_normalized = hist_values / len(o2_values)
 
-    # Fit a beta distribution to the data
-    alpha, beta_param, _, _ = beta.fit(o2_values, floc=0, fscale=1)
+            # Fit a beta distribution to the data
+            alpha, beta_param, _, _ = beta.fit(o2_values, floc=0, fscale=1)
 
-    # Plot the histogram
-    axes[n_idx].hist(o2_values, bins=100, density=True)
+            #plt.figure()
+            # Plot the histogram
+            #axes[n_idx].hist(o2_values, bins=100, density=True)
 
-    alpha_values.append(alpha)
-    beta_values.append(beta_param)
+            alpha_values = np.append(alpha_values, alpha)
+            beta_values = np.append(beta_values, beta_param)
+            all_side_values = np.append(all_side_values, side)
+            all_n_values = np.append(all_n_values, n)
 
-    # Plot the fitted beta distribution
-    x = np.linspace(0, 1, 1000)
-    y = beta.pdf(x, alpha, beta_param)
-    axes[n_idx].plot(x, y, 'r-', lw=2)
+#save all the alpha and beta values
+np.save('alpha_values.npy', alpha_values)
+np.save('beta_values.npy', beta_values)
+np.save('all_n_values.npy', all_n_values)
+np.save('all_side_values.npy', all_side_values)
 
-    # Set title, labels, and ylim
-    axes[n_idx].set_title(f"n = {n}, alpha = {alpha:.2f}, beta = {beta_param:.2f}")
-    axes[n_idx].set_xlabel("O2")
-    axes[n_idx].set_ylabel("Frequency")
-    # axes[n_idx].set_ylim(0, 1.0)
-
-# Adjust the layout and display the plots
-plt.tight_layout()
-plt.show()
-
-plt.figure()
-plt.plot(n_values, alpha_values, 'o-', label='Alpha')
-plt.plot(n_values, beta_values, 'o-', label='Beta')
-plt.xlabel('n')
-plt.ylabel('Parameters')
-plt.legend()
-plt.title('Alpha and Beta Parameters vs. n')
-plt.show()
+#read in the alpha and beta values
 
 
 
