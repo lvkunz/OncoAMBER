@@ -495,4 +495,21 @@ class World:
 
         return
 
+    def measure_vasculature_length(self):
+        length = 0
+        for vessel in self.vessel_list:
+            for point in vessel.path:
+                if True: #add condition for some specific regions
+                    length += vessel.step_size
+        return length
+    def measure_vasculature_area(self):
+        area = 0
+        for vessel in self.vessel_list:
+            for point in vessel.path:
+                if True:
+                    area += 2*np.pi*vessel.radius*vessel.step_size
+        return area
+
+
+
 
