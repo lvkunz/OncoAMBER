@@ -35,7 +35,7 @@ class Vessel:
 
         return distance - self.radius
 
-side = 10 #um/100
+side = 6 #um/100
 radius = 0.1
 n_values = list(range(1, 51))
 
@@ -84,13 +84,13 @@ for _ in range(5):
         # Fit a beta distribution to the data
         alpha, beta_param, _, _ = beta.fit(o2_values, floc=0, fscale=1)
 
-        # plt.figure()
-        # plt.hist(o2_values, bins=100, density=True)
-        # plt.plot(np.linspace(0, 1, 100), beta.pdf(np.linspace(0, 1, 100), alpha, beta_param))
-        # plt.title('n = ' + str(n) + ', side = ' + str(side))
-        # plt.xlabel('O2')
-        # plt.ylabel('Frequency')
-        # plt.show()
+        plt.figure()
+        plt.hist(o2_values, bins=100, density=True)
+        plt.plot(np.linspace(0, 1, 100), beta.pdf(np.linspace(0, 1, 100), alpha, beta_param))
+        plt.title('n = ' + str(n) + ', side = ' + str(side))
+        plt.xlabel('O2')
+        plt.ylabel('Frequency')
+        plt.show()
 
         alpha_values = np.append(alpha_values, alpha)
         beta_values = np.append(beta_values, beta_param)

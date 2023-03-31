@@ -60,7 +60,7 @@ all_n_values = np.array(range(1, max+1))
 
 
 # # Fit the alpha function
-alpha_params, _ = curve_fit(model_alpha, all_n_values, alpha_values,[12.0, 0.03, -5, 0.0], maxfev=100000)
+alpha_params, _ = curve_fit(model_alpha, all_n_values, alpha_values,[1.0, 0.03, -5, 0.1], maxfev=100000)
 # w
 # # Fit the beta function
 beta_params, _ = curve_fit(model_beta, all_n_values, beta_values,[0.5,0.05,-2.0,0.5], maxfev=100000)
