@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from Cell import *
 from Voxel import *
+from scipy.stats import beta
+
 
 class Simulator:
     def __init__(self, list_of_process : list, finish_time, dt):
@@ -203,7 +205,7 @@ class CellMigration(Process):
                                 voxel.remove_cell(cell)
 
 
-class UpdateCellOxygen(Process):
+class UpdateCellOxygen_old(Process):
     def __init__(self, name, dt, spread_gaussian_o2):
         super().__init__('UpdateState', dt)
         self.spread_gaussian_o2 = spread_gaussian_o2
@@ -220,7 +222,42 @@ class UpdateCellOxygen(Process):
             voxel.list_of_cells[i].oxygen = sample_gaussian_o2[i]
             #print('oxygen = ', voxel.list_of_cells[i].oxygen, 'vitality = ', voxel.list_of_cells[i].vitality())
         return
+class UpdateCellOxygen(Process):
+    def __init__(self, name, dt, voxel_half_length, effective_vessel_radius, n_vessel_multiplicator):
+        super().__init__('UpdateState', dt)
+        self.voxel_side = voxel_half_length*200 #um/100
 
+        #read alpha and beta from files
+        alpha = np.genfromtxt('alpha.csv', delimiter=',', skip_header=True)
+        beta = np.genfromtxt('beta.csv', delimiter=',', skip_header=True)
+        a_row_index = np.where(alpha[:, 0] == self.voxel_side)[0][0]
+        b_row_index = np.where(beta[:, 0] == self.voxel_side)[0][0]
+        #add check that the voxel size is stored in alpha/beta file
+        self.aA = alpha[a_row_index, 1]
+        self.aB = alpha[a_row_index, 2]
+        self.aC = alpha[a_row_index, 3]
+        self.aD = alpha[a_row_index, 4]
+        self.bA = beta[b_row_index, 1]
+        self.bB = beta[b_row_index, 2]
+        self.bC = beta[b_row_index, 3]
+        self.bD = beta[b_row_index, 4]
+        self.effective_vessel_radius = effective_vessel_radius
+        self.n_vessel_multiplicator = n_vessel_multiplicator
+        self.n_vessel_factor = (self.n_vessel_multiplicator)/(np.pi*self.effective_vessel_radius**2*(self.voxel_side/100))
+    def __call__(self, voxel: Voxel):
+        n_vessels = int(voxel.vessel_volume*self.n_vessel_factor)
+        n_vessels = voxel.oxygen
+
+        alpha_ = self.model(n_vessels, self.aA, self.aB, self.aC, self.aD)
+        beta_ = self.model(n_vessels, self.bA, self.bB, self.bC, self.bD)
+
+        n_cells = voxel.number_of_alive_cells()
+        o2_values = beta.rvs(alpha_, beta_, size=n_cells)
+        for i in range(n_cells):
+            voxel.list_of_cells[i].oxygen = o2_values[i]
+
+    def model(self, n, A, B, C, D):
+        return A * np.exp(B * n) + C * n + D
 class UpdateVoxelMolecules(Process):
     def __init__(self, name, dt, VEGF_production_per_cell, threshold_for_VEGF_production):
         super().__init__('UpdateMolecules', dt)

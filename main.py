@@ -128,23 +128,25 @@ if CellDynamics:
                                             pressure_threshold=CONFIG['pressure_threshold_migration'])
 
     update_cell_state = UpdateCellOxygen('update_cell_state', dt,
-                                            spread_gaussian_o2=CONFIG['spread_gaussian_o2'])
+                                            voxel_half_length=(CONFIG['half_length_world']/CONFIG['voxel_per_side']),
+                                            effective_vessel_radius=CONFIG['effective_vessel_radius'],
+                                            n_vessel_multiplicator=CONFIG['n_vessel_multiplicator'])
 
     update_molecules = UpdateVoxelMolecules('update_molecules', dt,
                                             VEGF_production_per_cell=CONFIG['VEGF_production_per_cell'],
                                             threshold_for_VEGF_production=CONFIG['o2_threshold_for_VEGF_production'])
 
     update_vessels = UpdateVasculature('update_vessels', dt,
-                                           pressure_killing_radius_threshold=['pressure_radius_killing_threshold'],
-                                           o2_per_volume=CONFIG['o2_per_volume'],
-                                           diffusion_number=CONFIG['diffusion_number'],
-                                           splitting_rate=CONFIG['splitting_rate_vasculature'],
-                                           macro_steps=CONFIG['macro_steps'],
-                                           micro_steps=CONFIG['micro_steps'],
-                                           weight_direction=CONFIG['weight_direction'],
-                                           weight_vegf=CONFIG['weight_vegf'],
-                                           weight_pressure=CONFIG['weight_pressure'],
-                                           radius_pressure_sensitive=CONFIG['radius_pressure_sensitive'])
+                                            pressure_killing_radius_threshold=CONFIG['pressure_radius_killing_threshold'],
+                                            o2_per_volume=CONFIG['o2_per_volume'],
+                                            diffusion_number=CONFIG['diffusion_number'],
+                                            splitting_rate=CONFIG['splitting_rate_vasculature'],
+                                            macro_steps=CONFIG['macro_steps'],
+                                            micro_steps=CONFIG['micro_steps'],
+                                            weight_direction=CONFIG['weight_direction'],
+                                            weight_vegf=CONFIG['weight_vegf'],
+                                            weight_pressure=CONFIG['weight_pressure'],
+                                            radius_pressure_sensitive=CONFIG['radius_pressure_sensitive'])
 
 
     list_of_processes = [cellmigration, update_vessels, update_cell_state, cellaging, cellnecrosis, cellapoptosis, celldivision]

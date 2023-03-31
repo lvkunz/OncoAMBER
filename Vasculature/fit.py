@@ -15,7 +15,7 @@ all_side_values = np.load('all_side_values.npy')
 #plot surface, alpha, and beta values vs. n and side
 
 def model_alpha(n, A, B, C, D):
-    return A * np.exp(B * n) + C * n  + D
+    return A * np.exp(B * n) + C * n + D
 
 def model_beta(n, A, B, C, D):
     return A * np.exp(-B * n) + C * n + D

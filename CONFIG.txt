@@ -1,10 +1,10 @@
-half_length_world: 1.5
-voxel_per_side: 50
-dt: 10
+half_length_world: 1.20
+voxel_per_side: 40
+dt: 3
 endtime: 500
 TOPAS_file: nobeam
 vessel_number: 400
-initial_number_healthy_cells: 50
+initial_number_healthy_cells: 10
 initial_number_tumor_cells: 1000
 tumor_initial_radius: 0.1
 doubling_time_healthy: 10000000000
@@ -12,7 +12,8 @@ doubling_time_tumor: 10
 radius_tumor_cells: 0.0033
 radius_healthy_cells: 0.0033
 pressure_threshold_migration: 0.0
-spread_gaussian_o2: 0.001
+effective_vessel_radius: 0.001
+n_vessel_multiplicator: 1
 vitality_cycling_threshold: 0.0001
 pressure_threshold_division: 0.68
 max_occupancy: 0.7
@@ -24,8 +25,8 @@ VEGF_production_per_cell: 0.1
 o2_threshold_for_VEGF_production: 0.5
 pressure_radius_killing_threshold: 0.0003
 radius_decrease_exponent: 1
-o2_per_volume: 50000000
-diffusion_number: 30
+o2_per_volume: 5
+diffusion_number: 10
 splitting_rate_vasculature: 0.005
 macro_steps: 0
 micro_steps: 5
@@ -34,5 +35,5 @@ weight_vegf: 1.0
 weight_pressure: 0.0
 radius_pressure_sensitive: True
 o2_to_vitality_factor: 50
-viscosity: 20
+viscosity: 200
 vessel_step_size: 0.01

@@ -175,7 +175,6 @@ class VasculatureNetwork:
         if pressure_sensitive:
             for vessel in self.list_of_vessels:
                 vessel.radius = vessel.radius / ((1 + (vessel.mean_pressure(pressure)))**CONFIG['radius_decrease_exponent'])
-
     def volume_occupied(self):
         points = []
         volume = []

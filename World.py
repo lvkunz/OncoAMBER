@@ -77,7 +77,6 @@ class World:
             else:
                 return np.array([self.half_length - point[0],0,0])
 
-
         self.vasculature.grow_and_split(
             dt=1,
             splitting_rate=0.05,
@@ -140,7 +139,6 @@ class World:
         #self.vessels_killed_by_dose()
         #self.update_oxygen()
     def vessels_killed_by_pressure(self, radius_threshold = 1e-3):
-        radius_threshold = 0.3
         for vessel in self.vasculature.list_of_vessels:
             if vessel.radius < radius_threshold:
                 self.vasculature.kill_vessel(vessel.id)
@@ -158,9 +156,6 @@ class World:
             return -1
         return n
     def find_voxel(self, position):
-        #find the voxel that contains the position given
-        #position is a numpy array
-        #returns the voxel object
         voxel_number = self.find_voxel_number(position)
         return self.voxel_list[voxel_number]
     def find_neighbors(self, voxel):
@@ -198,7 +193,7 @@ class World:
         viscosities = np.array([voxel.viscosity for voxel in self.voxel_list])
 
         # Initialize migration matrix with zeros
-        migration_matrix = np.zeros((total_voxels, total_voxels))
+        migration_matrix = np.zeros((total_voxels, total_voxels), dtype=np.float16)
 
         for i in range(total_voxels):
             voxel_i = self.voxel_list[i]
@@ -256,8 +251,7 @@ class World:
     def update_oxygen(self, o2_per_volume=10, diffusion_number=5):
         print('-- Computing oxygen map')
         for voxel in self.voxel_list:
-            voxel.oxygen = voxel.vessel_volume * o2_per_volume
-
+            voxel.oxygen = int(voxel.vessel_volume * 1.89e7 * o2_per_volume)
         for i in range(diffusion_number):
             new_oxygen_map = np.zeros(self.total_number_of_voxels)
             print('--- o2 map computing', i, 'out of', diffusion_number)
@@ -267,7 +261,7 @@ class World:
                     sum += neighbor.oxygen
                 new_oxygen_map[voxel.voxel_number] = sum / (1 + len(self.find_neighbors(voxel)))
             for voxel in self.voxel_list:
-                voxel.oxygen = new_oxygen_map[voxel.voxel_number]
+                voxel.oxygen = int(new_oxygen_map[voxel.voxel_number])
         return
 
     def oxygen_map(self):

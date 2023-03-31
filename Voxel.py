@@ -85,9 +85,12 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                 oxygen = []
                 for cell in self.list_of_cells:
                         oxygen = np.append(oxygen, cell.oxygen)
-                ax.hist(oxygen, bins = 20, color = 'blue', alpha = 0.5, range = (0,max(oxygen)))
-                ax.set_xlim(0, max(oxygen))
-                ax.set_xlabel('Oxygen for mean = ' + str(self.oxygen/self.number_of_alive_cells()) + ' and spread = ' + str(CONFIG['spread_gaussian_o2']))
+                max = 1
+                if len(oxygen) > 0:
+                        max = np.max(oxygen)
+                ax.hist(oxygen, bins = 20, color = 'blue', alpha = 0.5, range = (0,max))
+                ax.set_xlim(0, max)
+                ax.set_xlabel('Oxygen) for mean = ' + str(self.oxygen/self.number_of_alive_cells()))
                 ax.set_ylabel('Number of cells')
                 ax.set_title('Oxygen histogram')
                 return ax, fig
@@ -105,7 +108,7 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                           linestyles='dashed')
                 ax.set_xlim(0, 1)
                 ax.set_xlabel(
-                        f'Vitality, Oxygen in voxel was = {self.oxygen} and spread = {CONFIG["spread_gaussian_o2"]}')
+                        f'Vitality, Oxygen in voxel was = {self.oxygen}')
                 ax.set_ylabel('Number of cells')
                 ax.set_title('Vitality histogram')
                 return ax, fig
