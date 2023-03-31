@@ -33,7 +33,7 @@ class Vessel:
         distance = np.sqrt((closest_point[0] - point[0]) ** 2 + (closest_point[1] - point[1]) ** 2 + (
                     closest_point[2] - point[2]) ** 2)
 
-        return distance - self.radius
+        return distance
 
 side = 6 #um/100
 radius = 0.1
@@ -50,7 +50,7 @@ beta_values = []
 all_n_values = []
 all_side_values = []
 
-for _ in range(5):
+for _ in range(1):
     print('Iteration', _+1)
     for n_idx, n in enumerate(n_values):
         print('n =', n)
@@ -67,7 +67,7 @@ for _ in range(5):
             vessels.append(Vessel([points_x[i], points_y[i]], radius))
 
         points = []
-        for i in range(3000):
+        for i in range(5000):
             point = [np.random.uniform(0, side), np.random.uniform(0, side), np.random.uniform(0, side)]
             distances = []
             for vessel in vessels:
@@ -82,14 +82,19 @@ for _ in range(5):
         #hist_values_normalized = hist_values / len(o2_values)
 
         # Fit a beta distribution to the data
-        alpha, beta_param, _, _ = beta.fit(o2_values, floc=0, fscale=1)
+        alpha, beta_param, _, _ = beta.fit(o2_values, floc=0, fscale=1.0)
+
+        r = np.random.beta(alpha, beta_param, 100000)
+
 
         plt.figure()
-        plt.hist(o2_values, bins=100, density=True)
-        plt.plot(np.linspace(0, 1, 100), beta.pdf(np.linspace(0, 1, 100), alpha, beta_param))
+        plt.hist(o2_values, bins=100, density=True, alpha=0.5, label='Data', color='blue')
+        plt.hist(r, bins=100, density=True, alpha=0.5, label='Beta', color='red')
+        #plt.plot(np.linspace(0, 1, 100), beta.pdf(np.linspace(0, 1, 100), alpha, beta_param))
         plt.title('n = ' + str(n) + ', side = ' + str(side))
         plt.xlabel('O2')
         plt.ylabel('Frequency')
+        plt.legend()
         plt.show()
 
         alpha_values = np.append(alpha_values, alpha)

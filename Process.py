@@ -247,12 +247,16 @@ class UpdateCellOxygen(Process):
     def __call__(self, voxel: Voxel):
         n_vessels = int(voxel.vessel_volume*self.n_vessel_factor)
         n_vessels = voxel.oxygen
-
-        alpha_ = self.model(n_vessels, self.aA, self.aB, self.aC, self.aD)
-        beta_ = self.model(n_vessels, self.bA, self.bB, self.bC, self.bD)
-
         n_cells = voxel.number_of_alive_cells()
-        o2_values = beta.rvs(alpha_, beta_, size=n_cells)
+
+        if n_vessels == 0:
+            o2_values = np.zeros(n_cells)
+
+        else:
+            alpha_ = self.model(n_vessels, self.aA, self.aB, self.aC, self.aD)
+            beta_ = self.model(n_vessels, self.bA, self.bB, self.bC, self.bD)
+            o2_values = beta.rvs(alpha_, beta_, size=n_cells)
+
         for i in range(n_cells):
             voxel.list_of_cells[i].oxygen = o2_values[i]
 

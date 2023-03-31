@@ -354,7 +354,7 @@ class World:
         [p[0] for p in positions],
         [p[1] for p in positions],
         [p[2] for p in positions],
-        c=number, cmap='viridis', alpha= 0.7, vmin=0, vmax=100, s=size, marker='h', edgecolors= 'none')
+        c=number, cmap='viridis', alpha= 0.7, vmin=0, vmax=1000, s=size, marker='h', edgecolors= 'none')
         # add colorbar
         fig.colorbar(ax.collections[0])
         return fig, ax

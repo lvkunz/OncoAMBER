@@ -94,3 +94,5 @@ plt.title('Alpha values and fits depending on n')
 plt.legend()
 plt.savefig('alpha_values.png')
 plt.show()
+
+
