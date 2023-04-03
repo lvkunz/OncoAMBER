@@ -5,7 +5,7 @@ endtime: 500
 TOPAS_file: nobeam
 vessel_number: 400
 initial_number_healthy_cells: 10
-initial_number_tumor_cells: 100000
+initial_number_tumor_cells: 50000
 tumor_initial_radius: 0.3
 doubling_time_healthy: 10000000000
 doubling_time_tumor: 10
@@ -23,6 +23,9 @@ vitality_necrosis_threshold: 0.1
 probability_necrosis: 0.05
 VEGF_production_per_cell: 0.01
 o2_threshold_for_VEGF_production: 0.5
+reference_vegf_gradient: 1.0
+reference_pressure: 1.0
+radius_smaller_vessels: 0.002
 pressure_radius_killing_threshold: 0.0003
 radius_decrease_exponent: 5
 o2_per_volume: 1.0

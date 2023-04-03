@@ -109,7 +109,7 @@ class Simulator:
             self.time = self.time + self.dt
             if video: self.show(world, self.time, slice = slice)
             number_cells.append(count_cells)
-            print('Vessel volume in center voxel: ', world.find_voxel([0, 0, 0]).vessel_sum_r3)
+            print('Vessel volume in center voxel: ', world.find_voxel([0, 0, 0]).vessel_volume)
 
         print('Simulation finished')
         self.show(world, self.time, slice = slice)
@@ -220,13 +220,13 @@ class UpdateCellOxygen_old(Process):
         n = voxel.number_of_alive_cells()
         if n == 0:
             return
-        mean_oxygen = voxel.effective_r3 / n
+        mean_oxygen = voxel.oxygen / n
         sample_gaussian_o2 = np.random.normal(mean_oxygen, self.spread_gaussian_o2, n)
         for i in range(n):
             if sample_gaussian_o2[i] < 0:
                 sample_gaussian_o2[i] = 0
-            voxel.list_of_cells[i].effective_r3 = sample_gaussian_o2[i]
-            #print('effective_r3 = ', voxel.list_of_cells[i].effective_r3, 'vitality = ', voxel.list_of_cells[i].vitality())
+            voxel.list_of_cells[i].oxygen = sample_gaussian_o2[i]
+            #print('oxygen = ', voxel.list_of_cells[i].oxygen, 'vitality = ', voxel.list_of_cells[i].vitality())
         return
 class UpdateCellOxygen(Process):
     def __init__(self, name, dt, voxel_half_length, effective_vessel_radius, n_vessel_multiplicator):
@@ -250,7 +250,7 @@ class UpdateCellOxygen(Process):
         self.effective_vessel_radius = effective_vessel_radius
         self.n_vessel_multiplicator = n_vessel_multiplicator
     def __call__(self, voxel: Voxel):
-        n_vessels = (voxel.effective_r3 / self.effective_vessel_radius**3) * self.n_vessel_multiplicator
+        n_vessels = (voxel.oxygen / self.effective_vessel_radius ** 3) * self.n_vessel_multiplicator
         n_cells = voxel.number_of_alive_cells()
 
         if n_vessels == 0:
@@ -262,7 +262,7 @@ class UpdateCellOxygen(Process):
             o2_values = beta.rvs(alpha_, beta_, size=n_cells)
 
         for i in range(n_cells):
-            voxel.list_of_cells[i].effective_r3 = o2_values[i]
+            voxel.list_of_cells[i].oxygen = o2_values[i]
 
     def model(self, n, A, B, C, D):
         return A * np.exp(B * n) + C * n + D
@@ -306,4 +306,4 @@ class UpdateVasculature(Process):
             total_VEGF += voxel.molecular_factors['VEGF']
         world.vasculature_growth(self.dt, self.splitting_rate, self.macro_steps, self.micro_steps, self.weight_direction, self.weight_vegf, self.weight_pressure, self.radius_pressure_sensitive)
         world.update_volume_occupied_by_vessels()
-        world.update_effective_r3(o2_per_volume = self.o2_per_volume, diffusion_number=self.diffusion_number)
+        world.update_oxygen(o2_per_volume = self.o2_per_volume, diffusion_number=self.diffusion_number)

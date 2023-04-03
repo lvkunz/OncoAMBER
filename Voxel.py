@@ -18,7 +18,7 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                 self.half_length = half_length
                 self.list_of_cells = list_of_cells_in
                 self.list_of_necrotic_cells = []
-                self.effective_r3 = oxygen
+                self.oxygen = oxygen
                 self.volume = 8*half_length**3
                 self.voxel_number = voxel_number
                 self.dose = 0
@@ -26,7 +26,7 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                 # if np.linalg.norm(self.position) < 5:
                 #         self.molecular_factors['VEGF'] = 1.0
                 self.viscosity = CONFIG['viscosity']
-                self.vessel_sum_r3 = 0
+                self.vessel_volume = 0
 
         def number_of_tumor_cells(self):
                 number = 0
@@ -106,7 +106,7 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                 ax.vlines(CONFIG['o2_threshold_for_VEGF_production'], 0, ax.get_ylim()[1], colors='purple', linestyles='dashed')
                 ax.set_xlim(0, 1)
                 ax.set_xlabel(
-                        f'Vitality, Oxygen in voxel was = {self.effective_r3}')
+                        f'Vitality, Oxygen in voxel was = {self.oxygen}')
                 ax.set_ylabel('Number of cells')
                 ax.set_title('Vitality histogram')
                 return ax, fig

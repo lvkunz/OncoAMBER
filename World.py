@@ -45,7 +45,7 @@ class World:
         def vegf_gradient(point): return vegf.gradient(point)
 
         self.vasculature.grow_and_split(dt, splitting_rate, vegf_gradient, pressure, macro_steps, micro_steps, weight_direction, weight_vegf, weight_pressure)
-        self.vasculature.update_vessels_radius(0.001,radius_pressure_sensitive, pressure)
+        self.vasculature.update_vessels_radius(CONFIG['radius_smaller_vessels'],radius_pressure_sensitive, pressure)
         return
 
     def generate_healthy_vasculature(self, initial_vessel_number):
@@ -89,7 +89,7 @@ class World:
             pressure_threshold=0.0,
             weight_pressure=0.3
         )
-        self.vasculature.update_vessels_radius(0.002, False, pressure)
+        self.vasculature.update_vessels_radius(CONFIG['radius_smaller_vessels'], False, pressure)
         return
 
     def read_vasculature(self, path):
@@ -126,10 +126,10 @@ class World:
                 voxel_n = self.find_voxel_number(point)
                 if voxel_n == -1:
                     continue
-                scorer[voxel_n] += vessel.radius**3
+                scorer[voxel_n] += vessel.volume_per_point()
         print('-- Finishing up -- CHECK IF NECESSARY')
         for voxel in self.voxel_list:
-            voxel.vessel_sum_r3 = scorer[voxel.voxel_number]
+            voxel.vessel_volume = scorer[voxel.voxel_number]
         return
 
     def update_biology_after_RT(self):
@@ -248,27 +248,27 @@ class World:
             voxel.dose = doses[voxel.voxel_number]
         return
 
-    def update_effective_r3(self, o2_per_volume=10, diffusion_number=5):
-        print('-- Computing effective_r3 map')
+    def update_oxygen(self, o2_per_volume=1, diffusion_number=5):
+        print('-- Computing oxygen map')
         for voxel in self.voxel_list:
-            voxel.effective_r3 = int(voxel.vessel_sum_r3 * 1.89e7 * o2_per_volume)
+            voxel.oxygen = int(voxel.vessel_volume * 1.89e7 * o2_per_volume)
         for i in range(diffusion_number):
             new_oxygen_map = np.zeros(self.total_number_of_voxels)
             print('--- o2 map computing', i, 'out of', diffusion_number)
             for voxel in self.voxel_list:
-                sum = voxel.effective_r3
+                sum = voxel.oxygen
                 for neighbor in self.find_neighbors(voxel):
-                    sum += neighbor.effective_r3
+                    sum += neighbor.oxygen
                 new_oxygen_map[voxel.voxel_number] = sum / (1 + len(self.find_neighbors(voxel)))
             for voxel in self.voxel_list:
-                voxel.effective_r3 = int(new_oxygen_map[voxel.voxel_number])
+                voxel.oxygen = int(new_oxygen_map[voxel.voxel_number])
         return
 
     def oxygen_map(self):
         values = []
         positions = []
         for voxel in self.voxel_list:
-            values.append(voxel.effective_r3)
+            values.append(voxel.oxygen)
             positions.append(voxel.position)
 
         step = self.half_length*2/self.number_of_voxels
@@ -391,7 +391,7 @@ class World:
         positions = []
         # collect doses and positions for all voxels
         for voxel in list:
-                oxygen.append(voxel.effective_r3)
+                oxygen.append(voxel.oxygen)
                 positions.append(voxel.position)
         ax.scatter(
             [p[0] for p in positions],

@@ -42,8 +42,14 @@ class Vessel:
 
     def grow(self, vegf_gradient, pressure, steps=1, weight_direction=0.5, weight_vegf=0.5, pressure_threshold=0.5,
                 weight_pressure=0.5):
+        length = 0
         for i in range(steps):
-            self.step(vegf_gradient, pressure, weight_direction, weight_vegf, pressure_threshold, weight_pressure)
+            step_size = self.step(vegf_gradient, pressure, weight_direction, weight_vegf, pressure_threshold, weight_pressure)
+            length += step_size
+        return length
+        # if step_size < CONFIG['growth_stop_threshold'] * self.step_size:
+        #     self.in_growth = False
+
 
     def step(self, vegf_gradient, pressure, weight_direction=0.5, weight_vegf=0.5, pressure_threshold=0.5,
              weight_pressure=0.5):
@@ -60,6 +66,7 @@ class Vessel:
         # Normalize direction and VEGF gradient
         direction_norm = direction / np.linalg.norm(direction) if np.linalg.norm(direction) != 0 else direction
         vegf_grad_norm = vegf_grad / np.linalg.norm(vegf_grad) if np.linalg.norm(vegf_grad) != 0 else vegf_grad
+        vegf_grad_norm_scalar = np.linalg.norm(vegf_grad_norm)
 
         # Calculate the weighted direction based on vessel direction and VEGF gradient
         weighted_dir = weight_direction * direction_norm + weight_vegf * vegf_grad_norm
@@ -75,8 +82,17 @@ class Vessel:
         weighted_dir /= np.linalg.norm(weighted_dir)
 
         # Calculate the new point and add it
-        new_point = last_point + self.step_size * weighted_dir
+        if weight_vegf > 0 and vegf_grad_norm_scalar < 0.3:
+            step_size = self.step_size * (vegf_grad_norm_scalar / CONFIG['reference_vegf_gradient'])
+        if weight_pressure > 0 and local_pressure > CONFIG['reference_pressure']:
+            step_size = self.step_size * (local_pressure / CONFIG['reference_pressure'])
+        if weight_pressure == 0 and weight_vegf == 0:
+            step_size = self.step_size
+
+        new_point = last_point + step_size * weighted_dir
         self.path = np.append(self.path, [new_point], axis=0)
+        return step_size
+
     def volume_per_point(self):
         return np.pi * self.radius ** 2 * self.step_size
 
@@ -204,9 +220,11 @@ class VasculatureNetwork:
             for vessel in self.list_of_vessels:
                 if j % 1000 == 0: print('current number of vessels {}'.format(len(self.list_of_vessels)))
                 if vessel.in_growth:
-                    vessel.grow(vegf_gradient, pressure, micro_steps, weight_direction, weight_vegf, pressure_threshold, weight_pressure)
+                    total_path_length = vessel.step_size * micro_steps
+                    new_path_length = vessel.grow(vegf_gradient, pressure, micro_steps, weight_direction, weight_vegf, pressure_threshold, weight_pressure)
                     if vessel.path.shape[0] > 3:
-                        if random.uniform(0, 1) < splitting_rate*dt:
+                        splitting_rate = (new_path_length / total_path_length) * splitting_rate
+                        if random.uniform(0, 1) < splitting_rate * dt:
                             branching_point = vessel.choose_random_point()
                             self.branching(vessel.id, branching_point)
                 j += 1
