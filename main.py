@@ -49,7 +49,10 @@ if CellDynamics:
     world.generate_healthy_vasculature(CONFIG['vessel_number'])
     world.vasculature.save_vessels('Vasculature/vasculature_new2')
     world.update_volume_occupied_by_vessels()
-    world.update_oxygen(o2_per_volume=CONFIG['o2_per_volume'], diffusion_number=CONFIG['diffusion_number'])
+    print('Relative volume occupied by vessels, ratio: ', 100*(world.measure_vasculature_volume()/(world.half_length*2)**3), '%')
+    print('Length of vasculature: ', 100*(world.measure_vasculature_length()/(world.half_length*2)**3), 'mm/mm^3')
+    print('Area of vasculature: ', 10*(world.measure_vasculature_area()/(world.half_length*2)**3), 'mm^2/mm^3')
+    world.update_effective_r3(o2_per_volume=CONFIG['o2_per_volume'], diffusion_number=CONFIG['diffusion_number'])
 
     if Vasculature:
         # Sphere = Sphere(2.0, [0, 0, 0])

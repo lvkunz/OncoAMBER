@@ -5,6 +5,9 @@ from mpl_toolkits.mplot3d import Axes3D
 from Cell import *
 from Voxel import *
 from scipy.stats import beta
+import ReadAndWrite as rw
+
+CONFIG = rw.read_config_file('CONFIG.txt')
 
 
 class Simulator:
@@ -53,14 +56,15 @@ class Simulator:
         axes[1, 0].set_xlim(-size, size)
         axes[1, 0].set_ylim(-size, size)
         axes[1, 0].set_zlim(-size, size)
-        world.show_voxels_centers_pressure(axes[1, 0], fig, slice=slice)
-        axes[1, 0].set_title('Pressure in voxels')
+        world.show_voxels_centers_molecules(axes[1, 0], fig, slice=slice, molecule='VEGF')
+        axes[1, 0].set_title('VEGF in voxels')
 
         axes[1, 1].view_init(angle, angle2)
         axes[1, 1].set_xlim(-size, size)
         axes[1, 1].set_ylim(-size, size)
         axes[1, 1].set_zlim(-size, size)
-        world.show_necrosis(axes[1, 1], fig, slice=slice)
+        world.show_voxels_centers_pressure(axes[1, 1], fig, slice=slice)
+        world.vasculature.plot(fig, axes[1, 1])
         axes[1, 1].set_title('Necrosis in voxels')
 
         plt.savefig('Plots/Video/t' + str(t) + '_AllPlots.png')
@@ -77,6 +81,8 @@ class Simulator:
 
         plt.savefig('Plots/Video/t' + str(t) + '_Histogram.png')
         plt.show()
+
+
 
     def run(self, world: World, video = False):
         slice = True
@@ -103,7 +109,7 @@ class Simulator:
             self.time = self.time + self.dt
             if video: self.show(world, self.time, slice = slice)
             number_cells.append(count_cells)
-            print('Vessel volume in center voxel: ', world.find_voxel([0, 0, 0]).vessel_volume)
+            print('Vessel volume in center voxel: ', world.find_voxel([0, 0, 0]).vessel_sum_r3)
 
         print('Simulation finished')
         self.show(world, self.time, slice = slice)
@@ -146,7 +152,7 @@ class CellDivision(Process):
                         new_cell = cell.duplicate()
                         voxel.add_cell(new_cell)
         else:
-            print('pressure = ', voxel.pressure(), ' > ', self.pressure_threshold, ' so no cell division')
+            if CONFIG['verbose']: print('pressure = ', voxel.pressure(), ' > ', self.pressure_threshold, ' so no cell division')
         return
 class CellApoptosis(Process):
     def __init__(self, name, dt, apoptosis_threshold, apoptosis_probability):
@@ -169,7 +175,7 @@ class CellNecrosis(Process):
         for cell in voxel.list_of_cells:
             if cell.vitality() < self.necrosis_threshold:
                 if cell.vitality() < self.necrosis_threshold and np.random.rand() < self.necrosis_probability:
-                    print('Cell necrosis in voxel ', voxel.voxel_number)
+                    if CONFIG['verbose']: print('Cell necrosis in voxel ', voxel.voxel_number)
                     voxel.cell_becomes_necrotic(cell)
 
 class CellAging(Process):
@@ -214,13 +220,13 @@ class UpdateCellOxygen_old(Process):
         n = voxel.number_of_alive_cells()
         if n == 0:
             return
-        mean_oxygen = voxel.oxygen / n
+        mean_oxygen = voxel.effective_r3 / n
         sample_gaussian_o2 = np.random.normal(mean_oxygen, self.spread_gaussian_o2, n)
         for i in range(n):
             if sample_gaussian_o2[i] < 0:
                 sample_gaussian_o2[i] = 0
-            voxel.list_of_cells[i].oxygen = sample_gaussian_o2[i]
-            #print('oxygen = ', voxel.list_of_cells[i].oxygen, 'vitality = ', voxel.list_of_cells[i].vitality())
+            voxel.list_of_cells[i].effective_r3 = sample_gaussian_o2[i]
+            #print('effective_r3 = ', voxel.list_of_cells[i].effective_r3, 'vitality = ', voxel.list_of_cells[i].vitality())
         return
 class UpdateCellOxygen(Process):
     def __init__(self, name, dt, voxel_half_length, effective_vessel_radius, n_vessel_multiplicator):
@@ -243,10 +249,8 @@ class UpdateCellOxygen(Process):
         self.bD = beta[b_row_index, 4]
         self.effective_vessel_radius = effective_vessel_radius
         self.n_vessel_multiplicator = n_vessel_multiplicator
-        self.n_vessel_factor = (self.n_vessel_multiplicator)/(np.pi*self.effective_vessel_radius**2*(self.voxel_side/100))
     def __call__(self, voxel: Voxel):
-        n_vessels = int(voxel.vessel_volume*self.n_vessel_factor)
-        n_vessels = voxel.oxygen
+        n_vessels = (voxel.effective_r3 / self.effective_vessel_radius**3) * self.n_vessel_multiplicator
         n_cells = voxel.number_of_alive_cells()
 
         if n_vessels == 0:
@@ -258,7 +262,7 @@ class UpdateCellOxygen(Process):
             o2_values = beta.rvs(alpha_, beta_, size=n_cells)
 
         for i in range(n_cells):
-            voxel.list_of_cells[i].oxygen = o2_values[i]
+            voxel.list_of_cells[i].effective_r3 = o2_values[i]
 
     def model(self, n, A, B, C, D):
         return A * np.exp(B * n) + C * n + D
@@ -271,7 +275,8 @@ class UpdateVoxelMolecules(Process):
         VEGF = 0
         for cell in voxel.list_of_cells:
             if cell.vitality() < self.threshold_for_VEGF_production:
-                VEGF = VEGF + self.VEGF_production_per_cell
+                VEGF = VEGF + self.VEGF_production_per_cell(1-cell.vitality())
+        VEGF = min(VEGF, 1)
         voxel.molecular_factors['VEGF'] = VEGF
         return
 class UpdateVasculature(Process):
@@ -301,4 +306,4 @@ class UpdateVasculature(Process):
             total_VEGF += voxel.molecular_factors['VEGF']
         world.vasculature_growth(self.dt, self.splitting_rate, self.macro_steps, self.micro_steps, self.weight_direction, self.weight_vegf, self.weight_pressure, self.radius_pressure_sensitive)
         world.update_volume_occupied_by_vessels()
-        world.update_oxygen(o2_per_volume = self.o2_per_volume, diffusion_number=self.diffusion_number)
+        world.update_effective_r3(o2_per_volume = self.o2_per_volume, diffusion_number=self.diffusion_number)

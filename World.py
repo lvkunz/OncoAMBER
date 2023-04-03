@@ -89,7 +89,7 @@ class World:
             pressure_threshold=0.0,
             weight_pressure=0.3
         )
-        self.vasculature.update_vessels_radius(0.001, False, pressure)
+        self.vasculature.update_vessels_radius(0.002, False, pressure)
         return
 
     def read_vasculature(self, path):
@@ -126,10 +126,10 @@ class World:
                 voxel_n = self.find_voxel_number(point)
                 if voxel_n == -1:
                     continue
-                scorer[voxel_n] += vessel.volume_per_point()
+                scorer[voxel_n] += vessel.radius**3
         print('-- Finishing up -- CHECK IF NECESSARY')
         for voxel in self.voxel_list:
-            voxel.vessel_volume = scorer[voxel.voxel_number]
+            voxel.vessel_sum_r3 = scorer[voxel.voxel_number]
         return
 
     def update_biology_after_RT(self):
@@ -209,7 +209,7 @@ class World:
                 pressure_diff = voxel_pressure - pressures[j]
                 if pressure_diff > 0:
                     t_res = (V / pressure_diff) * viscosity
-                    print('t_res = ', t_res)
+                    if CONFIG['verbose']: print('t_res = ', t_res)
                     n_events = dt / t_res
                     migration_matrix[i, j] = n_events
 
@@ -248,27 +248,27 @@ class World:
             voxel.dose = doses[voxel.voxel_number]
         return
 
-    def update_oxygen(self, o2_per_volume=10, diffusion_number=5):
-        print('-- Computing oxygen map')
+    def update_effective_r3(self, o2_per_volume=10, diffusion_number=5):
+        print('-- Computing effective_r3 map')
         for voxel in self.voxel_list:
-            voxel.oxygen = int(voxel.vessel_volume * 1.89e7 * o2_per_volume)
+            voxel.effective_r3 = int(voxel.vessel_sum_r3 * 1.89e7 * o2_per_volume)
         for i in range(diffusion_number):
             new_oxygen_map = np.zeros(self.total_number_of_voxels)
             print('--- o2 map computing', i, 'out of', diffusion_number)
             for voxel in self.voxel_list:
-                sum = voxel.oxygen
+                sum = voxel.effective_r3
                 for neighbor in self.find_neighbors(voxel):
-                    sum += neighbor.oxygen
+                    sum += neighbor.effective_r3
                 new_oxygen_map[voxel.voxel_number] = sum / (1 + len(self.find_neighbors(voxel)))
             for voxel in self.voxel_list:
-                voxel.oxygen = int(new_oxygen_map[voxel.voxel_number])
+                voxel.effective_r3 = int(new_oxygen_map[voxel.voxel_number])
         return
 
     def oxygen_map(self):
         values = []
         positions = []
         for voxel in self.voxel_list:
-            values.append(voxel.oxygen)
+            values.append(voxel.effective_r3)
             positions.append(voxel.position)
 
         step = self.half_length*2/self.number_of_voxels
@@ -391,7 +391,7 @@ class World:
         positions = []
         # collect doses and positions for all voxels
         for voxel in list:
-                oxygen.append(voxel.oxygen)
+                oxygen.append(voxel.effective_r3)
                 positions.append(voxel.position)
         ax.scatter(
             [p[0] for p in positions],
@@ -451,7 +451,7 @@ class World:
             [p[0] for p in positions],
             [p[1] for p in positions],
             [p[2] for p in positions],
-            c=molecules, cmap='Oranges', alpha=0.5, vmin=min(molecules), vmax=max(molecules), s=size
+            c=molecules, cmap='Oranges', alpha=0.5, vmin=0, vmax=1, s=size
         )
         # add colorbar
         fig.colorbar(ax.collections[0])
@@ -495,20 +495,35 @@ class World:
 
         return
 
+    def is_inside(self, point, cube_half_length = None):
+        if cube_half_length == None:
+            cube_half_length = self.half_length
+        if point[0] < cube_half_length and point[0] > -cube_half_length and point[1] < cube_half_length and point[1] > -cube_half_length and point[2] < cube_half_length and point[2] > -cube_half_length:
+            return True
+        else:
+            return False
+
     def measure_vasculature_length(self):
         length = 0
-        for vessel in self.vessel_list:
+        for vessel in self.vasculature.list_of_vessels:
             for point in vessel.path:
-                if True: #add condition for some specific regions
+                if self.is_inside(point): #add condition for some specific regions
                     length += vessel.step_size
         return length
     def measure_vasculature_area(self):
         area = 0
-        for vessel in self.vessel_list:
+        for vessel in self.vasculature.list_of_vessels:
             for point in vessel.path:
-                if True:
+                if self.is_inside(point):
                     area += 2*np.pi*vessel.radius*vessel.step_size
         return area
+    def measure_vasculature_volume(self):
+        volume = 0
+        for vessel in self.vasculature.list_of_vessels:
+            for point in vessel.path:
+                if self.is_inside(point):
+                    volume += vessel.volume_per_point()
+        return volume
 
 
 
