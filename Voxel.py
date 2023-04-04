@@ -85,9 +85,8 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                 oxygen = []
                 for cell in self.list_of_cells:
                         oxygen = np.append(oxygen, cell.oxygen)
-                ax.hist(oxygen, bins = 20, color = 'blue', alpha = 0.5, range = (0,1))
+                ax.hist(oxygen, bins = 50, color = 'blue', alpha = 0.5, range = (0,1))
                 ax.set_xlim(0, 1)
-                ax.set_xlabel('Oxygen', fontsize = 12)
                 ax.set_ylabel('Number of cells')
                 ax.set_title('Oxygen histogram')
                 return ax, fig
@@ -96,7 +95,7 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                 vitality = []
                 for cell in self.list_of_cells:
                         vitality.append(cell.vitality())
-                ax.hist(vitality, bins=20, color='orange', alpha=0.5, range=(0, 1))
+                ax.hist(vitality, bins=50, color='orange', alpha=0.5, range=(0, 1))
                 ax.vlines(CONFIG['vitality_cycling_threshold'], 0, ax.get_ylim()[1], colors='darkgreen',
                           linestyles='dashed')
                 ax.vlines(CONFIG['vitality_apoptosis_threshold'], 0, ax.get_ylim()[1], colors='darkred',
@@ -106,7 +105,7 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                 ax.vlines(CONFIG['o2_threshold_for_VEGF_production'], 0, ax.get_ylim()[1], colors='purple', linestyles='dashed')
                 ax.set_xlim(0, 1)
                 ax.set_xlabel(
-                        f'Vitality, Oxygen in voxel was = {self.oxygen}')
+                        f'Vitality, Oxygen in voxel was = {self.oxygen} and number of cells = {self.number_of_alive_cells()}')
                 ax.set_ylabel('Number of cells')
                 ax.set_title('Vitality histogram')
                 return ax, fig

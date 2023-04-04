@@ -7,7 +7,7 @@ CONFIG = rw.read_config_file('CONFIG.txt')
 
 
 class Cell (object):
-    def __init__(self, radius, cycle_hours = 10, type = 'HealthyCell'):
+    def __init__(self, radius, cycle_hours = 10, type = 'HealthyCell', ):
         self.radius = radius
         self.necrotic = False
         self.doubling_time = cycle_hours

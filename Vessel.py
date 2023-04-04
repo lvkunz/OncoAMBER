@@ -15,7 +15,7 @@ rng = np.random.default_rng(seed)
 CONFIG = rw.read_config_file('CONFIG.txt')
 
 class Vessel:
-    def __init__(self, path, radius, parent_id=None):
+    def __init__(self, path, radius, parent_id=None, in_growth=True):
         for point in path:
             if not isinstance(point, np.ndarray) or len(point.shape) != 1 or point.shape[0] != 3:
                 raise ValueError("Each point in the 'path' list must be a 3D array with shape (3,)")
@@ -25,7 +25,7 @@ class Vessel:
         self.parent_id = parent_id
         self.children_ids = []
         self.step_size = CONFIG['vessel_step_size']
-        self.in_growth = True
+        self.in_growth = in_growth
 
     def to_dict(self):
         return {
@@ -40,23 +40,30 @@ class Vessel:
     def __iter__(self):
         return self
 
-    def grow(self, vegf_gradient, pressure, steps=1, weight_direction=0.5, weight_vegf=0.5, pressure_threshold=0.5,
-                weight_pressure=0.5):
+    def grow(self, vegf_gradient, pressure, steps=1, weight_direction=0.5, weight_vegf=0.5, weight_pressure=0.5):
         length = 0
         for i in range(steps):
-            step_size = self.step(vegf_gradient, pressure, weight_direction, weight_vegf, pressure_threshold, weight_pressure)
+            step_size = self.step(vegf_gradient, pressure, weight_direction, weight_vegf, weight_pressure)
+            if step_size < CONFIG['growth_step_stop_threshold']:
+                self.in_growth = False
+                break
             length += step_size
         return length
         # if step_size < CONFIG['growth_stop_threshold'] * self.step_size:
         #     self.in_growth = False
 
 
-    def step(self, vegf_gradient, pressure, weight_direction=0.5, weight_vegf=0.5, pressure_threshold=0.5,
-             weight_pressure=0.5):
+    def step(self, vegf_gradient, pressure, weight_direction=0.5, weight_vegf=0.5, weight_pressure=0.5):
         if not isinstance(self.path, np.ndarray) or len(self.path.shape) != 2 or self.path.shape[1] != 3:
             raise ValueError("The 'self.path' array must be a 3D array with shape (n, 3)")
         last_point = np.array(self.path[-1])
         prev_point = np.array(self.path[-2]) if len(self.path) > 1 else last_point
+
+        if last_point[0] < -CONFIG['half_length_world'] or last_point[0] > CONFIG['half_length_world'] or \
+                last_point[1] < -CONFIG['half_length_world'] or last_point[1] > CONFIG['half_length_world'] or \
+                last_point[2] < -CONFIG['half_length_world'] or last_point[2] > CONFIG['half_length_world']:
+            return 0
+
         direction = last_point - prev_point
 
         # Get VEGF gradient at the last point
@@ -81,13 +88,16 @@ class Vessel:
         # Normalize the weighted direction
         weighted_dir /= np.linalg.norm(weighted_dir)
 
+        if CONFIG['verbose']:
+            print('vegf_grad_norm_scalar: ', vegf_grad_norm_scalar)
+            print('local_pressure: ', local_pressure)
+
         # Calculate the new point and add it
-        if weight_vegf > 0 and vegf_grad_norm_scalar < 0.3:
-            step_size = self.step_size * (vegf_grad_norm_scalar / CONFIG['reference_vegf_gradient'])
+        step_size = self.step_size
+        if weight_vegf > 0 and vegf_grad_norm_scalar < CONFIG['reference_vegf_gradient']:
+            step_size = step_size * (vegf_grad_norm_scalar / CONFIG['reference_vegf_gradient'])
         if weight_pressure > 0 and local_pressure > CONFIG['reference_pressure']:
-            step_size = self.step_size * (local_pressure / CONFIG['reference_pressure'])
-        if weight_pressure == 0 and weight_vegf == 0:
-            step_size = self.step_size
+            step_size = step_size * (CONFIG['reference_pressure'] / local_pressure)
 
         new_point = last_point + step_size * weighted_dir
         self.path = np.append(self.path, [new_point], axis=0)
@@ -97,7 +107,10 @@ class Vessel:
         return np.pi * self.radius ** 2 * self.step_size
 
     def plot(self,fig, ax, color='crimson'):
-        ax.plot(self.path[:, 0], self.path[:, 1], self.path[:, 2], color=color, alpha=0.5, linewidth= self.radius*500)
+        if self.in_growth:
+            ax.plot(self.path[:, 0], self.path[:, 1], self.path[:, 2], color=color, alpha=0.7, linewidth= self.radius*300)
+        else:
+            ax.plot(self.path[:, 0], self.path[:, 1], self.path[:, 2], color='mediumblue', alpha=0.1, linewidth= self.radius*300)
         return fig, ax
     def choose_random_point(self):
         #choose random point on the path, not the first or last point
@@ -132,9 +145,9 @@ class VasculatureNetwork:
         #remove the first element of path2
         path2 = np.delete(path2, 0, 0)
         mother_vessel.path = path1  # reduce the mother vessel path. It stops growing
-        mother_vessel.in_growth = False
         # create two new vessels
-        vessel1 = Vessel(path2, mother_vessel.radius, mother_vessel.id)
+        vessel1 = Vessel(path2, mother_vessel.radius, mother_vessel.id, in_growth= mother_vessel.in_growth)
+        mother_vessel.in_growth = False
         #choose random point around branching point
         #random_point = branching_point + np.array([random.uniform(-mother_vessel.step, mother_vessel.step), random.uniform(-mother_vessel.step, mother_vessel.step), random.uniform(-mother_vessel.step, mother_vessel.step)])
         # the radius has to be updated later
@@ -212,19 +225,20 @@ class VasculatureNetwork:
         return fig, ax
 
 
-    def grow_and_split(self, dt, splitting_rate, vegf_gradient, pressure, macro_steps=1, micro_steps=10, weight_direction=0.5, weight_vegf=0.5, pressure_threshold=0.5, weight_pressure=0.5):
+    def grow_and_split(self, dt, splitting_rate, vegf_gradient, pressure, macro_steps=1, micro_steps=10, weight_direction=0.5, weight_vegf=0.5, weight_pressure=0.5):
         micro_steps = micro_steps * dt
         for i in range(macro_steps):
             print("Macro step {}".format(i))
             j = 0
             for vessel in self.list_of_vessels:
+                splitting_rate_ = splitting_rate
                 if j % 1000 == 0: print('current number of vessels {}'.format(len(self.list_of_vessels)))
                 if vessel.in_growth:
                     total_path_length = vessel.step_size * micro_steps
-                    new_path_length = vessel.grow(vegf_gradient, pressure, micro_steps, weight_direction, weight_vegf, pressure_threshold, weight_pressure)
+                    new_path_length = vessel.grow(vegf_gradient, pressure, micro_steps, weight_direction, weight_vegf, weight_pressure)
                     if vessel.path.shape[0] > 3:
-                        splitting_rate = (new_path_length / total_path_length) * splitting_rate
-                        if random.uniform(0, 1) < splitting_rate * dt:
+                        splitting_rate_ = (new_path_length / total_path_length) * splitting_rate_
+                        if random.uniform(0, 1) < splitting_rate_ * dt:
                             branching_point = vessel.choose_random_point()
                             self.branching(vessel.id, branching_point)
                 j += 1

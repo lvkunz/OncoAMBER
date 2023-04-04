@@ -40,11 +40,13 @@ if CellDynamics:
         for j in range(CONFIG['initial_number_healthy_cells']):
             world.voxel_list[i].add_cell(Cell(CONFIG['radius_healthy_cells'], cycle_hours=CONFIG['doubling_time_healthy'], type='HealthyCell'))
 
-    points = Sphere(CONFIG['tumor_initial_radius'], [0, 0, 0]).generate_random_points(CONFIG['initial_number_tumor_cells'])
+    points = Sphere(CONFIG['tumor_initial_radius'], [0, 0, 0]).generate_random_points(
+        CONFIG['initial_number_tumor_cells'])
     for i in range(CONFIG['initial_number_tumor_cells']):
-        if i %10000 == 0: print('Adding tumor cells ', i, ' out of ', CONFIG['initial_number_tumor_cells'])
+        if i % 10000 == 0: print('Adding tumor cells ', i, ' out of ', CONFIG['initial_number_tumor_cells'])
         voxel = world.find_voxel(points[i])
-        voxel.add_cell(Cell(CONFIG['radius_tumor_cells'], cycle_hours=CONFIG['doubling_time_tumor'], type='TumorCell'))
+        voxel.add_cell(
+            Cell(CONFIG['radius_tumor_cells'], cycle_hours=CONFIG['doubling_time_tumor'], type='TumorCell'))
 
     world.generate_healthy_vasculature(CONFIG['vessel_number'])
     world.vasculature.save_vessels('Vasculature/vasculature_new2')
@@ -132,8 +134,7 @@ if CellDynamics:
 
     update_cell_state = UpdateCellOxygen('update_cell_state', dt,
                                             voxel_half_length=(CONFIG['half_length_world']/CONFIG['voxel_per_side']),
-                                            effective_vessel_radius=CONFIG['effective_vessel_radius'],
-                                            n_vessel_multiplicator=CONFIG['n_vessel_multiplicator'])
+                                            effective_vessel_radius=CONFIG['effective_vessel_radius'])
 
     update_molecules = UpdateVoxelMolecules('update_molecules', dt,
                                             VEGF_production_per_cell=CONFIG['VEGF_production_per_cell'],
@@ -152,7 +153,7 @@ if CellDynamics:
                                             radius_pressure_sensitive=CONFIG['radius_pressure_sensitive'])
 
 
-    list_of_processes = [cellmigration, update_vessels, update_cell_state, cellaging, cellnecrosis, cellapoptosis, celldivision]
+    list_of_processes = [update_cell_state, cellaging, cellnecrosis, cellapoptosis, update_molecules, celldivision, cellmigration, update_vessels]
 
     sim = Simulator(list_of_processes, end_time, dt)
     sim.run(world, video=True)
@@ -165,7 +166,7 @@ if CellDynamics:
     if show:
 
         figY = plt.figure()
-        axY = figY.add_subplot(111, projection='3d')
+        axY = figY.add_subplot(111, projection='3d0')
         axY.figure.set_dpi(DPI)
         # axX.view_init(90, 0)
         world.show_tumor(axY, figY)

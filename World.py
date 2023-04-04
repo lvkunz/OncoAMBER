@@ -40,11 +40,19 @@ class World:
         print('Vasculature growth')
         pressure_map = self.pressure_map(step_voxel=5)
         def pressure(point): return pressure_map.evaluate(point)
-        vegf = self.vegf_map(step_voxel=5)
+        vegf = self.vegf_map(step_voxel= CONFIG['vegf_map_step_voxel'])
 
         def vegf_gradient(point): return vegf.gradient(point)
 
-        self.vasculature.grow_and_split(dt, splitting_rate, vegf_gradient, pressure, macro_steps, micro_steps, weight_direction, weight_vegf, weight_pressure)
+        self.vasculature.grow_and_split(dt = dt,
+                                        splitting_rate = splitting_rate,
+                                        macro_steps = macro_steps,
+                                        micro_steps = micro_steps,
+                                        weight_direction = weight_direction,
+                                        weight_vegf = weight_vegf,
+                                        weight_pressure = weight_pressure,
+                                        pressure = pressure,
+                                        vegf_gradient = vegf_gradient)
         self.vasculature.update_vessels_radius(CONFIG['radius_smaller_vessels'],radius_pressure_sensitive, pressure)
         return
 
@@ -70,7 +78,7 @@ class World:
             list_of_vessels.append(Vessel([points[j], points2[j]], 0.5))
         self.initiate_vasculature(list_of_vessels)
         def pressure(point):
-            return self.half_length - abs(point[0])
+            return (self.half_length - abs(point[0]))*0.5
         def vegf_gradient(point):
             if point[0] > 0:
                 return np.array([-self.half_length - point[0],0,0])
@@ -85,11 +93,12 @@ class World:
             macro_steps=30,
             micro_steps=6,
             weight_direction=3.0,
-            weight_vegf=0.8,
-            pressure_threshold=0.0,
-            weight_pressure=0.3
+            weight_vegf=0.6,
+            weight_pressure=0.5
         )
         self.vasculature.update_vessels_radius(CONFIG['radius_smaller_vessels'], False, pressure)
+        for vessel in self.vasculature.list_of_vessels:
+            vessel.in_growth = False
         return
 
     def read_vasculature(self, path):
@@ -251,7 +260,7 @@ class World:
     def update_oxygen(self, o2_per_volume=1, diffusion_number=5):
         print('-- Computing oxygen map')
         for voxel in self.voxel_list:
-            voxel.oxygen = int(voxel.vessel_volume * 1.89e7 * o2_per_volume)
+            voxel.oxygen = int((voxel.vessel_volume * o2_per_volume) / (np.pi * CONFIG['effective_vessel_radius']**2 * voxel.half_length * 2))
         for i in range(diffusion_number):
             new_oxygen_map = np.zeros(self.total_number_of_voxels)
             print('--- o2 map computing', i, 'out of', diffusion_number)
@@ -429,7 +438,7 @@ class World:
         fig.colorbar(ax.collections[0])
         return fig, ax
 
-    def show_voxels_centers_molecules(self, ax, fig, molecule : str, slice = False):
+    def show_voxels_centers_molecules(self, ax, fig, molecule : str, slice = False, gradient = False):
         print('-- Plotting Molecules')
         if slice:
             middle_slice = self.number_of_voxels // 2
@@ -453,7 +462,9 @@ class World:
             [p[2] for p in positions],
             c=molecules, cmap='Oranges', alpha=0.5, vmin=0, vmax=1, s=size
         )
-        # add colorbar
+        if gradient:
+            vegf = self.vegf_map()
+            vegf.show_gradient(ax, fig)
         fig.colorbar(ax.collections[0])
         return fig, ax
 

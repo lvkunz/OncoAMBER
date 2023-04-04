@@ -6,6 +6,7 @@ from Cell import *
 from Voxel import *
 from scipy.stats import beta
 import ReadAndWrite as rw
+from BasicGeometries import *
 
 CONFIG = rw.read_config_file('CONFIG.txt')
 
@@ -32,6 +33,21 @@ class Simulator:
         DPI = 100
         size = world.half_length
 
+        #plot vasculature
+        if Vasculature_show:
+            fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(25, 25), dpi=DPI, subplot_kw={'projection': '3d'})
+            fig.suptitle('Visualization at time t = ' + str(t) + ' hours', fontsize=16)
+            axes.view_init(30, 60)
+            axes.set_xlim(-size/2, size/2)
+            axes.set_ylim(-size/2, size/2)
+            axes.set_zlim(-size/2, size/2)
+            world.show_tumor(axes, fig)
+            world.vasculature.plot(fig, axes)
+            axes.set_title('Vasculature')
+            plt.savefig('Plots/Video/t' + str(t) + '_Vasculature.png')
+            plt.show()
+
+
         fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(20, 20), dpi=DPI, subplot_kw={'projection': '3d'})
         fig.suptitle('Visualization at time t = ' + str(t) + ' hours', fontsize=16)
 
@@ -40,10 +56,8 @@ class Simulator:
         axes[0, 0].set_ylim(-size, size)
         axes[0, 0].set_zlim(-size, size)
         world.show_tumor(axes[0, 0], fig, slice=slice)
+        #world.vasculature.plot(fig, axes[1, 1])
         axes[0, 0].set_title('Cells in voxels')
-
-        # if Vasculature_show:
-        #     world.vasculature.plot(fig, ax)
 
         axes[0, 1].view_init(angle, angle2)
         axes[0, 1].set_xlim(-size, size)
@@ -57,30 +71,36 @@ class Simulator:
         axes[1, 0].set_ylim(-size, size)
         axes[1, 0].set_zlim(-size, size)
         world.show_voxels_centers_molecules(axes[1, 0], fig, slice=slice, molecule='VEGF')
+        #show gradient of VEGF
+        #world.show_voxels_centers_molecules(axes[1, 0], fig, slice=slice, molecule='VEGF', gradient=True)
         axes[1, 0].set_title('VEGF in voxels')
 
         axes[1, 1].view_init(angle, angle2)
         axes[1, 1].set_xlim(-size, size)
         axes[1, 1].set_ylim(-size, size)
         axes[1, 1].set_zlim(-size, size)
-        world.show_voxels_centers_pressure(axes[1, 1], fig, slice=slice)
-        world.vasculature.plot(fig, axes[1, 1])
+        world.show_necrosis(axes[1, 1], fig, slice=slice)
+        #world.vasculature.plot(fig, axes[1, 1])
         axes[1, 1].set_title('Necrosis in voxels')
 
         plt.savefig('Plots/Video/t' + str(t) + '_AllPlots.png')
         plt.show()
 
-        fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(20, 10), dpi=100)
+        voxels_positions = [[0,0,0],[0.06, 0.06, 0.0], [0.12,0.12,0.0]]
+        fig, axes = plt.subplots(nrows=2, ncols=len(voxels_positions), figsize=(20, 10), dpi=100)
         fig.suptitle('Visualization at time t = ' + str(t) + ' hours', fontsize=16)
-
-        world.find_voxel([0, 0, 0]).oxygen_histogram(axes[0], fig)
-        axes[0].set_title('Oxygen histogram')
-
-        world.find_voxel([0, 0, 0]).vitality_histogram(axes[1], fig)
-        axes[1].set_title('Vitality histogram')
-
-        plt.savefig('Plots/Video/t' + str(t) + '_Histogram.png')
+        for i in range(len(voxels_positions)):
+            #show histograms for the three voxels
+            axes[0, i].set_title('Voxel ' + str(i))
+            axes[0, i].set_xlabel('Oxygen')
+            axes[0, i].set_ylabel('Number of cells')
+            voxel = world.find_voxel(voxels_positions[i])
+            voxel.oxygen_histogram(axes[0, i], fig)
+            axes[1, i].set_xlabel('Vitality')
+            axes[1, i].set_ylabel('Number of cells')
+            voxel.vitality_histogram(axes[1, i], fig)
         plt.show()
+
 
 
 
@@ -94,11 +114,9 @@ class Simulator:
         self.show(world, self.time, slice = slice)
 
         while self.time < self.finish_time:
+
             count_cells = 0
             print('\033[1;31;47mTime: {} hours'.format(self.time) + ' / ' + str(self.finish_time) + ' hours\033[0m')
-            for process in process_global:
-                print('Currently running global process : ', process.name)
-                process(world)
             #loop in random order
             copy_voxel_list = world.voxel_list.copy()
             np.random.shuffle(copy_voxel_list)
@@ -106,6 +124,9 @@ class Simulator:
                 count_cells += voxel.number_of_tumor_cells()
                 for process in process_local:
                     process(voxel)
+            for process in process_global:
+                print('Currently running global process : ', process.name)
+                process(world)
             self.time = self.time + self.dt
             if video: self.show(world, self.time, slice = slice)
             number_cells.append(count_cells)
@@ -210,26 +231,8 @@ class CellMigration(Process):
                             if neighbor.add_cell(cell):
                                 voxel.remove_cell(cell)
 
-
-class UpdateCellOxygen_old(Process):
-    def __init__(self, name, dt, spread_gaussian_o2):
-        super().__init__('UpdateState', dt)
-        self.spread_gaussian_o2 = spread_gaussian_o2
-
-    def __call__(self, voxel: Voxel):
-        n = voxel.number_of_alive_cells()
-        if n == 0:
-            return
-        mean_oxygen = voxel.oxygen / n
-        sample_gaussian_o2 = np.random.normal(mean_oxygen, self.spread_gaussian_o2, n)
-        for i in range(n):
-            if sample_gaussian_o2[i] < 0:
-                sample_gaussian_o2[i] = 0
-            voxel.list_of_cells[i].oxygen = sample_gaussian_o2[i]
-            #print('oxygen = ', voxel.list_of_cells[i].oxygen, 'vitality = ', voxel.list_of_cells[i].vitality())
-        return
 class UpdateCellOxygen(Process):
-    def __init__(self, name, dt, voxel_half_length, effective_vessel_radius, n_vessel_multiplicator):
+    def __init__(self, name, dt, voxel_half_length, effective_vessel_radius):
         super().__init__('UpdateState', dt)
         self.voxel_side = voxel_half_length*200 #um/100
 
@@ -248,18 +251,22 @@ class UpdateCellOxygen(Process):
         self.bC = beta[b_row_index, 3]
         self.bD = beta[b_row_index, 4]
         self.effective_vessel_radius = effective_vessel_radius
-        self.n_vessel_multiplicator = n_vessel_multiplicator
     def __call__(self, voxel: Voxel):
-        n_vessels = (voxel.oxygen / self.effective_vessel_radius ** 3) * self.n_vessel_multiplicator
+
+        def crowding_effect(n_cells):
+            return (1 - n_cells / CONFIG['max_oxygenated_cells_per_voxel'])
+
+
+        n_vessels = voxel.oxygen
         n_cells = voxel.number_of_alive_cells()
 
         if n_vessels == 0:
             o2_values = np.zeros(n_cells)
-
         else:
             alpha_ = self.model(n_vessels, self.aA, self.aB, self.aC, self.aD)
             beta_ = self.model(n_vessels, self.bA, self.bB, self.bC, self.bD)
-            o2_values = beta.rvs(alpha_, beta_, size=n_cells)
+
+            o2_values = np.random.beta(alpha_, beta_, size=n_cells) * crowding_effect(n_cells)
 
         for i in range(n_cells):
             voxel.list_of_cells[i].oxygen = o2_values[i]
@@ -274,9 +281,9 @@ class UpdateVoxelMolecules(Process):
     def __call__(self, voxel: Voxel):
         VEGF = 0
         for cell in voxel.list_of_cells:
-            if cell.vitality() < self.threshold_for_VEGF_production:
-                VEGF = VEGF + self.VEGF_production_per_cell(1-cell.vitality())
-        VEGF = min(VEGF, 1)
+            if cell.type == 'TumorCell' and cell.vitality() < self.threshold_for_VEGF_production:
+                VEGF = VEGF + self.VEGF_production_per_cell*(1-cell.vitality())
+        VEGF = min(VEGF, 1.0)
         voxel.molecular_factors['VEGF'] = VEGF
         return
 class UpdateVasculature(Process):
@@ -304,6 +311,15 @@ class UpdateVasculature(Process):
         total_VEGF = 0
         for voxel in world.voxel_list:
             total_VEGF += voxel.molecular_factors['VEGF']
+        print('Total VEGF: ', total_VEGF)
+        for i in range(int(total_VEGF)):
+            #choose random vessel
+            vessel = np.random.choice(world.vasculature.list_of_vessels)
+            #choose random point on vessel
+            point = vessel.choose_random_point()
+            #branch from this point
+            world.vasculature.branching(vessel.id, point)
+
         world.vasculature_growth(self.dt, self.splitting_rate, self.macro_steps, self.micro_steps, self.weight_direction, self.weight_vegf, self.weight_pressure, self.radius_pressure_sensitive)
         world.update_volume_occupied_by_vessels()
         world.update_oxygen(o2_per_volume = self.o2_per_volume, diffusion_number=self.diffusion_number)
