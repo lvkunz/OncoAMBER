@@ -37,7 +37,6 @@ class Vessel:
 
 side = 6 #um/100
 radius = 0.1
-n_values = list(range(1, 100))
 
 def sigmoid(x, a=1, b=0.8):
     return 1 / (1 + np.exp(-a*(x-b)))
@@ -53,9 +52,12 @@ alpha_values = []
 beta_values = []
 all_n_values = []
 all_side_values = []
+all_pressure_values = []
 
-for _ in range(1):
-    pressure = 0
+n_values = list(range(1, 100))
+
+for _ in range(16):
+    pressure = 0.05 * _
     print('Iteration', _+1)
     for n_idx, n in enumerate(n_values):
 
@@ -95,7 +97,7 @@ for _ in range(1):
             vessels.append(Vessel([points_x[i], points_y[i]], radius))
 
         points = []
-        for i in range(5000):
+        for i in range(50000):
             point = [np.random.uniform(0, side), np.random.uniform(0, side), np.random.uniform(0, side)]
             distances = []
             for vessel in vessels:
@@ -113,25 +115,26 @@ for _ in range(1):
         # Fit a beta distribution to the data
         alpha, beta_param, _, _ = beta.fit(o2_values, floc=0, fscale=1.0)
 
-        r = np.random.beta(alpha, beta_param, 5000)
-        rbis = np.random.beta(modelled_alpha, modelled_beta, 5000)
-
-
-        plt.figure()
-        plt.hist(o2_values, bins=100, alpha=0.5, label='Data', color='blue')
-        plt.hist(r, bins=100, alpha=0.5, label='Beta', color='red')
-        plt.hist(rbis, bins=100, alpha=0.5, label='Modelled Beta', color='green')
-        #plt.plot(np.linspace(0, 1, 100), beta.pdf(np.linspace(0, 1, 100), alpha, beta_param))
-        plt.title('n = ' + str(n) + ', side = ' + str(side) + ', pressure = ' + str(pressure) + '\n fitted alpha = ' + str(round(alpha,4)) + ', fitted beta = ' + str(round(beta_param,4)) + ', modelled alpha ' + str(round(modelled_alpha,4)) + 'modelled beta ' + str(round(modelled_beta,4)), fontsize=8)
-        plt.xlabel('O2')
-        plt.ylabel('Frequency')
-        plt.legend()
-        plt.show()
+        # r = np.random.beta(alpha, beta_param, 50000)
+        # # rbis = np.random.beta(modelled_alpha, modelled_beta, 5000)
+        #
+        #
+        # plt.figure()
+        # plt.hist(o2_values, bins=100, alpha=0.5, label='Data', color='blue', density=True)
+        # plt.hist(r, bins=100, alpha=0.5, label='Beta', color='red', density=True)
+        # #plt.hist(rbis, bins=100, alpha=0.5, label='Modelled Beta', color='green')
+        # #plt.plot(np.linspace(0, 1, 100), beta.pdf(np.linspace(0, 1, 100), alpha, beta_param))
+        # plt.title('n = ' + str(n) + ', side = ' + str(side) + ', pressure = ' + str(pressure) + '\n fitted alpha = ' + str(round(alpha,4)) + ', fitted beta = ' + str(round(beta_param,4)) + ', modelled alpha ' + str(round(modelled_alpha,4)) + 'modelled beta ' + str(round(modelled_beta,4)), fontsize=8)
+        # plt.xlabel('O2')
+        # plt.ylabel('Frequency')
+        # plt.legend()
+        # plt.show()
 
         alpha_values = np.append(alpha_values, alpha)
         beta_values = np.append(beta_values, beta_param)
         all_side_values = np.append(all_side_values, side)
         all_n_values = np.append(all_n_values, n)
+        all_pressure_values = np.append(all_pressure_values, pressure)
 
 #save all the alpha and beta values
 print(alpha_values)
@@ -139,6 +142,7 @@ np.save('alpha_values.npy', alpha_values)
 np.save('beta_values.npy', beta_values)
 np.save('all_n_values.npy', all_n_values)
 np.save('all_side_values.npy', all_side_values)
+np.save('all_pressure_values.npy', all_pressure_values)
 
 #read in the alpha and beta values
 
