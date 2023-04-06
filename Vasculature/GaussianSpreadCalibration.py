@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 from scipy.stats import beta
 from scipy.optimize import curve_fit
 from mpl_toolkits.mplot3d import Axes3D
+import pandas as pd
+import seaborn as sns
 
 class Vessel:
     def __init__(self, origin, radius):
@@ -54,95 +56,103 @@ all_n_values = []
 all_side_values = []
 all_pressure_values = []
 
-n_values = list(range(1, 100))
+n_values = list(range(1, 101))
 
-for _ in range(16):
-    pressure = 0.05 * _
-    print('Iteration', _+1)
+for p in range(16):
+    pressure = 0.05 * p
+    pressure = round(pressure, 3)
+    print('pressure', pressure)
     for n_idx, n in enumerate(n_values):
-
-        alpha_data = np.genfromtxt('alpha.csv', delimiter=',', skip_header=True)
-        beta_data = np.genfromtxt('beta.csv', delimiter=',', skip_header=True)
-        a_row_index = np.where(alpha_data[:, 0] == side)[0][0]
-        b_row_index = np.where(beta_data[:, 0] == side)[0][0]
-
-        aA = alpha_data[a_row_index, 1]
-        aB = alpha_data[a_row_index, 2]
-        aC = alpha_data[a_row_index, 3]
-        aD = alpha_data[a_row_index, 4]
-        bA = beta_data[b_row_index, 1]
-        bB = beta_data[b_row_index, 2]
-        bC = beta_data[b_row_index, 3]
-        bD = beta_data[b_row_index, 4]
-
-        modelled_alpha = model(n, 5.07964613e+01, -1.76688386e-02, 8.65381485e-01, -5.06390318e+01)
-        modelled_beta = model(n, 0.50852227, -0.59366832, 0.00410601, 0.37548704)
-
-        # modelled_alpha = model(n, aA, aB, aC, aD)
-        # modelled_beta = model(n, bA, bB, bC, bD)
-
-
-
         print('n =', n)
         print('side =', side)
         sampler = qmc.Halton(2)
-        points_x = sampler.random(n)[:,0] * side
-        points_y = sampler.random(n)[:,1] * side
-        # points_x = np.random.uniform(0, side, n)
-        # points_y = np.random.uniform(0, side, n)
+        multiple_alpha_values = []
+        multiple_beta_values = []
+        for _ in range(20):
+
+            points_x = sampler.random(n)[:,0] * side
+            points_y = sampler.random(n)[:,1] * side
+            # points_x = np.random.uniform(0, side, n)
+            # points_y = np.random.uniform(0, side, n)
 
 
-        vessels = []
-        for i in range(len(points_x)):
-            vessels.append(Vessel([points_x[i], points_y[i]], radius))
+            vessels = []
+            for i in range(len(points_x)):
+                vessels.append(Vessel([points_x[i], points_y[i]], radius))
 
-        points = []
-        for i in range(50000):
-            point = [np.random.uniform(0, side), np.random.uniform(0, side), np.random.uniform(0, side)]
-            distances = []
-            for vessel in vessels:
-                distances.append(vessel.closest_distance(point))
-            points.append(min(distances))
+            points = []
+            for i in range(20000):
+                point = [np.random.uniform(0, side), np.random.uniform(0, side), np.random.uniform(0, side)]
+                distances = []
+                for vessel in vessels:
+                    distances.append(vessel.closest_distance(point))
+                points.append(min(distances))
 
-        o2_values = []
-        for point in points:
-            b_ = b*(1 - pressure)
-            o2_values.append(sigmoid(point, a=a, b=b_))
+            o2_values = []
+            for point in points:
+                b_ = b*(1 - pressure)
+                o2_values.append(sigmoid(point, a=a, b=b_))
 
-        # Normalize the histogram values
-        #hist_values_normalized = hist_values / len(o2_values)
+            # Normalize the histogram values
+            #hist_values_normalized = hist_values / len(o2_values)
 
-        # Fit a beta distribution to the data
-        alpha, beta_param, _, _ = beta.fit(o2_values, floc=0, fscale=1.0)
+            # Fit a beta distribution to the data
+            alpha, beta_param, _, _ = beta.fit(o2_values, floc=0, fscale=1.0)
+            multiple_alpha_values.append(alpha)
+            multiple_beta_values.append(beta_param)
 
-        # r = np.random.beta(alpha, beta_param, 50000)
-        # # rbis = np.random.beta(modelled_alpha, modelled_beta, 5000)
-        #
-        #
-        # plt.figure()
-        # plt.hist(o2_values, bins=100, alpha=0.5, label='Data', color='blue', density=True)
-        # plt.hist(r, bins=100, alpha=0.5, label='Beta', color='red', density=True)
-        # #plt.hist(rbis, bins=100, alpha=0.5, label='Modelled Beta', color='green')
-        # #plt.plot(np.linspace(0, 1, 100), beta.pdf(np.linspace(0, 1, 100), alpha, beta_param))
-        # plt.title('n = ' + str(n) + ', side = ' + str(side) + ', pressure = ' + str(pressure) + '\n fitted alpha = ' + str(round(alpha,4)) + ', fitted beta = ' + str(round(beta_param,4)) + ', modelled alpha ' + str(round(modelled_alpha,4)) + 'modelled beta ' + str(round(modelled_beta,4)), fontsize=8)
-        # plt.xlabel('O2')
-        # plt.ylabel('Frequency')
-        # plt.legend()
-        # plt.show()
+            # r = np.random.beta(alpha, beta_param, 5000)
+            # # rbis = np.random.beta(modelled_alpha, modelled_beta, 5000)
+            # #
+            # #
+            # plt.figure()
+            # plt.hist(o2_values, bins=100, alpha=0.5, label='Data', color='blue', density=True)
+            # plt.hist(r, bins=100, alpha=0.5, label='Beta', color='red', density=True)
+            # # plt.hist(rbis, bins=100, alpha=0.5, label='Modelled Beta', color='green', density=True)
+            # # plt.plot(np.linspace(0, 1, 100), beta.pdf(np.linspace(0, 1, 100), alpha, beta_param))
+            # plt.title('n = ' + str(n) + ', side = ' + str(side) + ', pressure = ' + str(pressure) + '\n fitted alpha = ' + str(round(alpha,4)) + ', fitted beta = ' + str(round(beta_param,4)))#+ ', modelled alpha ' + str(round(modelled_alpha,4)) + 'modelled beta ' + str(round(modelled_beta,4)), fontsize=8)
+            # plt.xlabel('O2')
+            # plt.ylabel('Frequency')
+            # plt.legend()
+            # plt.show()
+        alpha_mean = np.mean(multiple_alpha_values)
+        beta_param_mean = np.mean(multiple_beta_values)
 
-        alpha_values = np.append(alpha_values, alpha)
-        beta_values = np.append(beta_values, beta_param)
+        alpha_values = np.append(alpha_values, alpha_mean)
+        beta_values = np.append(beta_values, beta_param_mean)
         all_side_values = np.append(all_side_values, side)
         all_n_values = np.append(all_n_values, n)
         all_pressure_values = np.append(all_pressure_values, pressure)
 
+pressure_column = np.unique(all_pressure_values)
+n_column = np.unique(all_n_values)
+
+alpha_values = alpha_values.reshape(len(pressure_column), len(n_column))
+beta_values = beta_values.reshape(len(pressure_column), len(n_column))
+
+alpha_dataframe = pd.DataFrame(alpha_values, index=pressure_column, columns=n_column)
+print(alpha_dataframe)
+
+sns.heatmap(alpha_dataframe, annot=True, cmap='viridis')
+plt.show()
+
+sns.heatmap(beta_dataframe, annot=True, cmap='viridis')
+plt.show()
+
+
+beta_dataframe = pd.DataFrame(beta_values, index=pressure_column, columns=n_column)
+print(beta_dataframe)
+
+#save the dataframes
+alpha_dataframe.to_csv('alpha_dataframe' + str(side) + '.csv')
+beta_dataframe.to_csv('beta_dataframe' + str(side) + '.csv')
+
 #save all the alpha and beta values
-print(alpha_values)
-np.save('alpha_values.npy', alpha_values)
-np.save('beta_values.npy', beta_values)
-np.save('all_n_values.npy', all_n_values)
-np.save('all_side_values.npy', all_side_values)
-np.save('all_pressure_values.npy', all_pressure_values)
+# np.save('alpha_values.npy', alpha_values)
+# np.save('beta_values.npy', beta_values)
+# np.save('all_n_values.npy', all_n_values)
+# np.save('all_side_values.npy', all_side_values)
+# np.save('all_pressure_values.npy', all_pressure_values)
 
 #read in the alpha and beta values
 
