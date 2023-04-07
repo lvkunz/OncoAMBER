@@ -181,7 +181,38 @@ class VasculatureNetwork:
         # remove from the list of vessels
         self.list_of_vessels.remove(vessel)
 
-    def update_vessels_radius(self, final_radius, pressure_sensitive=False, pressure=None):
+    #THIS FUNCTION HAS NOT BEEN TESTED
+    def update_vessels_radius_from_first(self, original_radius, pressure_sensitive, pressure):
+        print("Updating vessels radius")
+        def update_radius_recursive(vessel_id):
+            vessel = self.get_vessel(vessel_id)
+
+            if not vessel.children_ids:
+                vessel.radius = original_radius
+                return vessel.radius
+            else:
+                child_radii_cubed = []
+
+                for child_id in vessel.children_ids:
+                    child_radius = update_radius_recursive(child_id)
+                    child_radii_cubed.append(child_radius ** 3)
+
+                r_cubed_sum = sum(child_radii_cubed)
+                vessel.radius = r_cubed_sum ** (1 / 3)
+                return vessel.radius
+
+        # Find all root vessels with parent_id=None
+        root_vessels = [v for v in self.list_of_vessels if v.parent_id is None]
+
+        # Call update_radius_recursive for each root vessel
+        for root_vessel in root_vessels:
+            update_radius_recursive(root_vessel.id)
+
+        if pressure_sensitive:
+            for vessel in self.list_of_vessels:
+                vessel.radius = vessel.radius / ((1 + (vessel.mean_pressure(pressure)))**CONFIG['radius_decrease_exponent'])
+
+    def update_vessels_radius_from_last(self, final_radius, pressure_sensitive=False, pressure=None):
         print("Updating vessels radius")
         def update_radius_recursive(vessel_id):
             vessel = self.get_vessel(vessel_id)

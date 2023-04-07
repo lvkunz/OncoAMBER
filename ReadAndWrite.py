@@ -22,7 +22,14 @@ def read_config_file(file_name):
 
     with open(file_name, 'r') as f:
         for line in f:
-            key, value = line.strip().split(': ')
+            # Remove comments and strip leading/trailing whitespaces
+            line = line.split('#')[0].strip()
+
+            # Skip blank lines
+            if not line:
+                continue
+
+            key, value = line.split(': ')
 
             # Check if the value is a number (integer or float)
             if value.replace('.', '', 1).isdigit() or value.lstrip('-').replace('.', '', 1).isdigit():
@@ -38,6 +45,7 @@ def read_config_file(file_name):
                 config_dict[key] = value
 
     return config_dict
+
 
 
 

@@ -152,6 +152,19 @@ if CellDynamics:
                                             weight_pressure=CONFIG['weight_pressure'],
                                             radius_pressure_sensitive=CONFIG['radius_pressure_sensitive'])
 
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.figure.set_dpi(DPI)
+    update_cell_state.alpha_map.show_extra(fig, ax, [0.0, 0.7], [0, 10])
+    plt.show()
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.figure.set_dpi(DPI)
+    update_cell_state.beta_map.show_extra(fig, ax, [0.0, 0.7], [0, 10])
+    plt.show()
+
+
 
     list_of_processes = [update_cell_state, cellaging, cellnecrosis, cellapoptosis, update_molecules, celldivision, cellmigration, update_vessels]
 

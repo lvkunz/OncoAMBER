@@ -64,7 +64,7 @@ for i in range(n):
             points.append([i,j,k])
             values.append(upwards_pressure([i,j,k]))
 
-field = ScalarField(points,values, 1)
+field = ScalarField3D(points, values, 1)
 
 
 fig = plt.figure()
@@ -123,7 +123,7 @@ network.grow_and_split(splitting_rate= 0.02,
 
                        )
 
-network.update_vessels_radius(1.0)
+network.update_vessels_radius_from_last(1.0)
 
 
 

@@ -53,7 +53,7 @@ class World:
                                         weight_pressure = weight_pressure,
                                         pressure = pressure,
                                         vegf_gradient = vegf_gradient)
-        self.vasculature.update_vessels_radius(CONFIG['radius_smaller_vessels'],radius_pressure_sensitive, pressure)
+        self.vasculature.update_vessels_radius_from_last(CONFIG['radius_smaller_vessels'], radius_pressure_sensitive, pressure)
         return
 
     def generate_healthy_vasculature(self, initial_vessel_number):
@@ -96,7 +96,7 @@ class World:
             weight_vegf=0.6,
             weight_pressure=0.5
         )
-        self.vasculature.update_vessels_radius(CONFIG['radius_smaller_vessels'], False, pressure)
+        self.vasculature.update_vessels_radius_from_last(CONFIG['radius_smaller_vessels'], False, pressure)
         for vessel in self.vasculature.list_of_vessels:
             vessel.in_growth = False
         return
@@ -281,7 +281,7 @@ class World:
             positions.append(voxel.position)
 
         step = self.half_length*2/self.number_of_voxels
-        o2_map = ScalarField(positions, values, step)
+        o2_map = ScalarField3D(positions, values, step)
         return o2_map
 
     def pressure_map(self, step_voxel = 3):
@@ -292,7 +292,7 @@ class World:
             positions.append(voxel.position)
 
         step = (self.half_length*2/self.number_of_voxels)*step_voxel
-        pressure_map = ScalarField(positions, values, step)
+        pressure_map = ScalarField3D(positions, values, step)
         return pressure_map
 
     def vegf_map(self, step_voxel = 3):
@@ -303,7 +303,7 @@ class World:
             positions.append(voxel.position)
 
         step = (self.half_length*2/self.number_of_voxels)*step_voxel
-        vegf_map = ScalarField(positions, values, step)
+        vegf_map = ScalarField3D(positions, values, step)
         return vegf_map
 
     def show_tumor(self, ax, fig, slice = False):

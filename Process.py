@@ -7,6 +7,9 @@ from Voxel import *
 from scipy.stats import beta
 import ReadAndWrite as rw
 from BasicGeometries import *
+import pandas as pd
+from ScalarField import *
+import os
 
 CONFIG = rw.read_config_file('CONFIG.txt')
 
@@ -234,7 +237,7 @@ class CellMigration(Process):
 class UpdateCellOxygen(Process):
     def __init__(self, name, dt, voxel_half_length, effective_vessel_radius):
         super().__init__('UpdateState', dt)
-        self.voxel_side = voxel_half_length*200 #um/100
+        self.voxel_side = int(voxel_half_length*200) #um/100
 
         #read alpha and beta from files
         alpha = np.genfromtxt('alpha.csv', delimiter=',', skip_header=True)
@@ -251,28 +254,59 @@ class UpdateCellOxygen(Process):
         self.bC = beta[b_row_index, 3]
         self.bD = beta[b_row_index, 4]
         self.effective_vessel_radius = effective_vessel_radius
+
+        alpha_file_name = 'alpha_dataframe' + str(self.voxel_side) + '.csv'
+        beta_file_name = 'beta_dataframe' + str(self.voxel_side) + '.csv'
+        if not os.path.isfile(alpha_file_name) or not os.path.isfile(beta_file_name):
+            raise ValueError('alpha/beta file not found! It might be in the wrong directory or information for chosen voxel size is not stored. Check "BetaDistributionCalibration.py" to generate the file for the chosen voxel size.')
+
+        alpha_dataframe = pd.read_csv(alpha_file_name, index_col=0)
+        beta_dataframe = pd.read_csv(beta_file_name, index_col=0)
+        print('alpha_dataframe', alpha_dataframe)
+        # Read the saved dataframes from the CSV files
+        pressure_column = alpha_dataframe.index.values
+        n_column = alpha_dataframe.columns.values.astype(float)
+        print('pressure_column', pressure_column)
+        print('n_column', n_column)
+
+        # Create a 2D grid of points (pressure, n)
+        points = []
+        values_alpha = []
+        values_beta = []
+
+        for p in pressure_column:
+            for n in n_column:
+                alpha_value = alpha_dataframe.at[p, str(n)]
+                beta_value = beta_dataframe.at[p, str(n)]
+                points.append([p, n])
+                values_alpha.append(alpha_value)
+                values_beta.append(beta_value)
+
+        self.alpha_map = ScalarField2D(points, values_alpha, bounds_error=False, fill_value= None)
+        self.beta_map = ScalarField2D(points, values_beta, bounds_error=False, fill_value= None)
+
     def __call__(self, voxel: Voxel):
-
-        def crowding_effect(n_cells):
-            return (1 - n_cells / CONFIG['max_oxygenated_cells_per_voxel'])
-
 
         n_vessels = voxel.oxygen
         n_cells = voxel.number_of_alive_cells()
+        pressure = voxel.pressure()
+
 
         if n_vessels == 0:
             o2_values = np.zeros(n_cells)
-        else:
-            alpha_ = self.model(n_vessels, self.aA, self.aB, self.aC, self.aD)
-            beta_ = self.model(n_vessels, self.bA, self.bB, self.bC, self.bD)
 
-            o2_values = np.random.beta(alpha_, beta_, size=n_cells) * crowding_effect(n_cells)
+        else:
+            alpha_ = self.alpha_map.evaluate((pressure, n_vessels))
+            beta_ = self.beta_map.evaluate((pressure, n_vessels))
+
+            if alpha_ < 0 or beta_ < 0:
+                print('pressure', pressure, 'n_vessels', n_vessels)
+                print('alpha_', alpha_, 'beta_', beta_)
+
+            o2_values = np.random.beta(alpha_, beta_, size=n_cells)
 
         for i in range(n_cells):
             voxel.list_of_cells[i].oxygen = o2_values[i]
-
-    def model(self, n, A, B, C, D):
-        return A * np.exp(B * n) + C * n + D
 class UpdateVoxelMolecules(Process):
     def __init__(self, name, dt, VEGF_production_per_cell, threshold_for_VEGF_production):
         super().__init__('UpdateMolecules', dt)

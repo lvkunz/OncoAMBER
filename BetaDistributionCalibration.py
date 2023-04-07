@@ -56,10 +56,10 @@ all_n_values = []
 all_side_values = []
 all_pressure_values = []
 
-n_values = list(range(1, 101))
+n_values = list(range(1, 101, 3))
 
-for p in range(16):
-    pressure = 0.05 * p
+for p in range(8):
+    pressure = 0.1 * p
     pressure = round(pressure, 3)
     print('pressure', pressure)
     for n_idx, n in enumerate(n_values):
@@ -68,7 +68,7 @@ for p in range(16):
         sampler = qmc.Halton(2)
         multiple_alpha_values = []
         multiple_beta_values = []
-        for _ in range(20):
+        for _ in range(5):
 
             points_x = sampler.random(n)[:,0] * side
             points_y = sampler.random(n)[:,1] * side
@@ -81,7 +81,7 @@ for p in range(16):
                 vessels.append(Vessel([points_x[i], points_y[i]], radius))
 
             points = []
-            for i in range(20000):
+            for i in range(3000):
                 point = [np.random.uniform(0, side), np.random.uniform(0, side), np.random.uniform(0, side)]
                 distances = []
                 for vessel in vessels:
@@ -133,19 +133,21 @@ beta_values = beta_values.reshape(len(pressure_column), len(n_column))
 alpha_dataframe = pd.DataFrame(alpha_values, index=pressure_column, columns=n_column)
 print(alpha_dataframe)
 
-sns.heatmap(alpha_dataframe, annot=True, cmap='viridis')
-plt.show()
-
-sns.heatmap(beta_dataframe, annot=True, cmap='viridis')
-plt.show()
-
-
 beta_dataframe = pd.DataFrame(beta_values, index=pressure_column, columns=n_column)
 print(beta_dataframe)
 
-#save the dataframes
 alpha_dataframe.to_csv('alpha_dataframe' + str(side) + '.csv')
 beta_dataframe.to_csv('beta_dataframe' + str(side) + '.csv')
+
+sns.heatmap(alpha_dataframe, cmap='viridis')
+plt.show()
+
+sns.heatmap(beta_dataframe, cmap='viridis')
+plt.show()
+
+
+#save the dataframes
+
 
 #save all the alpha and beta values
 # np.save('alpha_values.npy', alpha_values)
