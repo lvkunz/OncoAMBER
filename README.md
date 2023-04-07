@@ -14,6 +14,12 @@ The angiogenesis process is based on a directed random walk that takes crowding 
 High crowding or pressure can lead to long-lasting hypoxia of cells and eventually result in their necrosis. 
 We'll integrate the radiation effects on individual cells using the simple interface provided by TOPAS and TOPAS-nBio, as well as other in-house DNA damage and DNA repair models.
 
+## Structure
+
+main: set up a world made of a voxel list a vasculature. Add healthy stroma cells in each voxel and add a few clonogenic tumor cells in the center. Creates a healthy vasculature.
+Then run the class simulaton that take for argument a list of process and the predefine world.
+
+
 
 
 

@@ -56,9 +56,9 @@ all_n_values = []
 all_side_values = []
 all_pressure_values = []
 
-n_values = list(range(1, 101, 3))
+n_values = list(range(1, 101, 1))
 
-for p in range(8):
+for p in range(9):
     pressure = 0.1 * p
     pressure = round(pressure, 3)
     print('pressure', pressure)
@@ -68,7 +68,7 @@ for p in range(8):
         sampler = qmc.Halton(2)
         multiple_alpha_values = []
         multiple_beta_values = []
-        for _ in range(5):
+        for _ in range(10):
 
             points_x = sampler.random(n)[:,0] * side
             points_y = sampler.random(n)[:,1] * side
@@ -81,7 +81,7 @@ for p in range(8):
                 vessels.append(Vessel([points_x[i], points_y[i]], radius))
 
             points = []
-            for i in range(3000):
+            for i in range(5000):
                 point = [np.random.uniform(0, side), np.random.uniform(0, side), np.random.uniform(0, side)]
                 distances = []
                 for vessel in vessels:

@@ -1,15 +1,14 @@
 from Voxel import *
 from Cell import *
+from Vessel import *
+from ScalarField import *
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from BasicPlots import *
-from scipy.sparse import csr_matrix
 import sys
-from Vessel import *
 from BasicGeometries import *
 #np.set_printoptions(threshold=sys.maxsize)
-from ScalarField import *
 from matplotlib.colors import Normalize
 from mpl_toolkits.mplot3d import Axes3D
 import pyvista as pv
@@ -100,9 +99,6 @@ class World:
         for vessel in self.vasculature.list_of_vessels:
             vessel.in_growth = False
         return
-
-    def read_vasculature(self, path):
-        pass
 
     def random_points_for_voxels_concentration(self, num_points, molecule : str):
         if num_points == 0:
@@ -216,7 +212,7 @@ class World:
                 j = neighbor.voxel_number
 
                 pressure_diff = voxel_pressure - pressures[j]
-                if pressure_diff > 0:
+                if pressure_diff > pressure_threshold:
                     t_res = (V / pressure_diff) * viscosity
                     if CONFIG['verbose']: print('t_res = ', t_res)
                     n_events = dt / t_res

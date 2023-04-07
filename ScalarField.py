@@ -64,11 +64,11 @@ class ScalarField2D:
         ax.scatter(self.points[:, 0], self.points[:, 1], c=self.values, cmap=cmap, s=15, vmin=vmin, vmax=vmax, alpha=0.5)
         return fig, ax
 
-    def show_extra(self, fig, ax, range_x, range_y, cmap='viridis   '):
+    def show_extra(self, fig, ax, range_x, range_y):
         x, y = np.meshgrid(np.linspace(range_x[0], range_x[1], 100), np.linspace(range_y[0], range_y[1], 100))
         z = np.zeros_like(x)
         for i in range(len(x)):
             for j in range(len(x[0])):
                 z[i, j] = self.evaluate((x[i, j], y[i, j]))
-        ax.plot_surface(x, y, z)
+        ax.plot_surface(x, y, z, cmap='viridis', alpha=0.5, vmin=0, vmax=1)
         return fig, ax

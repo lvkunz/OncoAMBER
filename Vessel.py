@@ -292,30 +292,3 @@ class VasculatureNetwork:
             print(' ' * indent, f"ID: {root_vessel.id}  Radius: {root_vessel.radius:.2f}")
             if root_vessel.children_ids:
                 self.print_vessel_tree_recursive(vessels, root_vessel.children_ids, indent + 2)
-
-    def save_vessels(self, filename):
-        with open(filename, 'w') as f:
-            json.dump(self.list_of_vessels, f, cls=VesselEncoder)
-
-    def load_vessels(self, filename):
-        with open(filename, 'r') as f:
-            self.list_of_vessels = json.load(f, cls=VesselDecoder)
-
-class VesselEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, Vessel):
-            return obj.to_dict()
-        return json.JSONEncoder.default(self, obj)
-
-class VesselDecoder(json.JSONDecoder):
-    def __init__(self, *args, **kwargs):
-        json.JSONDecoder.__init__(self, object_hook=self.object_hook, *args, **kwargs)
-
-    def object_hook(self, obj):
-        if 'path' in obj:
-            return Vessel(
-                path=np.array(obj['path']),
-                radius=obj['radius'],
-                parent_id=obj['parent_id']
-            )
-        return obj

@@ -6,11 +6,11 @@ from scipy.optimize import curve_fit
 from mpl_toolkits.mplot3d import Axes3D
 import pandas as pd
 
-alpha_values = np.load('alpha_values.npy')
-beta_values = np.load('beta_values.npy')
-all_n_values = np.load('all_n_values.npy')
-all_side_values = np.load('all_side_values.npy')
-all_pressure_values = np.load('all_pressure_values.npy')
+alpha_values = np.load('../Vasculature/alpha_values.npy')
+beta_values = np.load('../Vasculature/beta_values.npy')
+all_n_values = np.load('../Vasculature/all_n_values.npy')
+all_side_values = np.load('../Vasculature/all_side_values.npy')
+all_pressure_values = np.load('../Vasculature/all_pressure_values.npy')
 
 
 #plot surface, alpha, and beta values vs. n and side

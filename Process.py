@@ -14,7 +14,8 @@ import os
 CONFIG = rw.read_config_file('CONFIG.txt')
 
 
-class Simulator:
+class Simulator: #this class is used to run the whole simulation
+
     def __init__(self, list_of_process : list, finish_time, dt):
         self.list_of_process = list_of_process
         self.finish_time = finish_time
@@ -22,7 +23,7 @@ class Simulator:
         self.time = 0
 
 
-    def show(self, world: World, t = 0, slice = False):
+    def show(self, world: World, t = 0, slice = False): #this function is used to show the world at a certain time
 
         Vasculature_show = True
 
@@ -47,7 +48,7 @@ class Simulator:
             world.show_tumor(axes, fig)
             world.vasculature.plot(fig, axes)
             axes.set_title('Vasculature')
-            plt.savefig('Plots/Video/t' + str(t) + '_Vasculature.png')
+            plt.savefig('Plots/CurrentPlotting/t' + str(t) + '_Vasculature.png')
             plt.show()
 
 
@@ -73,7 +74,8 @@ class Simulator:
         axes[1, 0].set_xlim(-size, size)
         axes[1, 0].set_ylim(-size, size)
         axes[1, 0].set_zlim(-size, size)
-        world.show_voxels_centers_molecules(axes[1, 0], fig, slice=slice, molecule='VEGF')
+        # world.show_voxels_centers_molecules(axes[1, 0], fig, slice=slice, molecule='VEGF')
+        world.show_voxels_centers_pressure(axes[1, 0], fig, slice=slice)
         #show gradient of VEGF
         #world.show_voxels_centers_molecules(axes[1, 0], fig, slice=slice, molecule='VEGF', gradient=True)
         axes[1, 0].set_title('VEGF in voxels')
@@ -86,7 +88,7 @@ class Simulator:
         #world.vasculature.plot(fig, axes[1, 1])
         axes[1, 1].set_title('Necrosis in voxels')
 
-        plt.savefig('Plots/Video/t' + str(t) + '_AllPlots.png')
+        plt.savefig('Plots/CurrentPlotting/t' + str(t) + '_AllPlots.png')
         plt.show()
 
         voxels_positions = [[0,0,0],[0.06, 0.06, 0.0], [0.12,0.12,0.0]]
@@ -105,10 +107,9 @@ class Simulator:
         plt.show()
 
 
-
-
     def run(self, world: World, video = False):
         slice = True
+
         print('Running simulation for {} hours'.format(self.finish_time), ' with dt = ', self.dt)
         number_cells = []
         process_local = [process for process in self.list_of_process if (not process.is_global)]
@@ -120,7 +121,7 @@ class Simulator:
 
             count_cells = 0
             print('\033[1;31;47mTime: {} hours'.format(self.time) + ' / ' + str(self.finish_time) + ' hours\033[0m')
-            #loop in random order
+            #loop in random order over the voxel list to avoid bias
             copy_voxel_list = world.voxel_list.copy()
             np.random.shuffle(copy_voxel_list)
             for voxel in world.voxel_list:
@@ -148,7 +149,7 @@ class Simulator:
         return
 
 
-class Process:
+class Process: #abstract class, represents all the processes that can happen in the simulation
     def __init__(self, name, dt):
         self.name = name
         self.dt = dt
@@ -157,7 +158,7 @@ class Process:
         pass
 
 
-class CellDivision(Process):
+class CellDivision(Process): #cell division process, cells divide in a voxel if they have enough vitality
     def __init__(self, name, dt, cycling_threshold, pressure_threshold = np.inf):
         super().__init__(name, dt)
         self.cycling_threshold = cycling_threshold
@@ -178,7 +179,7 @@ class CellDivision(Process):
         else:
             if CONFIG['verbose']: print('pressure = ', voxel.pressure(), ' > ', self.pressure_threshold, ' so no cell division')
         return
-class CellApoptosis(Process):
+class CellApoptosis(Process): #cell apoptosis process, cells die in a voxel if they have too low vitality
     def __init__(self, name, dt, apoptosis_threshold, apoptosis_probability):
         super().__init__('CellDeath', dt)
         self.apoptosis_threshold = apoptosis_threshold
@@ -189,7 +190,7 @@ class CellApoptosis(Process):
             if cell.vitality() < self.apoptosis_threshold and np.random.rand() < self.apoptosis_probability:
                 print('Cell apoptosis')
                 voxel.remove_cell(cell)
-class CellNecrosis(Process):
+class CellNecrosis(Process): #cell necrosis process, cells die in a voxel if they have too low vitality
     def __init__(self, name, dt, necrosis_threshold, necrosis_probability):
         super().__init__('CellNecrosis', dt)
         self.necrosis_threshold = necrosis_threshold
@@ -202,7 +203,7 @@ class CellNecrosis(Process):
                     if CONFIG['verbose']: print('Cell necrosis in voxel ', voxel.voxel_number)
                     voxel.cell_becomes_necrotic(cell)
 
-class CellAging(Process):
+class CellAging(Process): #cell aging process, cells age in a voxel
     def __init__(self, name, dt):
         super().__init__('CellAging', dt)
     def __call__(self, voxel):
@@ -210,10 +211,10 @@ class CellAging(Process):
         pass
 
 
-class CellMigration(Process):
+class CellMigration(Process): #cell migration process, cells migrate in the world
     def __init__(self, name, dt, pressure_threshold):
         super().__init__('CellMigration', dt)
-        self.is_global = True
+        self.is_global = True #run on the whole world, after the other processes
         self.pressure_threshold = pressure_threshold
 
     def __call__(self, world: World):
@@ -222,9 +223,9 @@ class CellMigration(Process):
             voxel_num = voxel.voxel_number
             if voxel_num % 10000 == 0: print('voxel number = ', voxel_num)
             list_of_neighbors = world.find_neighbors(voxel)
-            np.random.shuffle(list_of_neighbors)
+            np.random.shuffle(list_of_neighbors) #shuffle the list to avoid bias
             for neighbor in list_of_neighbors:
-                n_events = exchange_matrix[voxel_num, neighbor.voxel_number]
+                n_events = exchange_matrix[voxel_num, neighbor.voxel_number] #number of expected events in the time step
                 n_moving_cells = np.random.poisson(n_events)
                 n_moving_cells = min(n_moving_cells, len(voxel.list_of_cells))
                 if n_moving_cells > 0:
@@ -238,25 +239,10 @@ class UpdateCellOxygen(Process):
     def __init__(self, name, dt, voxel_half_length, effective_vessel_radius):
         super().__init__('UpdateState', dt)
         self.voxel_side = int(voxel_half_length*200) #um/100
-
-        #read alpha and beta from files
-        alpha = np.genfromtxt('alpha.csv', delimiter=',', skip_header=True)
-        beta = np.genfromtxt('beta.csv', delimiter=',', skip_header=True)
-        a_row_index = np.where(alpha[:, 0] == self.voxel_side)[0][0]
-        b_row_index = np.where(beta[:, 0] == self.voxel_side)[0][0]
-        #add check that the voxel size is stored in alpha/beta file
-        self.aA = alpha[a_row_index, 1]
-        self.aB = alpha[a_row_index, 2]
-        self.aC = alpha[a_row_index, 3]
-        self.aD = alpha[a_row_index, 4]
-        self.bA = beta[b_row_index, 1]
-        self.bB = beta[b_row_index, 2]
-        self.bC = beta[b_row_index, 3]
-        self.bD = beta[b_row_index, 4]
         self.effective_vessel_radius = effective_vessel_radius
 
-        alpha_file_name = 'alpha_dataframe' + str(self.voxel_side) + '.csv'
-        beta_file_name = 'beta_dataframe' + str(self.voxel_side) + '.csv'
+        alpha_file_name = 'Micro-Oxygenation/save_alpha_dataframe' + str(self.voxel_side) + '.csv'
+        beta_file_name = 'Micro-Oxygenation/save_beta_dataframe' + str(self.voxel_side) + '.csv'
         if not os.path.isfile(alpha_file_name) or not os.path.isfile(beta_file_name):
             raise ValueError('alpha/beta file not found! It might be in the wrong directory or information for chosen voxel size is not stored. Check "BetaDistributionCalibration.py" to generate the file for the chosen voxel size.')
 
@@ -291,7 +277,6 @@ class UpdateCellOxygen(Process):
         n_cells = voxel.number_of_alive_cells()
         pressure = voxel.pressure()
 
-
         if n_vessels == 0:
             o2_values = np.zeros(n_cells)
 
@@ -307,7 +292,7 @@ class UpdateCellOxygen(Process):
 
         for i in range(n_cells):
             voxel.list_of_cells[i].oxygen = o2_values[i]
-class UpdateVoxelMolecules(Process):
+class UpdateVoxelMolecules(Process): #update the molecules in the voxel (VEGF), other not implemented yet
     def __init__(self, name, dt, VEGF_production_per_cell, threshold_for_VEGF_production):
         super().__init__('UpdateMolecules', dt)
         self.VEGF_production_per_cell = VEGF_production_per_cell
@@ -320,7 +305,7 @@ class UpdateVoxelMolecules(Process):
         VEGF = min(VEGF, 1.0)
         voxel.molecular_factors['VEGF'] = VEGF
         return
-class UpdateVasculature(Process):
+class UpdateVasculature(Process): #update the vasculature
     def __init__(self, name, dt, pressure_killing_radius_threshold, o2_per_volume, diffusion_number, splitting_rate, macro_steps, micro_steps, weight_direction, weight_vegf, weight_pressure, radius_pressure_sensitive):
         super().__init__('UpdateVasculature', dt)
         self.is_global = True
