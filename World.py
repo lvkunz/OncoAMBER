@@ -52,7 +52,7 @@ class World:
                                         weight_pressure = weight_pressure,
                                         pressure = pressure,
                                         vegf_gradient = vegf_gradient)
-        self.vasculature.update_vessels_radius_from_last(CONFIG['radius_smaller_vessels'], radius_pressure_sensitive, pressure)
+        self.vasculature.update_vessels_radius_from_root(CONFIG['radius_root_vessels'], radius_pressure_sensitive, pressure)
         return
 
     def generate_healthy_vasculature(self, initial_vessel_number):
@@ -86,7 +86,7 @@ class World:
 
         self.vasculature.grow_and_split(
             dt=1,
-            splitting_rate=0.05,
+            splitting_rate=0.08,
             vegf_gradient= vegf_gradient,
             pressure= pressure,
             macro_steps=30,
@@ -95,7 +95,7 @@ class World:
             weight_vegf=0.6,
             weight_pressure=0.5
         )
-        self.vasculature.update_vessels_radius_from_last(CONFIG['radius_smaller_vessels'], False, pressure)
+        self.vasculature.update_vessels_radius_from_root(CONFIG['radius_root_vessels'], False, pressure)
         for vessel in self.vasculature.list_of_vessels:
             vessel.in_growth = False
         return

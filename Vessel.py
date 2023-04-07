@@ -182,38 +182,8 @@ class VasculatureNetwork:
         self.list_of_vessels.remove(vessel)
 
     #THIS FUNCTION HAS NOT BEEN TESTED
-    def update_vessels_radius_from_first(self, original_radius, pressure_sensitive, pressure):
-        print("Updating vessels radius")
-        def update_radius_recursive(vessel_id):
-            vessel = self.get_vessel(vessel_id)
-
-            if not vessel.children_ids:
-                vessel.radius = original_radius
-                return vessel.radius
-            else:
-                child_radii_cubed = []
-
-                for child_id in vessel.children_ids:
-                    child_radius = update_radius_recursive(child_id)
-                    child_radii_cubed.append(child_radius ** 3)
-
-                r_cubed_sum = sum(child_radii_cubed)
-                vessel.radius = r_cubed_sum ** (1 / 3)
-                return vessel.radius
-
-        # Find all root vessels with parent_id=None
-        root_vessels = [v for v in self.list_of_vessels if v.parent_id is None]
-
-        # Call update_radius_recursive for each root vessel
-        for root_vessel in root_vessels:
-            update_radius_recursive(root_vessel.id)
-
-        if pressure_sensitive:
-            for vessel in self.list_of_vessels:
-                vessel.radius = vessel.radius / ((1 + (vessel.mean_pressure(pressure)))**CONFIG['radius_decrease_exponent'])
-
     def update_vessels_radius_from_last(self, final_radius, pressure_sensitive=False, pressure=None):
-        print("Updating vessels radius")
+        print("Updating vessels radius from last")
         def update_radius_recursive(vessel_id):
             vessel = self.get_vessel(vessel_id)
             if not vessel.children_ids:
@@ -235,6 +205,36 @@ class VasculatureNetwork:
         if pressure_sensitive:
             for vessel in self.list_of_vessels:
                 vessel.radius = vessel.radius / ((1 + (vessel.mean_pressure(pressure)))**CONFIG['radius_decrease_exponent'])
+
+    def update_vessels_radius_from_root(self, root_radius, pressure_sensitive=False, pressure=None):
+        print("Updating vessels radius from root")
+
+        def update_radius_recursive(vessel_id):
+            vessel = self.get_vessel(vessel_id)
+
+            if vessel.children_ids:
+                # Determine the scaling factor for the children based on Murray's law
+                r_cubed_sum = sum([self.get_vessel(child_id).radius ** 3 for child_id in vessel.children_ids])
+                scaling_factor = (vessel.radius ** 3 / r_cubed_sum) ** (1 / 3)
+
+                for child_id in vessel.children_ids:
+                    child_vessel = self.get_vessel(child_id)
+                    child_vessel.radius *= scaling_factor
+                    update_radius_recursive(child_id)
+
+        # Find all root vessels with parent_id=None
+        root_vessels = [v for v in self.list_of_vessels if v.parent_id is None]
+
+        # Call update_radius_recursive for each root vessel
+        for root_vessel in root_vessels:
+            root_vessel.radius = root_radius
+            update_radius_recursive(root_vessel.id)
+
+        if pressure_sensitive:
+            for vessel in self.list_of_vessels:
+                vessel.radius = vessel.radius / (
+                            (1 + (vessel.mean_pressure(pressure))) ** CONFIG['radius_decrease_exponent'])
+
     def volume_occupied(self):
         points = []
         volume = []
@@ -277,7 +277,7 @@ class VasculatureNetwork:
         for child_id in children_ids:
             child_vessel = next((v for v in vessels if v.id == child_id), None)
             if child_vessel is not None:
-                print(' ' * indent, f"ID: {child_vessel.id}  Radius: {child_vessel.radius:.2f}")
+                print(' ' * indent, f"ID: {child_vessel.id}  Radius: {child_vessel.radius:.5f}")
                 if child_vessel.children_ids:
                     self.print_vessel_tree_recursive(vessels, child_vessel.children_ids, indent + 2)
 
@@ -289,6 +289,6 @@ class VasculatureNetwork:
 
         # recursively print the vessel tree
         for root_vessel in root_vessels:
-            print(' ' * indent, f"ID: {root_vessel.id}  Radius: {root_vessel.radius:.2f}")
+            print(' ' * indent, f"ID: {root_vessel.id}  Radius: {root_vessel.radius:.5f}")
             if root_vessel.children_ids:
                 self.print_vessel_tree_recursive(vessels, root_vessel.children_ids, indent + 2)
