@@ -1,3 +1,5 @@
+import random
+
 from World import *
 import numpy as np
 import matplotlib.pyplot as plt
@@ -10,9 +12,20 @@ from BasicGeometries import *
 import pandas as pd
 from ScalarField import *
 import os
+import Terminal as term
+import BasicPlots as bp
+from matplotlib.colors import TwoSlopeNorm
+
 
 CONFIG = rw.read_config_file('CONFIG.txt')
 
+seed = CONFIG['seed']
+if seed == -1:
+    seed = np.random.randint(0, 1000000)
+np.random.seed(seed)
+print('seed: ', seed)
+
+custom_RdBu = bp.create_custom_RdBu(0.50)
 
 class Simulator: #this class is used to run the whole simulation
 
@@ -38,116 +51,159 @@ class Simulator: #this class is used to run the whole simulation
         size = world.half_length
 
         #plot vasculature
-        if Vasculature_show:
-            fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(25, 25), dpi=DPI, subplot_kw={'projection': '3d'})
-            fig.suptitle('Visualization at time t = ' + str(t) + ' hours', fontsize=16)
-            axes.view_init(30, 60)
-            axes.set_xlim(-size, size)
-            axes.set_ylim(-size, size)
-            axes.set_zlim(-size, size)
-            world.show_tumor(axes, fig)
-            world.vasculature.plot(fig, axes)
-            axes.set_title('Vasculature')
-            plt.savefig('Plots/CurrentPlotting/t' + str(t) + '_Vasculature.png')
-            plt.show()
+        # if Vasculature_show:
+        #     fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(25, 25), dpi=150, subplot_kw={'projection': '3d'})
+        #     fig.suptitle('Visualization at time t = ' + str(t) + ' hours', fontsize=16)
+        #     axes.view_init(30, 60)
+        #     axes.set_xlim(-size, size)
+        #     axes.set_ylim(-size, size)
+        #     axes.set_zlim(-size, size)
+        #     world.show_tumor(axes, fig)
+        #     world.vasculature.plot(fig, axes)
+        #     axes.set_title('Vasculature')
+        #     plt.savefig('Plots/CurrentPlotting/t' + str(t) + '_Vasculature.png')
+        #     plt.show()
 
 
-        fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(20, 20), dpi=DPI, subplot_kw={'projection': '3d'})
+        fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(25, 20), dpi=DPI)
         fig.suptitle('Visualization at time t = ' + str(t) + ' hours', fontsize=16)
 
-        axes[0, 0].view_init(angle, angle2)
         axes[0, 0].set_xlim(-size, size)
         axes[0, 0].set_ylim(-size, size)
-        axes[0, 0].set_zlim(-size, size)
-        world.show_tumor(axes[0, 0], fig, slice=slice)
-        #world.vasculature.plot(fig, axes[1, 1])
+        world.show_tumor_slice(axes[0, 0], fig, 'number_of_tumor_cells', levels= np.linspace(1, 1001, 11))
+        axes[0,0].grid(True)
+        axes[0,0].set_facecolor('whitesmoke')
         axes[0, 0].set_title('Cells in voxels')
 
-        axes[0, 1].view_init(angle, angle2)
+        norm = TwoSlopeNorm(vmin=0, vcenter=15, vmax=100)
+
         axes[0, 1].set_xlim(-size, size)
         axes[0, 1].set_ylim(-size, size)
-        axes[0, 1].set_zlim(-size, size)
-        world.show_voxels_centers_oxygen(axes[0, 1], fig, slice=slice)
+        world.show_tumor_slice(axes[0, 1], fig, 'oxygen', cmap = 'RdBu', norm = norm)
+        axes[0, 1].grid(True)
+        axes[0, 1].set_facecolor('whitesmoke')
         axes[0, 1].set_title('Oxygen in voxels')
 
-        axes[1, 0].view_init(angle, angle2)
         axes[1, 0].set_xlim(-size, size)
         axes[1, 0].set_ylim(-size, size)
-        axes[1, 0].set_zlim(-size, size)
-        # world.show_voxels_centers_molecules(axes[1, 0], fig, slice=slice, molecule='VEGF')
-        world.show_voxels_centers_pressure(axes[1, 0], fig, slice=slice)
-        #show gradient of VEGF
-        #world.show_voxels_centers_molecules(axes[1, 0], fig, slice=slice, molecule='VEGF', gradient=True)
+        world.show_tumor_slice(axes[1, 0], fig, 'molecular_factors', factor='VEGF', levels= np.linspace(0.1, 1.1, 11), cmap='Oranges')
+        axes[1, 0].grid(True)
+        axes[1, 0].set_facecolor('whitesmoke')
         axes[1, 0].set_title('VEGF in voxels')
 
-        axes[1, 1].view_init(angle, angle2)
         axes[1, 1].set_xlim(-size, size)
         axes[1, 1].set_ylim(-size, size)
-        axes[1, 1].set_zlim(-size, size)
-        world.show_necrosis(axes[1, 1], fig, slice=slice)
-        #world.vasculature.plot(fig, axes[1, 1])
+        world.show_tumor_slice(axes[1, 1], fig, 'number_of_necrotic_cells', levels= np.linspace(1, 1001, 11))
+        axes[1, 1].grid(True)
+        axes[1, 1].set_facecolor('whitesmoke')
         axes[1, 1].set_title('Necrosis in voxels')
 
+        plt.tight_layout()
         plt.savefig('Plots/CurrentPlotting/t' + str(t) + '_AllPlots.png')
         plt.show()
 
-        voxels_positions = [[0,0,0],[0.06, 0.06, 0.0], [0.12,0.12,0.0]]
-        fig, axes = plt.subplots(nrows=2, ncols=len(voxels_positions), figsize=(20, 10), dpi=100)
-        fig.suptitle('Visualization at time t = ' + str(t) + ' hours', fontsize=16)
-        for i in range(len(voxels_positions)):
-            #show histograms for the three voxels
-            axes[0, i].set_title('Voxel ' + str(i))
-            axes[0, i].set_xlabel('Oxygen')
-            axes[0, i].set_ylabel('Number of cells')
-            voxel = world.find_voxel(voxels_positions[i])
-            voxel.oxygen_histogram(axes[0, i], fig)
-            axes[1, i].set_xlabel('Vitality')
-            axes[1, i].set_ylabel('Number of cells')
-            voxel.vitality_histogram(axes[1, i], fig)
-        plt.show()
+        # voxels_positions = [[0,0,0],[0.06, 0.06, 0.0], [0.12,0.12,0.0]]
+        # fig, axes = plt.subplots(nrows=2, ncols=len(voxels_positions), figsize=(20, 10), dpi=100)
+        # fig.suptitle('Visualization at time t = ' + str(t) + ' hours', fontsize=16)
+        # for i in range(len(voxels_positions)):
+        #     #show histograms for the three voxels
+        #     axes[0, i].set_title('Voxel ' + str(i))
+        #     axes[0, i].set_xlabel('Oxygen')
+        #     axes[0, i].set_ylabel('Number of cells')
+        #     voxel = world.find_voxel(voxels_positions[i])
+        #     voxel.oxygen_histogram(axes[0, i], fig)
+        #     axes[1, i].set_xlabel('Vitality')
+        #     axes[1, i].set_ylabel('Number of cells')
+        #     voxel.vitality_histogram(axes[1, i], fig)
+        # plt.show()
 
 
     def run(self, world: World, video = False):
         slice = True
 
         print('Running simulation for {} hours'.format(self.finish_time), ' with dt = ', self.dt)
-        number_cells = []
+        number_tumor_cells = []
+        number_necrotic_cells = []
+        oxygen_center = []
+        tumor_size = []
         process_local = [process for process in self.list_of_process if (not process.is_global)]
         process_global = [process for process in self.list_of_process if process.is_global]
 
         self.show(world, self.time, slice = slice)
-
+        irradiations_times = [CONFIG['first_irradiation_time'] + i * CONFIG['time_between_fractions'] for i in range(CONFIG['number_fractions'])]
+        applied_fractions = 0
         while self.time < self.finish_time:
 
             count_cells = 0
+            count_necrotic_cells = 0
             print('\033[1;31;47mTime: {} hours'.format(self.time) + ' / ' + str(self.finish_time) + ' hours\033[0m')
             #loop in random order over the voxel list to avoid bias
             copy_voxel_list = world.voxel_list.copy()
             np.random.shuffle(copy_voxel_list)
+            if applied_fractions < CONFIG['number_fractions'] and self.time >= irradiations_times[applied_fractions]:
+                irrad = Irradiation('irrad', self.dt, CONFIG['topas_file'], CONFIG['first_irradiation_time'], CONFIG['irradiation_intensity'], world)
+                irrad(world)
+                applied_fractions += 1
+
             for voxel in world.voxel_list:
                 count_cells += voxel.number_of_tumor_cells()
+                count_necrotic_cells += voxel.number_of_necrotic_cells()
                 for process in process_local:
                     process(voxel)
             for process in process_global:
                 print('Currently running global process : ', process.name)
                 process(world)
-            self.time = self.time + self.dt
             if video: self.show(world, self.time, slice = slice)
-            number_cells.append(count_cells)
+            number_tumor_cells.append(count_cells)
+            number_necrotic_cells.append(count_necrotic_cells)
+            oxygen_center.append(world.find_voxel([0, 0, 0]).oxygen)
+            tumor_size_ = world.measure_tumor_volume()
+            tumor_size.append(tumor_size_*1000)
             print('Vessel volume in center voxel: ', world.find_voxel([0, 0, 0]).vessel_volume)
+
+            # subplots
+            # show oxygen in voxels
+            plt.plot(np.linspace(0,self.time, len(number_tumor_cells)), number_tumor_cells, 'purple')
+            # plt.plot(np.linspace(0, self.time, len(number_necrotic_cells)), number_necrotic_cells, 'black')
+            plt.title('Number of cells evolution')
+            plt.xlabel('Time')
+            plt.ylabel('Number of cells')
+            plt.grid(True)
+            plt.savefig('Plots/Number_cells_evolution.png')
+            plt.show()
+
+            # plot oxygen evolution
+            # fig = plt.figure()
+            # plt.plot(np.linspace(0, self.time, len(oxygen_center)), oxygen_center, 'blue')
+            # plt.title('Oxygen evolution in center voxel')
+            # plt.xlabel('Time')
+            # plt.ylabel('Oxygen')
+            # plt.grid(True)
+            # plt.savefig('Plots/Oxygen_evolution.png')
+            # plt.show()
+
+            fig = plt.figure()
+            plt.plot(np.linspace(0, self.time, len(tumor_size)), tumor_size, 'red')
+            plt.title('Tumor volume evolution')
+            plt.xlabel('Time')
+            plt.ylabel('Tumor volume [mm^3]')
+            plt.grid(True)
+            plt.savefig('Plots/Tumor_size_evolution.png')
+            plt.show()
+            self.time = self.time + self.dt
+
+        #save evolution of number of cells and tumor volume
+        np.save('number_tumor_cells.npy', number_tumor_cells)
+        np.save('number_necrotic_cells.npy', number_necrotic_cells)
+        np.save('tumor_size.npy', tumor_size)
 
         print('Simulation finished')
         self.show(world, self.time, slice = slice)
-        fig_final = plt.figure()
+        fig = plt.figure()
         #plot number of cells evolution
-        plt.plot(np.linspace(0, self.finish_time, len(number_cells)), number_cells, 'purple')
-        plt.title('Number of cells evolution')
-        plt.xlabel('Time (hours)')
-        plt.ylabel('Number of cells')
-        plt.savefig('Plots/Number_cells_evolution.png')
-        plt.show()
-        return
 
+
+        return
 
 class Process: #abstract class, represents all the processes that can happen in the simulation
     def __init__(self, name, dt):
@@ -207,7 +263,17 @@ class CellAging(Process): #cell aging process, cells age in a voxel
     def __init__(self, name, dt):
         super().__init__('CellAging', dt)
     def __call__(self, voxel):
-        #print('CellAging')
+        for cell in voxel.list_of_cells:
+            if cell.time_before_death is not None:
+                cell.time_before_death -= self.dt
+                if cell.time_before_death < 0:
+                    voxel.remove_cell(cell)
+
+        for n_cell in voxel.list_of_necrotic_cells:
+            if n_cell.time_before_death is not None:
+                n_cell.time_before_death -= self.dt
+                if n_cell.time_before_death < 0:
+                    voxel.remove_necrotic_cell(n_cell)
         pass
 
 
@@ -248,12 +314,9 @@ class UpdateCellOxygen(Process):
 
         alpha_dataframe = pd.read_csv(alpha_file_name, index_col=0)
         beta_dataframe = pd.read_csv(beta_file_name, index_col=0)
-        print('alpha_dataframe', alpha_dataframe)
         # Read the saved dataframes from the CSV files
         pressure_column = alpha_dataframe.index.values
         n_column = alpha_dataframe.columns.values.astype(float)
-        print('pressure_column', pressure_column)
-        print('n_column', n_column)
 
         # Create a 2D grid of points (pressure, n)
         points = []
@@ -271,6 +334,20 @@ class UpdateCellOxygen(Process):
         self.alpha_map = ScalarField2D(points, values_alpha, bounds_error=False, fill_value= None)
         self.beta_map = ScalarField2D(points, values_beta, bounds_error=False, fill_value= None)
 
+        if CONFIG['verbose']:
+            # Plot the alpha and beta maps
+            fig = plt.figure()
+            ax = fig.add_subplot(111, projection='3d')
+            ax.figure.set_dpi(100)
+            self.alpha_map.show_extra(fig, ax, [min(pressure_column), max(pressure_column)], [min(n_column), max(n_column)])
+            plt.show()
+
+            fig = plt.figure()
+            ax = fig.add_subplot(111, projection='3d')
+            ax.figure.set_dpi(100)
+            self.beta_map.show_extra(fig, ax, [min(pressure_column), max(pressure_column)], [min(n_column), max(n_column)])
+            plt.show()
+
     def __call__(self, voxel: Voxel):
 
         n_vessels = voxel.oxygen
@@ -279,6 +356,9 @@ class UpdateCellOxygen(Process):
 
         if n_vessels == 0:
             o2_values = np.zeros(n_cells)
+
+        elif n_vessels > 100:
+            o2_values = np.ones(n_cells)
 
         else:
             alpha_ = self.alpha_map.evaluate((pressure, n_vessels))
@@ -306,10 +386,11 @@ class UpdateVoxelMolecules(Process): #update the molecules in the voxel (VEGF), 
         voxel.molecular_factors['VEGF'] = VEGF
         return
 class UpdateVasculature(Process): #update the vasculature
-    def __init__(self, name, dt, pressure_killing_radius_threshold, o2_per_volume, diffusion_number, splitting_rate, macro_steps, micro_steps, weight_direction, weight_vegf, weight_pressure, radius_pressure_sensitive):
+    def __init__(self, name, dt, killing_radius_threshold, killing_length_threshold, o2_per_volume, diffusion_number, splitting_rate, macro_steps, micro_steps, weight_direction, weight_vegf, weight_pressure, radius_pressure_sensitive):
         super().__init__('UpdateVasculature', dt)
         self.is_global = True
-        self.pressure_killing_radius_threshold = pressure_killing_radius_threshold
+        self.killing_radius_threshold = killing_radius_threshold
+        self.killing_length_threshold = killing_length_threshold
         self.o2_per_volume = o2_per_volume
         self.diffusion_number = diffusion_number
         self.dt = dt
@@ -324,21 +405,62 @@ class UpdateVasculature(Process): #update the vasculature
 
     def __call__(self, world: World):
         #print in separate thread
-        n_killed = world.vessels_killed_by_pressure(self.pressure_killing_radius_threshold)
+        n_killed = world.vessels_killed(self.killing_radius_threshold, self.killing_length_threshold)
         print('Killed vessels: ', n_killed)
         print('Growing vessels')
         total_VEGF = 0
         for voxel in world.voxel_list:
             total_VEGF += voxel.molecular_factors['VEGF']
         print('Total VEGF: ', total_VEGF)
+        vessels = world.vasculature.list_of_vessels
+        #shuffle vessels
+        random.shuffle(vessels)
         for i in range(int(total_VEGF)):
-            #choose random vessel
-            vessel = np.random.choice(world.vasculature.list_of_vessels)
+            #order by vessels radius, so that the largest vessels are more likely to branch
+            if i >= len(vessels):
+                i = i - len(vessels)
+            vessel = vessels[i]
             #choose random point on vessel
-            point = vessel.choose_random_point()
-            #branch from this point
-            world.vasculature.branching(vessel.id, point)
+            if len(vessel.path) > 2:
+                point = vessel.choose_random_point()
+                #branch from this point
+                world.vasculature.branching(vessel.id, point)
 
         world.vasculature_growth(self.dt, self.splitting_rate, self.macro_steps, self.micro_steps, self.weight_direction, self.weight_vegf, self.weight_pressure, self.radius_pressure_sensitive)
         world.update_volume_occupied_by_vessels()
+        # world.vasculature.print_vessel_tree()
         world.update_oxygen(o2_per_volume = self.o2_per_volume, diffusion_number=self.diffusion_number)
+
+class Irradiation(Process): #irradiation
+    def __init__(self, name, dt, topas_file, irradiation_time, irradiation_intensity, world: World):
+        super().__init__('Irradiation', dt)
+        self.irradiation_time = irradiation_time
+        self.irradiation_intensity = irradiation_intensity
+
+        #check if the file exists
+        if not os.path.isfile('TopasSimulation/' + topas_file + '.csv'):
+            world.topas_param_file(topas_file)
+            term.RunTopasSimulation(topas_file)
+            # rename the file
+
+            os.rename('TopasSimulation/MyScorer.csv', 'TopasSimulation/' + topas_file + '.csv')
+        _, self.doses = rw.DoseOnWorld('TopasSimulation/' + topas_file + '.csv')
+        world.update_dose(self.doses)
+
+        # plot the simulation
+        fig = plt.figure(figsize=(10, 10))
+        ax = fig.add_subplot(111, projection='3d')
+        world.show_voxels_centers_dose(ax, fig, slice=True)
+        plt.show()
+    def __call__(self, world: World):
+        for voxel in world.voxel_list:
+            count = 0
+            probability = self.doses[voxel.voxel_number]*self.irradiation_intensity*CONFIG['death_rate_radiation']
+            for cell in voxel.list_of_cells:
+                if random.random() < probability:
+                    if cell.time_before_death is None:
+                        cell.time_before_death = random.lognormvariate(1, 1)
+            for n_cell in voxel.list_of_necrotic_cells:
+                if random.random() < probability:
+                    n_cell.time_before_death = random.lognormvariate(1, 1)
+        return

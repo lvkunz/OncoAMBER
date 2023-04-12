@@ -1,6 +1,16 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+import ReadAndWrite as rw
+from matplotlib.colors import LinearSegmentedColormap
+
+
+CONFIG = rw.read_config_file('CONFIG.txt')
+seed = CONFIG['seed']
+if seed == -1:
+    seed = np.random.randint(0, 1000000)
+np.random.seed(seed)
+print('seed: ', seed)
 
 def plot_sphere(ax, fig, radius, center, color='blue'):
     # show the cell
@@ -57,3 +67,34 @@ def to_rgb(color_name: str):
 
 def rgb_to_hex(rgb):
     return '#%02x%02x%02x' % rgb
+
+def create_custom_RdBu(separation):
+    # Define the RdBu colormap
+    RdBu = plt.cm.get_cmap('RdBu')
+
+    # Create the custom colormap segments
+    cdict = {
+        'red': [],
+        'green': [],
+        'blue': []
+    }
+
+    # Adjust the separation point
+    for i in range(256):
+        r, g, b, _ = RdBu(i)
+        pos = i / 255.0
+        if pos < separation:
+            new_pos = pos / separation
+        else:
+            new_pos = (pos - separation) / (1 - separation)
+
+        cdict['red'].append((new_pos, r, r))
+        cdict['green'].append((new_pos, g, g))
+        cdict['blue'].append((new_pos, b, b))
+
+    # Sort the colormap segments by position
+    for key in cdict:
+        cdict[key].sort(key=lambda x: x[0])
+
+    # Create and return the custom colormap
+    return LinearSegmentedColormap('Custom_RdBu', cdict)

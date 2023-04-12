@@ -13,7 +13,9 @@ import ReadAndWrite as rw
 import time
 
 #set seed for reproducibility
-seed = random.randint(0, 1000000)
+seed = CONFIG['seed']
+if seed == -1:
+    seed = np.random.randint(0, 1000000)
 np.random.seed(seed)
 print('seed: ', seed)
 
@@ -80,7 +82,8 @@ update_molecules = UpdateVoxelMolecules('update_molecules', dt,
                                         threshold_for_VEGF_production=CONFIG['o2_threshold_for_VEGF_production'])
 
 update_vessels = UpdateVasculature('update_vessels', dt,
-                                        pressure_killing_radius_threshold=CONFIG['pressure_radius_killing_threshold'],
+                                        killing_radius_threshold=CONFIG['radius_killing_threshold'],
+                                        killing_length_threshold=CONFIG['length_killing_threshold'],
                                         o2_per_volume=CONFIG['o2_per_volume'],
                                         diffusion_number=CONFIG['diffusion_number'],
                                         splitting_rate=CONFIG['splitting_rate_vasculature'],
@@ -94,17 +97,6 @@ update_vessels = UpdateVasculature('update_vessels', dt,
 list_of_processes = [update_cell_state, cellaging, cellnecrosis, cellapoptosis, update_molecules, celldivision, cellmigration, update_vessels]
 
 #show alpha and beta maps to make sure there is no big discontinuities
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-ax.figure.set_dpi(DPI)
-update_cell_state.alpha_map.show_extra(fig, ax, [0.0, 0.8], [0, 100])
-plt.show()
-
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-ax.figure.set_dpi(DPI)
-update_cell_state.beta_map.show_extra(fig, ax, [0.0, 0.8], [0, 100])
-plt.show()
 
 #run the simulation and time it
 

@@ -8,14 +8,21 @@ from BasicGeometries import *
 import networkx as nx
 import json
 import ReadAndWrite as rw
+import time
 
-seed = random.randint(0, 1000000)
-rng = np.random.default_rng(seed)
 
 CONFIG = rw.read_config_file('CONFIG.txt')
+seed = CONFIG['seed']
+if seed == -1:
+    seed = np.random.randint(0, 1000000)
+np.random.seed(seed)
+rng = np.random.default_rng(seed)
+print('seed: ', seed)
 
 class Vessel:
-    def __init__(self, path, radius, parent_id=None, in_growth=True):
+    def __init__(self, path, radius, parent_id=None, children_ids=None, in_growth=True):
+        if children_ids is None:
+            children_ids = []
         for point in path:
             if not isinstance(point, np.ndarray) or len(point.shape) != 1 or point.shape[0] != 3:
                 raise ValueError("Each point in the 'path' list must be a 3D array with shape (3,)")
@@ -23,7 +30,7 @@ class Vessel:
         self.radius = radius
         self.id = id(self)
         self.parent_id = parent_id
-        self.children_ids = []
+        self.children_ids = children_ids
         self.step_size = CONFIG['vessel_step_size']
         self.in_growth = in_growth
 
@@ -40,6 +47,9 @@ class Vessel:
     def __iter__(self):
         return self
 
+    def length(self):
+        return np.sum(np.linalg.norm(np.diff(self.path, axis=0), axis=1))
+
     def grow(self, vegf_gradient, pressure, steps=1, weight_direction=0.5, weight_vegf=0.5, weight_pressure=0.5):
         length = 0
         for i in range(steps):
@@ -51,7 +61,6 @@ class Vessel:
         return length
         # if step_size < CONFIG['growth_stop_threshold'] * self.step_size:
         #     self.in_growth = False
-
 
     def step(self, vegf_gradient, pressure, weight_direction=0.5, weight_vegf=0.5, weight_pressure=0.5):
         if not isinstance(self.path, np.ndarray) or len(self.path.shape) != 2 or self.path.shape[1] != 3:
@@ -115,7 +124,8 @@ class Vessel:
     def choose_random_point(self):
         #choose random point on the path, not the first or last point
         if len(self.path) < 3:
-            return
+            print(self.path)
+            raise ValueError("The vessel path is too short to choose a random point")
         return rng.choice(self.path[1:-1])
     def mean_pressure(self, pressure):
         if len(self.path) < 2:
@@ -133,30 +143,38 @@ class VasculatureNetwork:
 
     def branching(self, vessel_id, branching_point):
         if branching_point == [] or branching_point is None:
-            print("No branching point found")
+            print("No branching point found, branching point is", branching_point)
             return
         mother_vessel = self.get_vessel(vessel_id)
         if mother_vessel is None:
             raise ValueError("Vessel with id {} does not exist".format(vessel_id))
         # split the path in two parts
         path = mother_vessel.path
+        if len(path) < 3:
+            raise ValueError("Vessel with id {} has a path with less than 3 points".format(vessel_id))
+
         split_index = np.where((path == branching_point))[0][0]
-        path1, path2 = np.split(path, [split_index])
-        #remove the first element of path2
-        path2 = np.delete(path2, 0, 0)
-        mother_vessel.path = path1  # reduce the mother vessel path. It stops growing
-        # create two new vessels
-        vessel1 = Vessel(path2, mother_vessel.radius, mother_vessel.id, in_growth= mother_vessel.in_growth)
+        path_begin, path_end = np.split(path, [split_index])
+        #remove the first element of path_end to keep the same point distribution in space
+        path_end = np.delete(path_end, 0, 0)
+        mother_vessel.path = path_begin  # reduce the mother vessel path. It stops growing
         mother_vessel.in_growth = False
+
+        # create two new vessels
+        vessel_end = Vessel(path_end, mother_vessel.radius, parent_id= mother_vessel.id, children_ids=mother_vessel.children_ids, in_growth= mother_vessel.in_growth)
+        for child_id in vessel_end.children_ids:
+            child = self.get_vessel(child_id)
+            child.parent_id = vessel_end.id
         #choose random point around branching point
         #random_point = branching_point + np.array([random.uniform(-mother_vessel.step, mother_vessel.step), random.uniform(-mother_vessel.step, mother_vessel.step), random.uniform(-mother_vessel.step, mother_vessel.step)])
         # the radius has to be updated later
-        vessel2 = Vessel([branching_point], mother_vessel.radius, mother_vessel.id)  # the radius has to be updated later
-        self.list_of_vessels.append(vessel1)
-        self.list_of_vessels.append(vessel2)
+
+        vessel_new = Vessel([branching_point], CONFIG['radius_root_vessels'], parent_id= mother_vessel.id)  # the radius has to be updated later
+        mother_vessel.children_ids = [vessel_end.id, vessel_new.id]
+        self.list_of_vessels.append(vessel_end)
+        self.list_of_vessels.append(vessel_new)
         # update the mother vessel
-        mother_vessel.children_ids.append(vessel1.id)
-        mother_vessel.children_ids.append(vessel2.id)
+
 
     def add_vessel(self, vessel: Vessel):
         self.list_of_vessels.append(vessel)
@@ -172,11 +190,13 @@ class VasculatureNetwork:
         if vessel is None:
             raise ValueError("Vessel with id {} does not exist".format(vessel_id))
         # remove the children
-        for child_id in vessel.children_ids:
+        for child_id in list(vessel.children_ids):
             self.kill_vessel(child_id)
         # remove from the parent list of id
         parent_vessel = self.get_vessel(vessel.parent_id)
         if parent_vessel is not None:
+            if vessel_id not in parent_vessel.children_ids:
+                print("Vessel {} is not in the list of children of vessel {}".format(vessel_id, parent_vessel.id))
             parent_vessel.children_ids.remove(vessel_id)
         # remove from the list of vessels
         self.list_of_vessels.remove(vessel)
@@ -267,7 +287,7 @@ class VasculatureNetwork:
                 if vessel.in_growth:
                     total_path_length = vessel.step_size * micro_steps
                     new_path_length = vessel.grow(vegf_gradient, pressure, micro_steps, weight_direction, weight_vegf, weight_pressure)
-                    if vessel.path.shape[0] > 3:
+                    if len(vessel.path) > 3:
                         splitting_rate_ = (new_path_length / total_path_length) * splitting_rate_
                         if random.uniform(0, 1) < splitting_rate_ * dt:
                             branching_point = vessel.choose_random_point()

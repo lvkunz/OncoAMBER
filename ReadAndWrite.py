@@ -14,7 +14,7 @@ def DoseOnWorld(file_path : str):
         n = arr[i][0] * num_voxels ** 2 + arr[i][1] * num_voxels + arr[i][2]
         nn = np.append(nn, n)
     if np.max(doses) != 0:
-        doses = doses / np.max(doses) * 10000
+        doses = doses / np.max(doses)
     return nn, doses
 
 def read_config_file(file_name):

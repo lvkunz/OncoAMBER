@@ -9,6 +9,11 @@ def sigmoid(L, x, x0, k):
     return L/(1 + np.exp(-k*(x-x0)))
 
 CONFIG = rw.read_config_file('CONFIG.txt')
+seed = CONFIG['seed']
+if seed == -1:
+    seed = np.random.randint(0, 1000000)
+np.random.seed(seed)
+print('seed: ', seed)
 
 class Voxel(object): #extra parameters are max_occupancy, viscosity
         def __init__(self, position = np.array([0,0,0]), half_length = 0.1, list_of_cells_in=None, oxygen = 0, voxel_number = 0):
@@ -73,6 +78,11 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
         def remove_cell(self, cell):
                 id = np.where(self.list_of_cells == cell)
                 self.list_of_cells = np.delete(self.list_of_cells, id)
+                return True
+
+        def remove_necrotic_cell(self, cell):
+                id = np.where(self.list_of_necrotic_cells == cell)
+                self.list_of_necrotic_cells = np.delete(self.list_of_necrotic_cells, id)
                 return True
 
         def cell_becomes_necrotic(self, cell):

@@ -23,6 +23,6 @@ s:Sc/MyScorer/Quantity = "DoseToMedium"
 s:Sc/MyScorer/Component = "MyBox"
 s:Sc/MyScorer/IfOutputFileAlreadyExists = "Overwrite"
 
-i:So/Demo/NumberOfHistoriesInRun = 0
-S:So/Demo/BeamParticle = "e-"
-D:So/Demo/BeamEnergy = 100 MeV
+i:So/Demo/NumberOfHistoriesInRun = 10000000
+S:So/Demo/BeamParticle = "gamma"
+D:So/Demo/BeamEnergy = 6 MeV

@@ -4,7 +4,11 @@ from mpl_toolkits.mplot3d import Axes3D
 import ReadAndWrite as rw
 
 CONFIG = rw.read_config_file('CONFIG.txt')
-
+seed = CONFIG['seed']
+if seed == -1:
+    seed = np.random.randint(0, 1000000)
+np.random.seed(seed)
+print('seed: ', seed)
 
 class Cell (object):
     def __init__(self, radius, cycle_hours = 10, type = 'HealthyCell', ):
@@ -14,7 +18,7 @@ class Cell (object):
         self.volume = 4/3 * np.pi * self.radius**3
         self.oxygen = 0.0
         self.type = type
-
+        self.time_before_death = None
     def duplicate(self):
         return Cell(self.radius, self.doubling_time, self.type)
 

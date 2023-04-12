@@ -1,6 +1,5 @@
 import subprocess
 
-
 def RunTopasSimulation(file: str):
     print('Running Topas Simulation')
     file = file + '.txt'
