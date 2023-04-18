@@ -1,13 +1,7 @@
 import numpy as np
 import ReadAndWrite as rw
 import matplotlib.pyplot as plt
-
-CONFIG = rw.read_config_file('CONFIG.txt')
-seed = CONFIG['seed']
-if seed == -1:
-    seed = np.random.randint(0, 1000000)
-np.random.seed(seed)
-print('seed: ', seed)
+from config_instance import config
 
 class Shape(object):
     def __init__(self, name: str = "Shape"):

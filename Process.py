@@ -15,17 +15,7 @@ import os
 import Terminal as term
 import BasicPlots as bp
 from matplotlib.colors import TwoSlopeNorm
-
-
-CONFIG = rw.read_config_file('CONFIG.txt')
-
-seed = CONFIG['seed']
-if seed == -1:
-    seed = np.random.randint(0, 1000000)
-np.random.seed(seed)
-print('seed: ', seed)
-
-custom_RdBu = bp.create_custom_RdBu(0.50)
+from config_instance import config
 
 class Simulator: #this class is used to run the whole simulation
 
@@ -108,54 +98,47 @@ class Simulator: #this class is used to run the whole simulation
         #     voxel.vitality_histogram(axes[1, i], fig)
         # plt.show()
 
-
-    def run(self, world: World, video = False):
-        slice = True
-
-        print('Running simulation for {} hours'.format(self.finish_time), ' with dt = ', self.dt)
-        number_tumor_cells = []
-        number_necrotic_cells = []
-        oxygen_center = []
-        tumor_size = []
-        process_local = [process for process in self.list_of_process if (not process.is_global)]
+    def run(self, world: World, video=False):
+        print(f'Running simulation for {self.finish_time} hours with dt={self.dt}')
+        process_local = [process for process in self.list_of_process if not process.is_global]
         process_global = [process for process in self.list_of_process if process.is_global]
 
-        self.show(world, self.time, slice = slice)
-        irradiations_times = [CONFIG['first_irradiation_time'] + i * CONFIG['time_between_fractions'] for i in range(CONFIG['number_fractions'])]
+        irradiations_times = [config.first_irradiation_time + i * config.time_between_fractions for i in
+                              range(config.number_fractions)]
         applied_fractions = 0
-        while self.time < self.finish_time:
 
-            count_cells = 0
-            count_necrotic_cells = 0
-            print('\033[1;31;47mTime: {} hours'.format(self.time) + ' / ' + str(self.finish_time) + ' hours\033[0m')
-            #loop in random order over the voxel list to avoid bias
-            copy_voxel_list = world.voxel_list.copy()
-            np.random.shuffle(copy_voxel_list)
-            if applied_fractions < CONFIG['number_fractions'] and self.time >= irradiations_times[applied_fractions]:
-                irrad = Irradiation('irrad', self.dt, CONFIG['topas_file'], CONFIG['first_irradiation_time'], CONFIG['irradiation_intensity'], world)
+        number_tumor_cells = []
+        number_necrotic_cells = []
+        tumor_size = []
+
+        while self.time < self.finish_time:
+            print(f'\033[1;31;47mTime: {self.time} hours / {self.finish_time} hours\033[0m')
+
+            if applied_fractions < config.number_fractions and self.time >= irradiations_times[applied_fractions]:
+                irrad = Irradiation('irrad', self.dt, config.topas_file, config.first_irradiation_time,
+                                    config.irradiation_intensity, world)
                 irrad(world)
                 applied_fractions += 1
 
             for voxel in world.voxel_list:
-                count_cells += voxel.number_of_tumor_cells()
-                count_necrotic_cells += voxel.number_of_necrotic_cells()
                 for process in process_local:
                     process(voxel)
             for process in process_global:
-                print('Currently running global process : ', process.name)
+                print('Currently running global process:', process.name)
                 process(world)
-            if video: self.show(world, self.time, slice = slice)
-            number_tumor_cells.append(count_cells)
-            number_necrotic_cells.append(count_necrotic_cells)
-            oxygen_center.append(world.find_voxel([0, 0, 0]).oxygen)
-            tumor_size_ = world.measure_tumor_volume()
-            tumor_size.append(tumor_size_*1000)
-            print('Vessel volume in center voxel: ', world.find_voxel([0, 0, 0]).vessel_volume)
 
-            # subplots
-            # show oxygen in voxels
-            plt.plot(np.linspace(0,self.time, len(number_tumor_cells)), number_tumor_cells, 'purple')
-            # plt.plot(np.linspace(0, self.time, len(number_necrotic_cells)), number_necrotic_cells, 'black')
+            if video:
+                self.show(world, self.time, slice=True)
+
+            number_tumor_cells.append(sum([voxel.number_of_tumor_cells() for voxel in world.voxel_list]))
+            number_necrotic_cells.append(sum([voxel.number_of_necrotic_cells() for voxel in world.voxel_list]))
+            tumor_size_ = world.measure_tumor_volume()
+            tumor_size.append(tumor_size_ * 1000)
+
+            print(f'Vessel volume in center voxel: {world.find_voxel([0, 0, 0]).vessel_volume}')
+
+            # plot number of cells evolution
+            plt.plot(np.linspace(0, self.time, len(number_tumor_cells)), number_tumor_cells, 'purple')
             plt.title('Number of cells evolution')
             plt.xlabel('Time')
             plt.ylabel('Number of cells')
@@ -163,16 +146,7 @@ class Simulator: #this class is used to run the whole simulation
             plt.savefig('Plots/Number_cells_evolution.png')
             plt.show()
 
-            # plot oxygen evolution
-            # fig = plt.figure()
-            # plt.plot(np.linspace(0, self.time, len(oxygen_center)), oxygen_center, 'blue')
-            # plt.title('Oxygen evolution in center voxel')
-            # plt.xlabel('Time')
-            # plt.ylabel('Oxygen')
-            # plt.grid(True)
-            # plt.savefig('Plots/Oxygen_evolution.png')
-            # plt.show()
-
+            # plot tumor size evolution
             fig = plt.figure()
             plt.plot(np.linspace(0, self.time, len(tumor_size)), tumor_size, 'red')
             plt.title('Tumor volume evolution')
@@ -181,20 +155,15 @@ class Simulator: #this class is used to run the whole simulation
             plt.grid(True)
             plt.savefig('Plots/Tumor_size_evolution.png')
             plt.show()
-            self.time = self.time + self.dt
 
             np.save('number_tumor_cells.npy', number_tumor_cells)
             np.save('number_necrotic_cells.npy', number_necrotic_cells)
             np.save('tumor_size.npy', tumor_size)
 
-        #save evolution of number of cells and tumor volume
-
+            self.time += self.dt
 
         print('Simulation finished')
-        self.show(world, self.time, slice = slice)
-        fig = plt.figure()
-        #plot number of cells evolution
-
+        self.show(world, self.time, slice=True)
 
         return
 
@@ -226,7 +195,7 @@ class CellDivision(Process): #cell division process, cells divide in a voxel if 
                         new_cell = cell.duplicate()
                         voxel.add_cell(new_cell)
         else:
-            if CONFIG['verbose']: print('pressure = ', voxel.pressure(), ' > ', self.pressure_threshold, ' so no cell division')
+            if config.verbose: print('pressure = ', voxel.pressure(), ' > ', self.pressure_threshold, ' so no cell division')
         return
 
 class CellDeath(Process): #cell necrosis process, cells die in a voxel if they have too low vitality
@@ -339,7 +308,7 @@ class UpdateCellOxygen(Process):
         self.alpha_map = ScalarField2D(points, values_alpha, bounds_error=False, fill_value= None)
         self.beta_map = ScalarField2D(points, values_beta, bounds_error=False, fill_value= None)
 
-        if CONFIG['verbose']:
+        if config.verbose:
             # Plot the alpha and beta maps
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')
@@ -460,7 +429,7 @@ class Irradiation(Process): #irradiation
     def __call__(self, world: World):
         for voxel in world.voxel_list:
             count = 0
-            probability = self.doses[voxel.voxel_number]*self.irradiation_intensity*CONFIG['death_rate_radiation']
+            probability = self.doses[voxel.voxel_number]*self.irradiation_intensity*config.death_rate_radiation
             for cell in voxel.list_of_cells:
                 if random.random() < probability:
                     if cell.time_before_death is None:

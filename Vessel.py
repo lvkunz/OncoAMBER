@@ -10,17 +10,10 @@ import json
 import ReadAndWrite as rw
 import time
 import sys
-
-
-CONFIG = rw.read_config_file('CONFIG.txt')
-seed = CONFIG['seed']
-if seed == -1:
-    seed = np.random.randint(0, 1000000)
-np.random.seed(seed)
-rng = np.random.default_rng(seed)
-print('seed: ', seed)
+from config_instance import config
 
 sys.setrecursionlimit(1500)
+rng = np.random.default_rng(config.seed)
 
 class Vessel:
     def __init__(self, path, radius, parent_id=None, children_ids=None, in_growth=True):
@@ -34,7 +27,7 @@ class Vessel:
         self.id = id(self)
         self.parent_id = parent_id
         self.children_ids = children_ids
-        self.step_size = CONFIG['vessel_step_size']
+        self.step_size = config.vessel_step_size
         self.in_growth = in_growth
         self.healthy = False
 
@@ -58,12 +51,12 @@ class Vessel:
         length = 0
         for i in range(steps):
             step_size = self.step(vegf_gradient, pressure, weight_direction, weight_vegf, weight_pressure)
-            if step_size < CONFIG['growth_step_stop_threshold']:
+            if step_size < config.growth_step_stop_threshold:
                 self.in_growth = False
                 break
             length += step_size
         return length
-        # if step_size < CONFIG['growth_stop_threshold'] * self.step_size:
+        # if step_size < config.growth_stop_threshold'] * self.step_size:
         #     self.in_growth = False
 
     def step(self, vegf_gradient, pressure, weight_direction=0.5, weight_vegf=0.5, weight_pressure=0.5):
@@ -72,9 +65,9 @@ class Vessel:
         last_point = np.array(self.path[-1])
         prev_point = np.array(self.path[-2]) if len(self.path) > 1 else last_point
 
-        if last_point[0] < -CONFIG['half_length_world'] or last_point[0] > CONFIG['half_length_world'] or \
-                last_point[1] < -CONFIG['half_length_world'] or last_point[1] > CONFIG['half_length_world'] or \
-                last_point[2] < -CONFIG['half_length_world'] or last_point[2] > CONFIG['half_length_world']:
+        if last_point[0] < -config.half_length_world or last_point[0] > config.half_length_world or \
+                last_point[1] < -config.half_length_world or last_point[1] > config.half_length_world or \
+                last_point[2] < -config.half_length_world or last_point[2] > config.half_length_world:
             return 0
 
         direction = last_point - prev_point
@@ -94,23 +87,23 @@ class Vessel:
         pressure_vec = -weighted_dir
         weighted_dir += weight_pressure * pressure_vec * local_pressure
 
-            # Add random noise
-        noise = np.array([random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1)])
+        # Add random noise
+        noise = np.array([random.random()*2 - 1, random.random()*2-1, random.random()*2 - 1])
         weighted_dir += noise
 
         # Normalize the weighted direction
         weighted_dir /= np.linalg.norm(weighted_dir)
 
-        if CONFIG['verbose']:
+        if config.verbose:
             print('vegf_grad_norm_scalar: ', vegf_grad_norm_scalar)
             print('local_pressure: ', local_pressure)
 
         # Calculate the new point and add it
         step_size = self.step_size
-        if weight_vegf > 0 and vegf_grad_norm_scalar < CONFIG['reference_vegf_gradient']:
-            step_size = step_size * (vegf_grad_norm_scalar / CONFIG['reference_vegf_gradient'])
-        if weight_pressure > 0 and local_pressure > CONFIG['reference_pressure']:
-            step_size = step_size * (CONFIG['reference_pressure'] / local_pressure)
+        if weight_vegf > 0 and vegf_grad_norm_scalar < config.reference_vegf_gradient:
+            step_size = step_size * (vegf_grad_norm_scalar / config.reference_vegf_gradient)
+        if weight_pressure > 0 and local_pressure > config.reference_pressure:
+            step_size = step_size * (config.reference_pressure / local_pressure)
 
         new_point = last_point + step_size * weighted_dir
         self.path = np.append(self.path, [new_point], axis=0)
@@ -173,7 +166,7 @@ class VasculatureNetwork:
         #random_point = branching_point + np.array([random.uniform(-mother_vessel.step, mother_vessel.step), random.uniform(-mother_vessel.step, mother_vessel.step), random.uniform(-mother_vessel.step, mother_vessel.step)])
         # the radius has to be updated later
 
-        vessel_new = Vessel([branching_point], CONFIG['radius_root_vessels'], parent_id= mother_vessel.id)  # the radius has to be updated later
+        vessel_new = Vessel([branching_point], config.radius_root_vessels, parent_id= mother_vessel.id)  # the radius has to be updated later
         mother_vessel.children_ids = [vessel_end.id, vessel_new.id]
         self.list_of_vessels.append(vessel_end)
         self.list_of_vessels.append(vessel_new)
@@ -228,7 +221,7 @@ class VasculatureNetwork:
 
         if pressure_sensitive:
             for vessel in self.list_of_vessels:
-                vessel.radius = vessel.radius / ((1 + (vessel.mean_pressure(pressure)))**CONFIG['radius_decrease_exponent'])
+                vessel.radius = vessel.radius / ((1 + (vessel.mean_pressure(pressure)))**config.radius_decrease_exponent)
 
     def update_vessels_radius_from_root(self, root_radius, pressure_sensitive=False, pressure=None):
         print("Updating vessels radius from root")
@@ -257,7 +250,7 @@ class VasculatureNetwork:
         if pressure_sensitive:
             for vessel in self.list_of_vessels:
                 vessel.radius = vessel.radius / (
-                            (1 + (vessel.mean_pressure(pressure))) ** CONFIG['radius_decrease_exponent'])
+                            (1 + (vessel.mean_pressure(pressure))) ** config.radius_decrease_exponent)
 
     def volume_occupied(self):
         points = []
