@@ -2,13 +2,7 @@ import numpy as np
 from scipy.interpolate import RegularGridInterpolator
 import matplotlib.pyplot as plt
 import ReadAndWrite as rw
-
-CONFIG = rw.read_config_file('CONFIG.txt')
-seed = CONFIG['seed']
-if seed == -1:
-    seed = np.random.randint(0, 1000000)
-np.random.seed(seed)
-print('seed: ', seed)
+from config_instance import config
 
 class ScalarField3D:
     def __init__(self, points, values, gradient_step_size=1e-5, bounds_error=False, fill_value=None):

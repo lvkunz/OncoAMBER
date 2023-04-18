@@ -5,15 +5,10 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import random
 import ReadAndWrite as rw
+from config_instance import config
+
 def sigmoid(L, x, x0, k):
     return L/(1 + np.exp(-k*(x-x0)))
-
-CONFIG = rw.read_config_file('CONFIG.txt')
-seed = CONFIG['seed']
-if seed == -1:
-    seed = np.random.randint(0, 1000000)
-np.random.seed(seed)
-print('seed: ', seed)
 
 class Voxel(object): #extra parameters are max_occupancy, viscosity
         def __init__(self, position = np.array([0,0,0]), half_length = 0.1, list_of_cells_in=None, oxygen = 0, voxel_number = 0):
@@ -30,7 +25,7 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                 self.molecular_factors = {'EGF': 0, 'FGF': 0, 'HGF': 0, 'IGF': 0, 'TGF': 0, 'VEGF': 0, 'WNT': 0}
                 # if np.linalg.norm(self.position) < 5:
                 #         self.molecular_factors['VEGF'] = 1.0
-                self.viscosity = CONFIG['viscosity']
+                self.viscosity = config.viscosity
                 self.vessel_volume = 0
 
         def number_of_tumor_cells(self):
@@ -67,7 +62,7 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                 points = points + self.position
                 return points
         def add_cell(self, cell):
-                max_occupancy = CONFIG['max_occupancy'] #hard spheres is 0.64, + consider a little bit of compression
+                max_occupancy = config.max_occupancy #hard spheres is 0.64, + consider a little bit of compression
                 if self.pressure() > max_occupancy:
                         #print('Voxel is full, pressure is', self.pressure(), ' number of cells is', self.number_of_alive_cells(), ' and number of necrotic cells is', self.number_of_necrotic_cells())
                         return False
@@ -106,13 +101,13 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                 for cell in self.list_of_cells:
                         vitality.append(cell.vitality())
                 ax.hist(vitality, bins=50, color='orange', alpha=0.5, range=(0, 1))
-                ax.vlines(CONFIG['vitality_cycling_threshold'], 0, ax.get_ylim()[1], colors='darkgreen',
+                ax.vlines(config.vitality_cycling_threshold, 0, ax.get_ylim()[1], colors='darkgreen',
                           linestyles='dashed')
-                ax.vlines(CONFIG['vitality_apoptosis_threshold'], 0, ax.get_ylim()[1], colors='darkred',
+                ax.vlines(config.vitality_apoptosis_threshold, 0, ax.get_ylim()[1], colors='darkred',
                           linestyles='dashed')
-                ax.vlines(CONFIG['vitality_necrosis_threshold'], 0, ax.get_ylim()[1], colors='black',
+                ax.vlines(config.vitality_necrosis_threshold, 0, ax.get_ylim()[1], colors='black',
                           linestyles='dashed')
-                ax.vlines(CONFIG['o2_threshold_for_VEGF_production'], 0, ax.get_ylim()[1], colors='purple', linestyles='dashed')
+                ax.vlines(config.o2_threshold_for_VEGF_production, 0, ax.get_ylim()[1], colors='purple', linestyles='dashed')
                 ax.set_xlim(0, 1)
                 ax.set_xlabel(
                         f'Vitality, Oxygen in voxel was = {self.oxygen} and number of cells = {self.number_of_alive_cells()}')

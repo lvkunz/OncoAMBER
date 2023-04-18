@@ -19,15 +19,10 @@ from scipy import ndimage
 from scipy.stats import qmc
 import ReadAndWrite as rw
 import matplotlib.tri as mtri
+import scipy.sparse as sparse
+from config_instance import config
 
 
-CONFIG = rw.read_config_file('CONFIG.txt')
-
-seed = CONFIG['seed']
-if seed == -1:
-    seed = np.random.randint(0, 1000000)
-np.random.seed(seed)
-print('seed: ', seed)
 
 class World:
     def __init__(self, half_length, number_of_voxels : int = 20):
@@ -56,7 +51,7 @@ class World:
         print('Vasculature growth')
         pressure_map = self.pressure_map(step_voxel=5)
         def pressure(point): return pressure_map.evaluate(point)
-        vegf = self.vegf_map(step_voxel= CONFIG['vegf_map_step_voxel'])
+        vegf = self.vegf_map(step_voxel= config.vegf_map_step_voxel)
 
         def vegf_gradient(point): return vegf.gradient(point)
 
@@ -69,12 +64,12 @@ class World:
                                         weight_pressure = weight_pressure,
                                         pressure = pressure,
                                         vegf_gradient = vegf_gradient)
-        self.vasculature.update_vessels_radius_from_last(CONFIG['radius_root_vessels'], radius_pressure_sensitive, pressure)
+        self.vasculature.update_vessels_radius_from_last(config.radius_root_vessels, radius_pressure_sensitive, pressure)
         return
 
     def generate_healthy_vasculature(self, initial_vessel_number):
         initial_vessel_number = int(initial_vessel_number * 4 * self.half_length ** 2)
-        sampler = qmc.Halton(2, seed=CONFIG['seed'])
+        sampler = qmc.Halton(2, seed=config.seed)
         points_z = (sampler.random(initial_vessel_number)[:,0] - 0.5) * self.half_length*2
         points_y = (sampler.random(initial_vessel_number)[:,1] - 0.5) * self.half_length*2
         points_x = np.append(self.half_length * np.ones(initial_vessel_number//2), -self.half_length * np.ones(initial_vessel_number//2))
@@ -89,6 +84,7 @@ class World:
             else:
                 points2.append([points[i][0] + 0.01, points[i][1], points[i][2]])
         points2 = np.array(points2)
+        print('Initial vessels: ', points[0], points2[0])
 
         list_of_vessels = []
         for j in range(len(points)):
@@ -100,14 +96,14 @@ class World:
             if point[0] > 0:
                 return np.array([-point[0],0,0])*0.1
             else:
-                return np.array([-point[0],0,0])
+                return np.array([-point[0],0,0])*0.1
 
         self.vasculature.grow_and_split(
             dt=1,
             splitting_rate=0.3,
             vegf_gradient= vegf_gradient,
             pressure= pressure,
-            macro_steps=13,
+            macro_steps=int(8.5*self.half_length),
             micro_steps=8,
             weight_direction=3.0,
             weight_vegf=1.0,
@@ -118,7 +114,7 @@ class World:
             splitting_rate=0.3,
             vegf_gradient=vegf_gradient,
             pressure=pressure,
-            macro_steps=2,
+            macro_steps=1,
             micro_steps=8,
             weight_direction=5.0,
             weight_vegf=0.1,
@@ -126,7 +122,7 @@ class World:
         )
 
 
-        self.vasculature.update_vessels_radius_from_last(CONFIG['radius_root_vessels'], False, pressure)
+        self.vasculature.update_vessels_radius_from_last(config.radius_root_vessels, False, pressure)
         for vessel in self.vasculature.list_of_vessels:
             vessel.in_growth = False
         return
@@ -228,6 +224,8 @@ class World:
         neighbors_voxels = [self.voxel_list[n] for n in neighbors]
         return neighbors_voxels
 
+    import scipy.sparse as sparse
+
     def compute_exchange_matrix(self, dt, pressure_threshold):
         V = self.voxel_list[0].volume
         total_voxels = self.total_number_of_voxels
@@ -237,7 +235,7 @@ class World:
         viscosities = np.array([voxel.viscosity for voxel in self.voxel_list])
 
         # Initialize migration matrix with zeros
-        migration_matrix = np.zeros((total_voxels, total_voxels), dtype=np.float16)
+        migration_matrix = sparse.lil_matrix((total_voxels, total_voxels), dtype=np.float32)
 
         for i in range(total_voxels):
             voxel_i = self.voxel_list[i]
@@ -253,12 +251,14 @@ class World:
                 pressure_diff = voxel_pressure - pressures[j]
                 if pressure_diff > pressure_threshold:
                     t_res = (V / pressure_diff) * viscosity
-                    if CONFIG['verbose']: print('t_res = ', t_res)
+                    if config.verbose: print('t_res = ', t_res)
                     n_events = dt / t_res
                     migration_matrix[i, j] = n_events
 
-        return migration_matrix
+        # Convert the lil_matrix to a csr_matrix for faster arithmetic operations
+        migration_matrix = migration_matrix.tocsr()
 
+        return migration_matrix
 
     def topas_param_file(self, name : str):
         print('-- Creating parameter file for topas simulation, file :', name)
@@ -295,7 +295,7 @@ class World:
     def update_oxygen(self, o2_per_volume=1, diffusion_number=5):
         print('-- Computing oxygen map')
         for voxel in self.voxel_list:
-            voxel.oxygen = int((voxel.vessel_volume * o2_per_volume) / (np.pi * CONFIG['effective_vessel_radius']**2 * voxel.half_length * 2))
+            voxel.oxygen = int((voxel.vessel_volume * o2_per_volume) / (np.pi * config.effective_vessel_radius**2 * voxel.half_length * 2))
         for i in range(diffusion_number):
             new_oxygen_map = np.zeros(self.total_number_of_voxels)
             print('--- o2 map computing', i, 'out of', diffusion_number)
@@ -362,7 +362,7 @@ class World:
                 index = middle_slice_x + j * self.number_of_voxels + i * self.number_of_voxels ** 2
                 voxel_list_x.append(self.voxel_list[index])
 
-        if CONFIG['slice'] == 'x':
+        if config.slice == 'x':
             voxel_list = voxel_list_x
         else:
             voxel_list = voxel_list_z
@@ -377,7 +377,7 @@ class World:
             values.append(value)
             positions.append(voxel.position)
 
-        if CONFIG['slice'] == 'x':
+        if config.slice == 'x':
             x = np.array([p[0] for p in positions])
             y = np.array([p[1] for p in positions])
             z = np.array(values)

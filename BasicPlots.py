@@ -3,14 +3,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import ReadAndWrite as rw
 from matplotlib.colors import LinearSegmentedColormap
-
-
-CONFIG = rw.read_config_file('CONFIG.txt')
-seed = CONFIG['seed']
-if seed == -1:
-    seed = np.random.randint(0, 1000000)
-np.random.seed(seed)
-print('seed: ', seed)
+from config_instance import config
 
 def plot_sphere(ax, fig, radius, center, color='blue'):
     # show the cell

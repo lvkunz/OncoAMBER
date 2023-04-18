@@ -7,6 +7,11 @@ from scipy.optimize import curve_fit
 number_cells = np.load('number_tumor_cells.npy')
 tumor_size = np.load('tumor_size.npy')
 
+plt.plot(number_cells)
+plt.show()
+plt.plot(tumor_size)
+plt.show()
+
 radius = (tumor_size/4)**(1/3)
 
 #fit the data to an exponential curve

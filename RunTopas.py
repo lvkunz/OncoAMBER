@@ -4,18 +4,17 @@ import os
 import ReadAndWrite as rw
 from World import World
 import matplotlib.pyplot as plt
+from config_instance import config
 
 
-CONFIG = rw.read_config_file('CONFIG.txt')
+world = World(config.half_length_world, config.voxel_per_side)
+world.topas_param_file(config.TOPAS_file)
+RunTopasSimulation(config.TOPAS_file)
 
-world = World(CONFIG['half_length_world'], CONFIG['voxel_per_side'])
-world.topas_param_file(CONFIG['TOPAS_file'])
-RunTopasSimulation(CONFIG['TOPAS_file'])
-
-os.rename('TopasSimulation/MyScorer.csv', 'TopasSimulation/' + CONFIG['TOPAS_file'] + '.csv')
+os.rename('TopasSimulation/MyScorer.csv', 'TopasSimulation/' + config.TOPAS_file + '.csv')
 
 # read in the csv file
-n, doses = rw.DoseOnWorld('TopasSimulation/' + CONFIG['TOPAS_file'] + '.csv')
+n, doses = rw.DoseOnWorld('TopasSimulation/' + config.TOPAS_file + '.csv')
 world.update_dose(doses)
 
 #plot the simulation
