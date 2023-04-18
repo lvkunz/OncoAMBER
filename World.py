@@ -1,3 +1,5 @@
+import random
+
 from Voxel import *
 from Cell import *
 from Vessel import *
@@ -16,6 +18,8 @@ import pyvista as pv
 from scipy import ndimage
 from scipy.stats import qmc
 import ReadAndWrite as rw
+import matplotlib.tri as mtri
+
 
 CONFIG = rw.read_config_file('CONFIG.txt')
 
@@ -29,12 +33,18 @@ class World:
     def __init__(self, half_length, number_of_voxels : int = 20):
         self.half_length = half_length
         self.voxel_list = []
-        self.total_number_of_voxels = number_of_voxels**3
+        self.total_number_of_voxels = number_of_voxels ** 3
+        voxel_length = 2 * half_length / number_of_voxels
+
         for i in range(number_of_voxels):
             for j in range(number_of_voxels):
                 for k in range(number_of_voxels):
-                    position = np.array([i*2*half_length/number_of_voxels - half_length, j*2*half_length/number_of_voxels - half_length, k*2*half_length/number_of_voxels - half_length])
-                    self.voxel_list.append(Voxel(position, half_length/number_of_voxels, voxel_number = i*number_of_voxels**2 + j*number_of_voxels + k))
+                    position = np.array([
+                        i * voxel_length - half_length + voxel_length / 2,
+                        j * voxel_length - half_length + voxel_length / 2,
+                        k * voxel_length - half_length + voxel_length / 2
+                    ])
+                    self.voxel_list.append(Voxel(position, half_length / number_of_voxels, voxel_number=i * number_of_voxels ** 2 + j * number_of_voxels + k))
         self.number_of_voxels = number_of_voxels
         self.vasculature = VasculatureNetwork()
 
@@ -63,6 +73,7 @@ class World:
         return
 
     def generate_healthy_vasculature(self, initial_vessel_number):
+        initial_vessel_number = int(initial_vessel_number * 4 * self.half_length ** 2)
         sampler = qmc.Halton(2, seed=CONFIG['seed'])
         points_z = (sampler.random(initial_vessel_number)[:,0] - 0.5) * self.half_length*2
         points_y = (sampler.random(initial_vessel_number)[:,1] - 0.5) * self.half_length*2
@@ -84,24 +95,37 @@ class World:
             list_of_vessels.append(Vessel([points[j], points2[j]], 0.5))
         self.initiate_vasculature(list_of_vessels)
         def pressure(point):
-            return (self.half_length - abs(point[0]))*0.5
+            return (self.half_length - abs(point[0]))
         def vegf_gradient(point):
             if point[0] > 0:
-                return np.array([-self.half_length - point[0],0,0])
+                return np.array([-point[0],0,0])*0.1
             else:
-                return np.array([self.half_length - point[0],0,0])
+                return np.array([-point[0],0,0])
 
         self.vasculature.grow_and_split(
             dt=1,
-            splitting_rate=0.015,
+            splitting_rate=0.3,
             vegf_gradient= vegf_gradient,
             pressure= pressure,
-            macro_steps=30,
-            micro_steps=6,
+            macro_steps=13,
+            micro_steps=8,
             weight_direction=3.0,
-            weight_vegf=0.6,
-            weight_pressure=0.5
+            weight_vegf=1.0,
+            weight_pressure=0.0
         )
+        self.vasculature.grow_and_split(
+            dt=1,
+            splitting_rate=0.3,
+            vegf_gradient=vegf_gradient,
+            pressure=pressure,
+            macro_steps=2,
+            micro_steps=8,
+            weight_direction=5.0,
+            weight_vegf=0.1,
+            weight_pressure=0.0
+        )
+
+
         self.vasculature.update_vessels_radius_from_last(CONFIG['radius_root_vessels'], False, pressure)
         for vessel in self.vasculature.list_of_vessels:
             vessel.in_growth = False
@@ -160,20 +184,24 @@ class World:
             #     self.vasculature.kill_vessel(vessel.id)
             #     print('vessel ' + str(vessel.id) + ' killed by length')
         return
+
     def find_voxel_number(self, position):
-        #doesn't handle the case where the position is outside the world
+        # doesn't handle the case where the position is outside the world
         num_voxels = self.number_of_voxels
-        i = int((position[0] + self.half_length) * num_voxels / (2 * self.half_length))
-        j = int((position[1] + self.half_length) * num_voxels / (2 * self.half_length))
-        k = int((position[2] + self.half_length) * num_voxels / (2 * self.half_length))
+        voxel_length = 2 * self.half_length / num_voxels
+        i = int(round((position[0] + self.half_length - voxel_length / 2) / voxel_length))
+        j = int(round((position[1] + self.half_length - voxel_length / 2) / voxel_length))
+        k = int(round((position[2] + self.half_length - voxel_length / 2) / voxel_length))
         n = i * num_voxels ** 2 + j * num_voxels + k
         if n >= self.total_number_of_voxels or n < 0:
-            #print('position ' +str(position) + ' is outside the world (voxel number = ' + str(n) + ')' )
+            # print('position ' +str(position) + ' is outside the world (voxel number = ' + str(n) + ')' )
             return -1
         return n
+
     def find_voxel(self, position):
         voxel_number = self.find_voxel_number(position)
         return self.voxel_list[voxel_number]
+
     def find_neighbors(self, voxel):
         #finds the neighbors of a voxel
         voxel_number = voxel.voxel_number
@@ -313,15 +341,31 @@ class World:
         vegf_map = ScalarField3D(positions, values, step)
         return vegf_map
 
+    import numpy as np
+    import matplotlib.pyplot as plt
+    import matplotlib.tri as mtri
+
     def show_tumor_slice(self, ax, fig, voxel_attribute, factor=None, cmap='viridis', vmin=None, vmax=None, norm=None,
-                         levels=None):
+                         levels=None, refinement_level=0):
         print('-- Plotting Tumor Slice')
 
         middle_slice = self.number_of_voxels // 2
         first_voxel = middle_slice * self.number_of_voxels ** 2
         last_voxel = (middle_slice + 1) * self.number_of_voxels ** 2
-        voxel_list = self.voxel_list[first_voxel:last_voxel]
+        voxel_list_z = self.voxel_list[first_voxel:last_voxel]
 
+        middle_slice_x = self.number_of_voxels // 2
+        voxel_list_x = []
+
+        for i in range(self.number_of_voxels):
+            for j in range(self.number_of_voxels):
+                index = middle_slice_x + j * self.number_of_voxels + i * self.number_of_voxels ** 2
+                voxel_list_x.append(self.voxel_list[index])
+
+        if CONFIG['slice'] == 'x':
+            voxel_list = voxel_list_x
+        else:
+            voxel_list = voxel_list_z
         values = []
         positions = []
         for voxel in voxel_list:
@@ -333,187 +377,55 @@ class World:
             values.append(value)
             positions.append(voxel.position)
 
-        x = np.array([p[1] for p in positions])
-        y = np.array([p[2] for p in positions])
-        z = np.array(values)
+        if CONFIG['slice'] == 'x':
+            x = np.array([p[0] for p in positions])
+            y = np.array([p[1] for p in positions])
+            z = np.array(values)
+        else:
+            x = np.array([p[1] for p in positions])
+            y = np.array([p[2] for p in positions])
+            z = np.array(values)
+        # Create a triangulation of the data
+        triangulation = mtri.Triangulation(x, y)
+
+        # Refine the triangulation to increase smoothness
+        refiner = mtri.UniformTriRefiner(triangulation)
+        triangulation, z = refiner.refine_field(z, subdiv=refinement_level)
 
         if levels is None:
-            contour = ax.tricontourf(x, y, z, cmap=cmap, alpha=0.7, vmin=vmin, vmax=vmax, norm=norm)
+            contour = ax.tricontourf(triangulation, z, cmap=cmap, alpha=0.7, vmin=vmin, vmax=vmax, norm=norm)
         else:
-            contour = ax.tricontourf(x, y, z, cmap=cmap, alpha=0.7, levels=levels, norm=norm)
+            contour = ax.tricontourf(triangulation, z, cmap=cmap, alpha=0.7, levels=levels, norm=norm)
 
         fig.colorbar(contour, ax=ax, shrink=0.5)
 
         return fig, ax
 
-    def show_tumor(self, ax, fig, slice = False):
-        print('-- Plotting Cell Population')
+    def show_tumor_3D(self, ax, fig, voxel_attribute, factor=None, cmap='viridis', vmin=None, vmax=None):
+        print('-- Plotting Cell Population 3D')
 
         #central z slice of world first voxel is at z = 0
-        if slice:
-            middle_slice = self.number_of_voxels // 2
-            first_voxel = middle_slice * self.number_of_voxels**2
-            last_voxel = (middle_slice + 1) * self.number_of_voxels**2
-            list = self.voxel_list[first_voxel:last_voxel]
-        else:
-            list = self.voxel_list
-
+        list = self.voxel_list
         size = 750 / self.number_of_voxels
-        number = []
+        values = []
         positions = []
         # collect doses and positions for all voxels
         for voxel in list:
-            count = voxel.number_of_tumor_cells()
-            if count > 0:
-                number.append(count)
+            if factor is not None and isinstance(getattr(voxel, voxel_attribute), dict):
+                value = getattr(voxel, voxel_attribute)[factor]
+            else:
+                value = getattr(voxel, voxel_attribute)() if callable(getattr(voxel, voxel_attribute)) else getattr(
+                    voxel, voxel_attribute)
+            if value > 0:
+                values.append(value)
                 positions.append(voxel.position)
 
         ax.scatter(
         [p[0] for p in positions],
         [p[1] for p in positions],
         [p[2] for p in positions],
-        c=number, cmap='viridis', alpha= 0.7, vmin=0, vmax=1000, s=size, marker='h', edgecolors= 'none')
+        c=values, cmap=cmap, alpha= 0.7, vmin=vmin, vmax=vmax, s=size, marker='h', edgecolors= 'none')
         # add colorbar
-        fig.colorbar(ax.collections[0], ax=ax, shrink=0.5)
-        return fig, ax
-
-    def show_necrosis(self, ax, fig, slice = False):
-        print('-- Plotting Cell Population')
-
-        #central z slice of world first voxel is at z = 0
-        if slice:
-            middle_slice = self.number_of_voxels // 2
-            first_voxel = middle_slice * self.number_of_voxels**2
-            last_voxel = (middle_slice + 1) * self.number_of_voxels**2
-            list = self.voxel_list[first_voxel:last_voxel]
-        else:
-            list = self.voxel_list
-
-        size = 750 / self.number_of_voxels
-        number = []
-        positions = []
-        # collect doses and positions for all voxels
-        for voxel in list:
-            count = voxel.number_of_necrotic_cells()
-            if count > 10:
-                number.append(count)
-                positions.append(voxel.position)
-
-        ax.scatter(
-        [p[0] for p in positions],
-        [p[1] for p in positions],
-        [p[2] for p in positions],
-        c=number, cmap='viridis', alpha= 0.7, vmin=0, vmax=1000, s=size, marker='h', edgecolors= 'none')
-        # add colorbar
-        fig.colorbar(ax.collections[0], ax=ax, shrink=0.5)
-        return fig, ax
-    def show_voxels_centers_dose(self, ax, fig, slice = False):
-        print('-- Plotting Dose')
-        if slice:
-            middle_slice = self.number_of_voxels // 2
-            first_voxel = middle_slice * self.number_of_voxels**2
-            last_voxel = (middle_slice + 1) * self.number_of_voxels**2
-            list = self.voxel_list[first_voxel:last_voxel]
-            size = 250/self.number_of_voxels
-        else:
-            list = self.voxel_list
-            size = 1
-        doses = []
-        positions = []
-        # collect doses and positions for all voxels
-        for voxel in list:
-            if voxel.dose > 0:
-                doses.append(voxel.dose)
-                positions.append(voxel.position)
-        ax.scatter(
-            [p[0] for p in positions],
-            [p[1] for p in positions],
-            [p[2] for p in positions],
-            c=doses, cmap='BuPu', alpha=0.5, vmin=min(doses), vmax=max(doses), s=size, marker='h', edgecolors='none')
-        # add colorbar
-        fig.colorbar(ax.collections[0], ax=ax, shrink=0.5)
-        return fig, ax
-
-    def show_voxels_centers_oxygen(self, ax, fig, slice = False):
-        print('-- Plotting Oxygen')
-        if slice:
-            middle_slice = self.number_of_voxels // 2
-            first_voxel = middle_slice * self.number_of_voxels**2
-            last_voxel = (middle_slice + 1) * self.number_of_voxels**2
-            list = self.voxel_list[first_voxel:last_voxel]
-            size = 250/self.number_of_voxels
-        else:
-            list = self.voxel_list
-            size = 1
-        oxygen = []
-        positions = []
-        # collect doses and positions for all voxels
-        for voxel in list:
-                oxygen.append(voxel.oxygen)
-                positions.append(voxel.position)
-        ax.scatter(
-            [p[0] for p in positions],
-            [p[1] for p in positions],
-            [p[2] for p in positions],
-            c=oxygen, cmap='RdBu', alpha=0.5, vmin=0, vmax=max(oxygen)*0.5, s= size
-        )
-        # add colorbar
-        fig.colorbar(ax.collections[0], ax=ax, shrink=0.5)
-        return fig, ax
-    def show_voxels_centers_pressure(self, ax, fig, slice = False):
-        print('-- Plotting Pressure')
-        if slice:
-            middle_slice = self.number_of_voxels // 2
-            first_voxel = middle_slice * self.number_of_voxels ** 2
-            last_voxel = (middle_slice + 1) * self.number_of_voxels ** 2
-            list = self.voxel_list[first_voxel:last_voxel]
-            size = 250 / self.number_of_voxels
-        else:
-            list = self.voxel_list
-            size = 1
-        pressure = []
-        positions = []
-        for voxel in list:
-            if voxel.pressure() > 0:
-                pressure.append(voxel.pressure())
-                positions.append(voxel.position)
-        ax.scatter(
-            [p[0] for p in positions],
-            [p[1] for p in positions],
-            [p[2] for p in positions],
-            c=pressure, cmap='RdPu', alpha=0.5, vmin=0, vmax=0.7, s=size
-        )
-        # add colorbar
-        fig.colorbar(ax.collections[0], ax=ax, shrink=0.5)
-        return fig, ax
-
-    def show_voxels_centers_molecules(self, ax, fig, molecule : str, slice = False, gradient = False):
-        print('-- Plotting Molecules')
-        if slice:
-            middle_slice = self.number_of_voxels // 2
-            first_voxel = middle_slice * self.number_of_voxels ** 2
-            last_voxel = (middle_slice + 1) * self.number_of_voxels ** 2
-            list = self.voxel_list[first_voxel:last_voxel]
-            size = 250 / self.number_of_voxels
-        else:
-            list = self.voxel_list
-            size = 1
-        molecules = []
-        positions = []
-        # collect doses and positions for all voxels
-        for voxel in list:
-            if voxel.molecular_factors[molecule] > 0:
-                molecules.append(voxel.molecular_factors[molecule])
-                positions.append(voxel.position)
-        ax.scatter(
-            [p[0] for p in positions],
-            [p[1] for p in positions],
-            [p[2] for p in positions],
-            c=molecules, cmap='Oranges', alpha=0.5, vmin=0, vmax=1, s=size
-        )
-        if gradient:
-            vegf = self.vegf_map()
-            vegf.show_gradient(ax, fig)
         fig.colorbar(ax.collections[0], ax=ax, shrink=0.5)
         return fig, ax
 
@@ -521,7 +433,6 @@ class World:
         print('-- Plotting Tumor Surface')
 
         threshold = 20
-
         voxel_data = np.zeros((self.number_of_voxels, self.number_of_voxels, self.number_of_voxels))
         for i in range(self.number_of_voxels):
             for j in range(self.number_of_voxels):
@@ -531,26 +442,12 @@ class World:
                         voxel_data[i, j, k] = 1
         # Label connected regions of the tumor cells
         labels, num_features = ndimage.label(voxel_data)
-
-        # Convert the labeled volume data to a StructuredGrid object
         grid = pv.wrap(labels)
-
-        # Extract the surface using the contour method
         mesh = grid.contour([0.5])
-
-        # Create a PyVista plotter
         plotter = pv.Plotter()
-
-        # Add the mesh to the plotter
         plotter.add_mesh(mesh, cmap="viridis")
-
-        # Set plot title
         plotter.add_title("Tumor Surface")
-        #add axis labels
         plotter.add_axes()
-
-        # Show the plot
-        #save
         plotter.show(screenshot='tumor_surface.png')
 
         return
@@ -584,17 +481,6 @@ class World:
                 if self.is_inside(point):
                     volume += vessel.volume_per_point()
         return volume
-
-    def measure_tumor_center_and_size(self):
-        #compute the center of mass and the standard deviation of the tumor cells
-        tumor_cells = []
-        for voxel in self.voxel_list:
-            tumor_cells.append(voxel.number_of_tumor_cells())
-        tumor_cells = np.array(tumor_cells)
-        tumor_cells = tumor_cells.reshape((self.number_of_voxels, self.number_of_voxels, self.number_of_voxels))
-        center_of_mass = ndimage.measurements.center_of_mass(tumor_cells)
-        standard_deviation = ndimage.measurements.standard_deviation(tumor_cells)
-        return center_of_mass, standard_deviation
 
     def measure_tumor_volume(self):
         volume = 0

@@ -33,7 +33,7 @@ world = World(CONFIG['half_length_world'], CONFIG['voxel_per_side'])
 for i in range(world.total_number_of_voxels):
     if i %10000 == 0: print('Adding healthy cells to voxel number: ', i, ' out of ', world.total_number_of_voxels)
     for j in range(CONFIG['initial_number_healthy_cells']):
-        world.voxel_list[i].add_cell(Cell(CONFIG['radius_healthy_cells'], cycle_hours=CONFIG['doubling_time_healthy'], type='HealthyCell'))
+        world.voxel_list[i].add_cell(Cell(CONFIG['radius_healthy_cells'], cycle_hours=CONFIG['doubling_time_healthy'], type='NormalCell'))
 
 points = Sphere(CONFIG['tumor_initial_radius'], [0, 0, 0]).generate_random_points(CONFIG['initial_number_tumor_cells'])
 for i in range(CONFIG['initial_number_tumor_cells']):
@@ -60,11 +60,9 @@ celldivision = CellDivision('cell_division', dt,
                                         cycling_threshold=CONFIG['vitality_cycling_threshold'],
                                         pressure_threshold=CONFIG['pressure_threshold_division'])
 
-cellapoptosis = CellApoptosis('cell_apoptosis', dt,
+celldeath = CellDeath('cell_death', dt,
                                         apoptosis_threshold=CONFIG['vitality_apoptosis_threshold'],
-                                        apoptosis_probability=CONFIG['probability_apoptosis'])
-
-cellnecrosis = CellNecrosis('cell_necrosis', dt,
+                                        apoptosis_probability=CONFIG['probability_apoptosis'],
                                         necrosis_threshold=CONFIG['vitality_necrosis_threshold'],
                                         necrosis_probability=CONFIG['probability_necrosis'])
 
@@ -94,7 +92,7 @@ update_vessels = UpdateVasculature('update_vessels', dt,
                                         weight_pressure=CONFIG['weight_pressure'],
                                         radius_pressure_sensitive=CONFIG['radius_pressure_sensitive'])
 
-list_of_processes = [update_cell_state, cellaging, cellnecrosis, cellapoptosis, update_molecules, celldivision, cellmigration, update_vessels]
+list_of_processes = [update_cell_state, cellaging, celldeath, update_molecules, celldivision, cellmigration, update_vessels]
 
 #show alpha and beta maps to make sure there is no big discontinuities
 

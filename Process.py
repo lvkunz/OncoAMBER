@@ -38,31 +38,22 @@ class Simulator: #this class is used to run the whole simulation
 
     def show(self, world: World, t = 0, slice = False): #this function is used to show the world at a certain time
 
-        Vasculature_show = True
-
-        if slice:
-            angle = 0
-            angle2 = 0
-        else:
-            angle = 30
-            angle2 = 60
 
         DPI = 100
         size = world.half_length
 
         #plot vasculature
-        # if Vasculature_show:
-        #     fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(25, 25), dpi=150, subplot_kw={'projection': '3d'})
-        #     fig.suptitle('Visualization at time t = ' + str(t) + ' hours', fontsize=16)
-        #     axes.view_init(30, 60)
-        #     axes.set_xlim(-size, size)
-        #     axes.set_ylim(-size, size)
-        #     axes.set_zlim(-size, size)
-        #     world.show_tumor(axes, fig)
-        #     world.vasculature.plot(fig, axes)
-        #     axes.set_title('Vasculature')
-        #     plt.savefig('Plots/CurrentPlotting/t' + str(t) + '_Vasculature.png')
-        #     plt.show()
+        fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(25, 25), dpi=150, subplot_kw={'projection': '3d'})
+        fig.suptitle('Visualization at time t = ' + str(t) + ' hours', fontsize=16)
+        axes.view_init(30, 60)
+        axes.set_xlim(-size, size)
+        axes.set_ylim(-size, size)
+        axes.set_zlim(-size, size)
+        world.show_tumor_3D(axes, fig, 'number_of_tumor_cells', cmap='viridis', vmin=0, vmax=1000)
+        world.vasculature.plot(fig, axes)
+        axes.set_title('Vasculature')
+        plt.savefig('Plots/CurrentPlotting/t' + str(t) + '_Vasculature.png')
+        plt.show()
 
 
         fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(25, 20), dpi=DPI)
@@ -79,14 +70,14 @@ class Simulator: #this class is used to run the whole simulation
 
         axes[0, 1].set_xlim(-size, size)
         axes[0, 1].set_ylim(-size, size)
-        world.show_tumor_slice(axes[0, 1], fig, 'oxygen', cmap = 'RdBu', norm = norm)
+        world.show_tumor_slice(axes[0, 1], fig, 'oxygen', cmap = 'RdBu', norm = norm, levels= np.linspace(0, 110, 16))
         axes[0, 1].grid(True)
         axes[0, 1].set_facecolor('whitesmoke')
         axes[0, 1].set_title('Oxygen in voxels')
 
         axes[1, 0].set_xlim(-size, size)
         axes[1, 0].set_ylim(-size, size)
-        world.show_tumor_slice(axes[1, 0], fig, 'molecular_factors', factor='VEGF', levels= np.linspace(0.1, 1.1, 11), cmap='Oranges')
+        world.show_tumor_slice(axes[1, 0], fig, 'molecular_factors', factor='VEGF', levels= np.linspace(0.001, 1.0, 11), cmap='Oranges')
         axes[1, 0].grid(True)
         axes[1, 0].set_facecolor('whitesmoke')
         axes[1, 0].set_title('VEGF in voxels')
@@ -192,10 +183,12 @@ class Simulator: #this class is used to run the whole simulation
             plt.show()
             self.time = self.time + self.dt
 
+            np.save('number_tumor_cells.npy', number_tumor_cells)
+            np.save('number_necrotic_cells.npy', number_necrotic_cells)
+            np.save('tumor_size.npy', tumor_size)
+
         #save evolution of number of cells and tumor volume
-        np.save('number_tumor_cells.npy', number_tumor_cells)
-        np.save('number_necrotic_cells.npy', number_necrotic_cells)
-        np.save('tumor_size.npy', tumor_size)
+
 
         print('Simulation finished')
         self.show(world, self.time, slice = slice)
@@ -235,29 +228,40 @@ class CellDivision(Process): #cell division process, cells divide in a voxel if 
         else:
             if CONFIG['verbose']: print('pressure = ', voxel.pressure(), ' > ', self.pressure_threshold, ' so no cell division')
         return
-class CellApoptosis(Process): #cell apoptosis process, cells die in a voxel if they have too low vitality
-    def __init__(self, name, dt, apoptosis_threshold, apoptosis_probability):
-        super().__init__('CellDeath', dt)
-        self.apoptosis_threshold = apoptosis_threshold
-        self.apoptosis_probability = apoptosis_probability
 
-    def __call__(self, voxel):
-        for cell in voxel.list_of_cells:
-            if cell.vitality() < self.apoptosis_threshold and np.random.rand() < self.apoptosis_probability:
-                print('Cell apoptosis')
-                voxel.remove_cell(cell)
-class CellNecrosis(Process): #cell necrosis process, cells die in a voxel if they have too low vitality
-    def __init__(self, name, dt, necrosis_threshold, necrosis_probability):
+class CellDeath(Process): #cell necrosis process, cells die in a voxel if they have too low vitality
+    def __init__(self, name, dt, necrosis_threshold, necrosis_probability, apoptosis_threshold, apoptosis_probability):
         super().__init__('CellNecrosis', dt)
         self.necrosis_threshold = necrosis_threshold
         self.necrosis_probability = necrosis_probability
+        self.apoptosis_threshold = apoptosis_threshold
+        self.apoptosis_probability = apoptosis_probability
+        if self.necrosis_threshold > self.apoptosis_threshold:
+            raise ValueError('necrosis threshold must be smaller or equal to apoptosis threshold. you can set apoptosis probability to 0 if you want to avoid apoptosis.')
+    def necrosis_curve(self, x):
+        r = self.necrosis_probability - x / self.necrosis_threshold
+        if r < 0: r = 0
+        return r
+
+    def apoptosis_curve(self, x):
+        r_ = (self.apoptosis_probability / self.apoptosis_threshold) * x
+        if r_ < 0: r_ = 0
+        return r_
 
     def __call__(self, voxel):
         for cell in voxel.list_of_cells:
-            if cell.vitality() < self.necrosis_threshold:
-                if cell.vitality() < self.necrosis_threshold and np.random.rand() < self.necrosis_probability:
-                    if CONFIG['verbose']: print('Cell necrosis in voxel ', voxel.voxel_number)
+            vitality = cell.vitality()
+            if vitality < self.apoptosis_threshold:
+                sample = np.random.uniform(0, 1)
+                n = self.necrosis_curve(vitality)
+                a = self.apoptosis_curve(vitality) + n
+                if sample < n:
+                    #necrosis
                     voxel.cell_becomes_necrotic(cell)
+                elif sample < a:
+                    #apoptosis
+                    voxel.remove_cell(cell)
+
 
 class CellAging(Process): #cell aging process, cells age in a voxel
     def __init__(self, name, dt):
@@ -293,7 +297,7 @@ class CellMigration(Process): #cell migration process, cells migrate in the worl
             for neighbor in list_of_neighbors:
                 n_events = exchange_matrix[voxel_num, neighbor.voxel_number] #number of expected events in the time step
                 n_moving_cells = np.random.poisson(n_events)
-                n_moving_cells = min(n_moving_cells, len(voxel.list_of_cells))
+                n_moving_cells = min(n_moving_cells, int(round(len(voxel.list_of_cells)*0.5)))
                 if n_moving_cells > 0:
                     list_of_moving_cells = np.random.choice(voxel.list_of_cells, n_moving_cells, replace=False)
                     for cell in list_of_moving_cells:
@@ -310,6 +314,7 @@ class UpdateCellOxygen(Process):
         alpha_file_name = 'Micro-Oxygenation/save_alpha_dataframe' + str(self.voxel_side) + '.csv'
         beta_file_name = 'Micro-Oxygenation/save_beta_dataframe' + str(self.voxel_side) + '.csv'
         if not os.path.isfile(alpha_file_name) or not os.path.isfile(beta_file_name):
+            print('voxel side', self.voxel_side)
             raise ValueError('alpha/beta file not found! It might be in the wrong directory or information for chosen voxel size is not stored. Check "BetaDistributionCalibration.py" to generate the file for the chosen voxel size.')
 
         alpha_dataframe = pd.read_csv(alpha_file_name, index_col=0)
@@ -380,7 +385,7 @@ class UpdateVoxelMolecules(Process): #update the molecules in the voxel (VEGF), 
     def __call__(self, voxel: Voxel):
         VEGF = 0
         for cell in voxel.list_of_cells:
-            if cell.type == 'TumorCell' and cell.vitality() < self.threshold_for_VEGF_production:
+            if cell.vitality() < self.threshold_for_VEGF_production and cell.type == 'TumorCell':
                 VEGF = VEGF + self.VEGF_production_per_cell*(1-cell.vitality())
         VEGF = min(VEGF, 1.0)
         voxel.molecular_factors['VEGF'] = VEGF

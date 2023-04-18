@@ -9,6 +9,7 @@ import networkx as nx
 import json
 import ReadAndWrite as rw
 import time
+import sys
 
 
 CONFIG = rw.read_config_file('CONFIG.txt')
@@ -18,6 +19,8 @@ if seed == -1:
 np.random.seed(seed)
 rng = np.random.default_rng(seed)
 print('seed: ', seed)
+
+sys.setrecursionlimit(1500)
 
 class Vessel:
     def __init__(self, path, radius, parent_id=None, children_ids=None, in_growth=True):
@@ -33,6 +36,7 @@ class Vessel:
         self.children_ids = children_ids
         self.step_size = CONFIG['vessel_step_size']
         self.in_growth = in_growth
+        self.healthy = False
 
     def to_dict(self):
         return {
@@ -277,8 +281,8 @@ class VasculatureNetwork:
 
 
     def grow_and_split(self, dt, splitting_rate, vegf_gradient, pressure, macro_steps=1, micro_steps=10, weight_direction=0.5, weight_vegf=0.5, weight_pressure=0.5):
-        micro_steps = micro_steps * dt
-        for i in range(macro_steps):
+        micro_steps = micro_steps
+        for i in range(macro_steps * dt):
             print("Macro step {}".format(i))
             j = 0
             for vessel in self.list_of_vessels:
