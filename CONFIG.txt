@@ -46,8 +46,8 @@ length_killing_threshold: 0.0           #threshold length of vessels killed beca
 radius_decrease_exponent: 4             #exponent for the decrease of radius of vessels depending on pressure
 o2_per_volume: 1.0                      #oxygen per volume of tissue
 diffusion_number: 3                     #number of diffusion steps per time step
-splitting_rate_vasculature: 0.2         #probability of splitting a vessel when growing
-macro_steps: 0                          #number of macro steps per time step for vasculature growth
+splitting_rate_vasculature: 0.01        #probability of splitting a vessel when growing
+macro_steps: 1                          #number of macro steps per time step for vasculature growth
 micro_steps: 6                          #number of micro steps per time step for vasculature growth
 weight_direction: 3.0                   #weight of direction for vasculature growth
 weight_vegf: 0.9                        #weight of VEGF gradient for vasculature growth
@@ -57,16 +57,17 @@ o2_to_vitality_factor: 1.0              #factor for the conversion of oxygen to 
 viscosity: 1000                         #factor for diffusion of cells from one voxel to the next (not really a viscosity, it represents the cells adehsion too)
 vessel_step_size: 0.015                 #step size for vasculature growth
 growth_step_stop_threshold: 0.003       #threshold for step size for vasculature growth, under which growth stops
-
+new_vessels_per_hour: 20.0              #number of new vessels per hour
 
 # Graphics parameters
-show_time_steps: True                  #if True, show the time during the simulation
+show_time_steps: True                   #if True, show the time during the simulation
 show_final: False                       #if True, show the final state of the simulation
 show_slices: True                       #if True, show a slice of the tumor during the simulation
 slice: x                                #what direction to slice the tumor (x or z
-show_o2_vitality_histograms: False       #if True, show a histogram of oxygen and vitality during the simulation
-show_tumor_and_vessels_3D: True        #if True, show the vasculature in 3D during the simulation with tumor cells
+show_o2_vitality_histograms: False      #if True, show a histogram of oxygen and vitality during the simulation
+show_tumor_and_vessels_3D: True         #if True, show the vasculature in 3D during the simulation with tumor cells
+visible_original_vessels: False         #if True, show the original vasculature in 3D during the simulation
 show_alpha_beta_maps: False             #if True, show the distribution of the parameters beta and gamma
-show_cell_and_tumor_volume: False      #if True, show the volume of tumor cells and healthy cells during the simulation
+show_cell_and_tumor_volume: False       #if True, show the volume of tumor cells and healthy cells during the simulation
 verbose: False
 

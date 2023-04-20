@@ -3,7 +3,6 @@ from src.Vessel import *
 from src.ScalarField import *
 from src.BasicGeometries import *
 #np.set_printoptions(threshold=sys.maxsize)
-import pyvista as pv
 from scipy import ndimage
 from scipy.stats import qmc
 import matplotlib.tri as mtri
@@ -113,6 +112,7 @@ class World:
         self.vasculature.update_vessels_radius_from_last(config.radius_root_vessels, False, pressure)
         for vessel in self.vasculature.list_of_vessels:
             vessel.in_growth = False
+            vessel.visible = config.visible_original_vessels
         return
 
     def random_points_for_voxels_concentration(self, num_points, molecule : str):
@@ -411,28 +411,28 @@ class World:
         fig.colorbar(ax.collections[0], ax=ax, shrink=0.5)
         return fig, ax
 
-    def show_tumor_surface(self):
-        print('-- Plotting Tumor Surface')
-
-        threshold = 20
-        voxel_data = np.zeros((self.number_of_voxels, self.number_of_voxels, self.number_of_voxels))
-        for i in range(self.number_of_voxels):
-            for j in range(self.number_of_voxels):
-                for k in range(self.number_of_voxels):
-                    voxel = self.voxel_list[i * self.number_of_voxels ** 2 + j * self.number_of_voxels + k]
-                    if voxel.number_of_tumor_cells() > threshold:
-                        voxel_data[i, j, k] = 1
-        # Label connected regions of the tumor cells
-        labels, num_features = ndimage.label(voxel_data)
-        grid = pv.wrap(labels)
-        mesh = grid.contour([0.5])
-        plotter = pv.Plotter()
-        plotter.add_mesh(mesh, cmap="viridis")
-        plotter.add_title("Tumor Surface")
-        plotter.add_axes()
-        plotter.show(screenshot='tumor_surface.png')
-
-        return
+    # def show_tumor_surface(self):
+    #     print('-- Plotting Tumor Surface')
+    #
+    #     threshold = 20
+    #     voxel_data = np.zeros((self.number_of_voxels, self.number_of_voxels, self.number_of_voxels))
+    #     for i in range(self.number_of_voxels):
+    #         for j in range(self.number_of_voxels):
+    #             for k in range(self.number_of_voxels):
+    #                 voxel = self.voxel_list[i * self.number_of_voxels ** 2 + j * self.number_of_voxels + k]
+    #                 if voxel.number_of_tumor_cells() > threshold:
+    #                     voxel_data[i, j, k] = 1
+    #     # Label connected regions of the tumor cells
+    #     labels, num_features = ndimage.label(voxel_data)
+    #     grid = pv.wrap(labels)
+    #     mesh = grid.contour([0.5])
+    #     plotter = pv.Plotter()
+    #     plotter.add_mesh(mesh, cmap="viridis")
+    #     plotter.add_title("Tumor Surface")
+    #     plotter.add_axes()
+    #     plotter.show(screenshot='tumor_surface.png')
+    #
+    #     return
 
     def is_inside(self, point, cube_half_length = None):
         if cube_half_length == None:

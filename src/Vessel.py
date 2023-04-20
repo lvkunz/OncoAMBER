@@ -21,6 +21,7 @@ class Vessel:
         self.step_size = config.vessel_step_size
         self.in_growth = in_growth
         self.healthy = False
+        self.visible = True
 
     def to_dict(self):
         return {
@@ -104,10 +105,11 @@ class Vessel:
         return np.pi * self.radius ** 2 * self.step_size
 
     def plot(self,fig, ax, color='crimson'):
-        if self.in_growth:
-            ax.plot(self.path[:, 0], self.path[:, 1], self.path[:, 2], color=color, alpha=0.7, linewidth= self.radius*300)
-        else:
-            ax.plot(self.path[:, 0], self.path[:, 1], self.path[:, 2], color='mediumblue', alpha=0.1, linewidth= self.radius*300)
+        if self.visible:
+            if self.in_growth:
+                ax.plot(self.path[:, 0], self.path[:, 1], self.path[:, 2], color=color, alpha=0.7, linewidth= self.radius*300)
+            else:
+                ax.plot(self.path[:, 0], self.path[:, 1], self.path[:, 2], color='mediumblue', alpha=0.1, linewidth= self.radius*300)
         return fig, ax
     def choose_random_point(self):
         #choose random point on the path, not the first or last point

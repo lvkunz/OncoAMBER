@@ -3,6 +3,7 @@ from src.Voxel import *
 from src.Cell import *
 from src.ScalarField import *
 import src.Terminal as term
+import src.ReadAndWrite as rw
 import pandas as pd
 from matplotlib.colors import TwoSlopeNorm
 from src.config_instance import config
@@ -45,7 +46,8 @@ class Simulator: #this class is used to run the whole simulation
         if config.show_tumor_and_vessels_3D:
             fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(25, 25), dpi=150, subplot_kw={'projection': '3d'})
             fig.suptitle('Visualization at time t = ' + str(t) + ' hours', fontsize=16)
-            axes.view_init(30, 60)
+            axes.view_init(0, 90)
+            size = size/2
             axes.set_xlim(-size, size)
             axes.set_ylim(-size, size)
             axes.set_zlim(-size, size)
@@ -54,6 +56,7 @@ class Simulator: #this class is used to run the whole simulation
             axes.set_title('Vasculature')
             plt.savefig('Plots/CurrentPlotting/t' + str(t) + '_Vasculature.png')
             plt.show()
+            size = size*2
 
         if config.show_slices:
             fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(25, 20), dpi=DPI)
@@ -145,10 +148,10 @@ class Simulator: #this class is used to run the whole simulation
             tumor_size.append(tumor_size_ * 1000)
             times.append(self.time)
 
-            np.save('../DataOutput/GrowthBenchMarkMu27sigma2/visco1000/number_tumor_cells.npy', number_tumor_cells)
+            np.save('DataOutput/number_tumor_cells.npy', number_tumor_cells)
             np.save('DataOutput/number_necrotic_cells.npy', number_necrotic_cells)
-            np.save('../DataOutput/GrowthBenchMarkMu27sigma2/visco1000/tumor_size.npy', tumor_size)
-            np.save('../DataOutput/GrowthBenchMarkMu27sigma2/visco1000/times.npy', times)
+            np.save('DataOutput/tumor_size.npy', tumor_size)
+            np.save('DataOutput/times.npy', times)
 
             if config.show_cell_and_tumor_volume:
                 self.show_cell_and_tumor_volume(number_tumor_cells, number_necrotic_cells, tumor_size, times)
@@ -379,18 +382,24 @@ class UpdateVasculature(Process): #update the vasculature
             total_VEGF += voxel.molecular_factors['VEGF']
         print('Total VEGF: ', total_VEGF)
         vessels = world.vasculature.list_of_vessels
-        #shuffle vessels
-        random.shuffle(vessels)
-        for i in range(int(total_VEGF)):
-            #order by vessels radius, so that the largest vessels are more likely to branch
-            if i >= len(vessels):
-                i = i - len(vessels)
-            vessel = vessels[i]
-            #choose random point on vessel
+        n_new_vessels = int(config.new_vessels_per_hour * self.dt)
+        chosen_vessels = random.sample(vessels, n_new_vessels)
+
+        for vessel in chosen_vessels:
             if len(vessel.path) > 2:
                 point = vessel.choose_random_point()
-                #branch from this point
                 world.vasculature.branching(vessel.id, point)
+
+        # for i in range(n_new_vessels):
+        #     #order by vessels radius, so that the largest vessels are more likely to branch
+        #     if i >= len(vessels):
+        #         i = i - len(vessels)
+        #     vessel = vessels[i]
+        #     #choose random point on vessel
+        #     if len(vessel.path) > 2:
+        #         point = vessel.choose_random_point()
+        #         #branch from this point
+        #         world.vasculature.branching(vessel.id, point)
 
         world.vasculature_growth(self.dt, self.splitting_rate, self.macro_steps, self.micro_steps, self.weight_direction, self.weight_vegf, self.weight_pressure, self.radius_pressure_sensitive)
         world.update_volume_occupied_by_vessels()

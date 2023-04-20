@@ -27,18 +27,18 @@ from src.World import World
 from src.Process import *
 
 
-#CONFIG.txt with all the parameters for the simulation
-
 
 #set seed for reproducibility
 start_time = time.time()
 DPI = 100
 
 seed = config.seed
+print('python version', sys.version)
+print('Config file', config_file)
+print('seed', seed)
 
 np.random.seed(seed)
 random.seed(seed)
-print('seed: ', seed)
 
 world = World(config.half_length_world, config.voxel_per_side)
 
