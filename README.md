@@ -28,6 +28,6 @@ For each iteration, the script generates a new job submission script ($SCRIPT) u
 
 ./run_AMBER.sh main.py 10 my_config
 
-## How to run the s
+## 
 
 
