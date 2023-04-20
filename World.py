@@ -1,26 +1,14 @@
-import random
-
 from Voxel import *
-from Cell import *
 from Vessel import *
 from ScalarField import *
-import numpy as np
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-from BasicPlots import *
-import sys
 from BasicGeometries import *
 #np.set_printoptions(threshold=sys.maxsize)
-from matplotlib.colors import Normalize
-from mpl_toolkits.mplot3d import Axes3D
-from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
 import pyvista as pv
 from scipy import ndimage
 from scipy.stats import qmc
-import ReadAndWrite as rw
 import matplotlib.tri as mtri
 import scipy.sparse as sparse
-from config_instance import config
+from CONFIG.config_instance import config
 
 
 
@@ -224,8 +212,6 @@ class World:
         neighbors_voxels = [self.voxel_list[n] for n in neighbors]
         return neighbors_voxels
 
-    import scipy.sparse as sparse
-
     def compute_exchange_matrix(self, dt, pressure_threshold):
         V = self.voxel_list[0].volume
         total_voxels = self.total_number_of_voxels
@@ -340,10 +326,6 @@ class World:
         step = (self.half_length*2/self.number_of_voxels)*step_voxel
         vegf_map = ScalarField3D(positions, values, step)
         return vegf_map
-
-    import numpy as np
-    import matplotlib.pyplot as plt
-    import matplotlib.tri as mtri
 
     def show_tumor_slice(self, ax, fig, voxel_attribute, factor=None, cmap='viridis', vmin=None, vmax=None, norm=None,
                          levels=None, refinement_level=0):

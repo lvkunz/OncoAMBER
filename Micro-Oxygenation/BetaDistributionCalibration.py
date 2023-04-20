@@ -70,9 +70,9 @@ for p in range(9):
         multiple_beta_values = []
         for _ in range(10):
 
-            points_x = sampler.random(n)[:,0] * side
+            points_x = sampler.random(n)[:,0] * side #quasi random to have a distribution mimicking distance between vessels
             points_y = sampler.random(n)[:,1] * side
-            # points_x = np.random.uniform(0, side, n)
+            # points_x = np.random.uniform(0, side, n) #pseudo random
             # points_y = np.random.uniform(0, side, n)
 
 
@@ -93,8 +93,6 @@ for p in range(9):
                 b_ = b*(1 - pressure)
                 o2_values.append(sigmoid(point, a=a, b=b_))
 
-            # Normalize the histogram values
-            #hist_values_normalized = hist_values / len(o2_values)
 
             # Fit a beta distribution to the data
             alpha, beta_param, _, _ = beta.fit(o2_values, floc=0, fscale=1.0)
@@ -102,9 +100,8 @@ for p in range(9):
             multiple_beta_values.append(beta_param)
 
             # r = np.random.beta(alpha, beta_param, 5000)
-            # # rbis = np.random.beta(modelled_alpha, modelled_beta, 5000)
-            # #
-            # #
+            # rbis = np.random.beta(modelled_alpha, modelled_beta, 5000)
+
             # plt.figure()
             # plt.hist(o2_values, bins=100, alpha=0.5, label='Data', color='blue', density=True)
             # plt.hist(r, bins=100, alpha=0.5, label='Beta', color='red', density=True)
@@ -115,6 +112,7 @@ for p in range(9):
             # plt.ylabel('Frequency')
             # plt.legend()
             # plt.show()
+
         alpha_mean = np.mean(multiple_alpha_values)
         beta_param_mean = np.mean(multiple_beta_values)
 
@@ -144,20 +142,6 @@ plt.show()
 
 sns.heatmap(beta_dataframe, cmap='viridis')
 plt.show()
-
-
-#save the dataframes
-
-
-#save all the alpha and beta values
-# np.save('alpha_values.npy', alpha_values)
-# np.save('beta_values.npy', beta_values)
-# np.save('all_n_values.npy', all_n_values)
-# np.save('all_side_values.npy', all_side_values)
-# np.save('all_pressure_values.npy', all_pressure_values)
-
-#read in the alpha and beta values
-
 
 
 

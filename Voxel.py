@@ -1,11 +1,5 @@
-from Cell import *
-from BasicPlots import *
 import numpy as np
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-import random
-import ReadAndWrite as rw
-from config_instance import config
+from CONFIG.config_instance import config
 
 def sigmoid(L, x, x0, k):
     return L/(1 + np.exp(-k*(x-x0)))
@@ -115,6 +109,19 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                 ax.set_title('Vitality histogram')
                 return ax, fig
 
+        def cycling_time_and_age_histogram(self, ax, fig):
+                cycling_time = []
+                age = []
+                for cell in self.list_of_cells:
+                        cycling_time.append(cell.doubling_time)
+                        age.append(cell.time_spent_cycling)
+                ax.hist(cycling_time, bins=30, color='green', alpha=0.5, label='Cycling time')
+                ax.hist(age, bins=30, color='red', alpha=0.5, label='time_spent_cycling')
+                ax.set_xlabel('Cycling time')
+                ax.set_ylabel('Number of cells')
+                ax.set_title('Cycling time histogram')
+                ax.legend()
+                return ax, fig
 
 
 

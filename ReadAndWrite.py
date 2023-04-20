@@ -19,6 +19,7 @@ def DoseOnWorld(file_path : str):
 
 def read_config_file(file_name):
     config_dict = {}
+    file_name = file_name + '.txt'
 
     with open(file_name, 'r') as f:
         for line in f:

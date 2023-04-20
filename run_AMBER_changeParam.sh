@@ -7,6 +7,9 @@ set INFILE = $1
 set ITER = $2
 set CONFIG_NAME = $3
 
+# List of viscosity values
+set VIS_LIST = (50 100 200 500 1000)
+
 if ($ITER == "") then
   set ITER = 1
 endif
@@ -15,6 +18,8 @@ set COUNT = `ls -d ./output/$CONFIG_NAME/$INFILE-* | wc -l`
 if ($COUNT == "") then
   set COUNT = 0
 endif
+
+set VIS_INDEX = 1  # Initialize viscosity index
 
 while ($COUNT < $ITER + $COUNT)
     set USER = `whoami`
@@ -37,6 +42,10 @@ while ($COUNT < $ITER + $COUNT)
     cp $INFILE $DIR
     cp *.py $DIR
     cp supportFiles/* $DIR
+
+    # Set viscosity value
+    set VIS = $VIS_LIST[$VIS_INDEX]
+    sed -i "s/viscosity:.*/viscosity: $VIS/g" $DIR/$INFILE
 
     set SEED = `bash -c 'echo $RANDOM'`
     sed -i "s/seed:.*/seed: $SEED/g" $DIR/$INFILE
@@ -61,6 +70,9 @@ EOF
    chmod +x $SCRIPT
 
    bsub  -e $DIR/log.err -o $DIR/log.out < $SCRIPT
+
+   # Increment viscosity index
+   @ VIS_INDEX = ($VIS_INDEX % $#VIS_LIST) + 1
 
    @ COUNT = $COUNT + 1
 end

@@ -1,16 +1,7 @@
-import numpy as np
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 import random
-import math
-from BasicPlots import *
 from BasicGeometries import *
-import networkx as nx
-import json
-import ReadAndWrite as rw
-import time
 import sys
-from config_instance import config
+from CONFIG.config_instance import config
 
 sys.setrecursionlimit(1500)
 rng = np.random.default_rng(config.seed)

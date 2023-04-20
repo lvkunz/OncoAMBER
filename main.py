@@ -4,10 +4,19 @@ from mpl_toolkits.mplot3d import Axes3D
 import os
 import sys
 import ReadAndWrite as rw
-from config import Config
-from config_instance import set_config_instance
+from CONFIG.config import Config
+from CONFIG.config_instance import set_config_instance
+import time
+import tkinter as tk
+from tkinter import messagebox
 
-config_file = sys.argv[1]
+
+default_config_file = 'CONFIG/CONFIG'
+if len(sys.argv) > 1:
+    config_file = sys.argv[1]
+else:
+    config_file = default_config_file
+
 config_dict = rw.read_config_file(config_file)
 config = Config.from_dict(config_dict)
 
@@ -18,6 +27,8 @@ from Cell import *
 from World import World
 from Process import *
 from Terminal import *
+
+#CONFIG.txt with all the parameters for the simulation
 
 
 #set seed for reproducibility
@@ -38,7 +49,9 @@ world = World(config.half_length_world, config.voxel_per_side)
 for i in range(world.total_number_of_voxels):
     if i %10000 == 0: print('Adding healthy cells to voxel number: ', i, ' out of ', world.total_number_of_voxels)
     for j in range(config.initial_number_healthy_cells):
-        world.voxel_list[i].add_cell(Cell(config.radius_healthy_cells, cycle_hours=config.doubling_time_healthy, type='NormalCell'))
+        cell = Cell(config.radius_healthy_cells, cycle_hours=config.doubling_time_healthy, type='NormalCell')
+        cell.time_spent_cycling = 0
+        world.voxel_list[i].add_cell(cell)
 
 points = Sphere(config.tumor_initial_radius, [0, 0, 0]).generate_random_points(config.initial_number_tumor_cells)
 for i in range(config.initial_number_tumor_cells):
@@ -97,19 +110,22 @@ update_vessels = UpdateVasculature('update_vessels', dt,
                                         weight_pressure=config.weight_pressure,
                                         radius_pressure_sensitive=config.radius_pressure_sensitive)
 
-list_of_processes = [update_cell_state, cellaging, celldeath, update_molecules, celldivision, cellmigration, update_vessels]
+list_of_processes = [update_cell_state, celldivision, celldeath, update_molecules, cellaging, cellmigration, update_vessels]
 
-#show alpha and beta maps to make sure there is no big discontinuities
 
 #run the simulation and time it
 
 simulation_start = time.time()
 
 sim = Simulator(list_of_processes, end_time, dt)
-sim.run(world, video=True)
+sim.run(world, video=config.show_time_steps)
 
 simulation_end = time.time()
 ##########################################################################################
 
 print('simulation time: ', simulation_end - simulation_start, ' seconds')
 print('total time: ', time.time() - start_time, ' seconds')
+
+root = tk.Tk()
+root.withdraw() # hide the main window
+messagebox.showinfo("Simulation Finished", "The simulation has finished after " + str(simulation_end - simulation_start) + " seconds")

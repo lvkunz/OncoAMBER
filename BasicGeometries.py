@@ -1,7 +1,5 @@
 import numpy as np
-import ReadAndWrite as rw
-import matplotlib.pyplot as plt
-from config_instance import config
+
 
 class Shape(object):
     def __init__(self, name: str = "Shape"):
@@ -16,10 +14,6 @@ class Sphere(Shape):
         self.center = center
         self.volume = 4/3 * np.pi * self.radius**3
     def generate_random_points(self, n):
-        # generate n random points within the tumor
-        # the points are generated in a cube of side 2*radius
-        # then the points outside the tumor are discarded
-        # initialize the points array as a list of 3D points
         points = np.array([[0, 0, 0]])
         while points.shape[0] <= n+2:
             points_new = np.random.uniform(-self.radius, self.radius, (n, 3))
