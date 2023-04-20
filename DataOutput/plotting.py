@@ -8,6 +8,11 @@ number_cells = np.load('GrowthBenchMarkMu27sigma2/visco1000/number_tumor_cells.n
 tumor_size = np.load('GrowthBenchMarkMu27sigma2/visco1000/tumor_size.npy', allow_pickle=True)
 times = np.load('GrowthBenchMarkMu27sigma2/visco1000/times.npy', allow_pickle=True)
 
+plt.plot(number_cells)
+plt.show()
+plt.plot(tumor_size)
+plt.show()
+
 radius = (tumor_size/4)**(1/3)
 
 plt.plot(times, number_cells, 'purple')

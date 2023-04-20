@@ -1,7 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+import ReadAndWrite as rw
 from matplotlib.colors import LinearSegmentedColormap
-
+from config_instance import config
 
 def plot_sphere(ax, fig, radius, center, color='blue'):
     # show the cell
