@@ -1,8 +1,7 @@
 import numpy as np
 from scipy.interpolate import RegularGridInterpolator
-import matplotlib.pyplot as plt
-import ReadAndWrite as rw
-from config_instance import config
+from src.config import Config
+from src.config_instance import config
 
 class ScalarField3D:
     def __init__(self, points, values, gradient_step_size=1e-5, bounds_error=False, fill_value=None):

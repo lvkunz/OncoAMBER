@@ -1,14 +1,14 @@
-from Voxel import *
-from Vessel import *
-from ScalarField import *
-from BasicGeometries import *
+from src.Voxel import *
+from src.Vessel import *
+from src.ScalarField import *
+from src.BasicGeometries import *
 #np.set_printoptions(threshold=sys.maxsize)
 import pyvista as pv
 from scipy import ndimage
 from scipy.stats import qmc
 import matplotlib.tri as mtri
 import scipy.sparse as sparse
-from CONFIG.config_instance import config
+from src.config_instance import config
 
 
 

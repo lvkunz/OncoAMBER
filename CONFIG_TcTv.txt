@@ -41,9 +41,9 @@ vegf_map_step_voxel: 5                  # number of voxel for VEGF gradient comp
 reference_vegf_gradient: 0.8            #reference value at which step size for vasculature remains the same, under, the step size is decreased linearly
 reference_pressure: 0.3                 #reference value at which step size for vasculature remains the same, above, the step size is decreased linearly
 radius_root_vessels: 0.01               #radius of the endvessels of the tree
-radius_killing_threshold: 0.0015        #threshold radius of vessels getting killed by pressure or because they are too small
+radius_killing_threshold: 0.002         #threshold radius of vessels getting killed by pressure or because they are too small
 length_killing_threshold: 0.0           #threshold length of vessels killed because they are too small
-radius_decrease_exponent: 5             #exponent for the decrease of radius of vessels depending on pressure
+radius_decrease_exponent: 4             #exponent for the decrease of radius of vessels depending on pressure
 o2_per_volume: 1.0                      #oxygen per volume of tissue
 diffusion_number: 3                     #number of diffusion steps per time step
 splitting_rate_vasculature: 0.2         #probability of splitting a vessel when growing

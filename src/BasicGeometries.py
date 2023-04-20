@@ -1,7 +1,4 @@
 import numpy as np
-import ReadAndWrite as rw
-import matplotlib.pyplot as plt
-from config_instance import config
 
 class Shape(object):
     def __init__(self, name: str = "Shape"):

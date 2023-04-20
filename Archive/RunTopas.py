@@ -1,7 +1,7 @@
-from Terminal import *
+from src.Terminal import *
 import os
-import ReadAndWrite as rw
-from World import World
+from src import ReadAndWrite as rw
+from src.World import World
 import matplotlib.pyplot as plt
 from CONFIG.config_instance import config
 

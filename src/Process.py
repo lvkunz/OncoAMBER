@@ -1,14 +1,13 @@
-from World import *
-from Voxel import *
-from Cell import *
-from BasicGeometries import *
+from src.World import *
+from src.Voxel import *
+from src.Cell import *
+from src.ScalarField import *
+import src.Terminal as term
 import pandas as pd
-from ScalarField import *
-import os
-import Terminal as term
 from matplotlib.colors import TwoSlopeNorm
-from CONFIG.config_instance import config
+from src.config_instance import config
 import matplotlib.pyplot as plt
+import os
 
 class Simulator: #this class is used to run the whole simulation
 
@@ -146,10 +145,10 @@ class Simulator: #this class is used to run the whole simulation
             tumor_size.append(tumor_size_ * 1000)
             times.append(self.time)
 
-            np.save('DataOutput/GrowthBenchMarkMu27sigma2/visco1000/number_tumor_cells.npy', number_tumor_cells)
-            np.save('number_necrotic_cells.npy', number_necrotic_cells)
-            np.save('DataOutput/GrowthBenchMarkMu27sigma2/visco1000/tumor_size.npy', tumor_size)
-            np.save('DataOutput/GrowthBenchMarkMu27sigma2/visco1000/times.npy', times)
+            np.save('../DataOutput/GrowthBenchMarkMu27sigma2/visco1000/number_tumor_cells.npy', number_tumor_cells)
+            np.save('DataOutput/number_necrotic_cells.npy', number_necrotic_cells)
+            np.save('../DataOutput/GrowthBenchMarkMu27sigma2/visco1000/tumor_size.npy', tumor_size)
+            np.save('../DataOutput/GrowthBenchMarkMu27sigma2/visco1000/times.npy', times)
 
             if config.show_cell_and_tumor_volume:
                 self.show_cell_and_tumor_volume(number_tumor_cells, number_necrotic_cells, tumor_size, times)

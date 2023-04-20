@@ -1,17 +1,12 @@
-import numpy as np
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-import os
 import sys
-import ReadAndWrite as rw
-from CONFIG.config import Config
-from CONFIG.config_instance import set_config_instance
 import time
 import tkinter as tk
 from tkinter import messagebox
+from src import ReadAndWrite as rw
+from src.config import Config
+from src.config_instance import *
 
-
-default_config_file = 'CONFIG/CONFIG'
+default_config_file = 'CONFIG'
 if len(sys.argv) > 1:
     config_file = sys.argv[1]
 else:
@@ -22,11 +17,15 @@ config = Config.from_dict(config_dict)
 
 set_config_instance(config)
 
-from Voxel import Voxel
-from Cell import *
-from World import World
-from Process import *
-from Terminal import *
+from src.BasicGeometries import *
+from src.ScalarField import *
+from src.Terminal import *
+from src.Cell import Cell
+from src.Vessel import *
+from src.Voxel import Voxel
+from src.World import World
+from src.Process import *
+
 
 #CONFIG.txt with all the parameters for the simulation
 

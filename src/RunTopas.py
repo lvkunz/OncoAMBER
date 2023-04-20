@@ -1,10 +1,9 @@
-import subprocess
-from Terminal import *
+from src.Terminal import *
 import os
-import ReadAndWrite as rw
-from World import World
+import src.ReadAndWrite as rw
+from src.World import World
 import matplotlib.pyplot as plt
-from config_instance import config
+from src.config_instance import config
 
 
 world = World(config.half_length_world, config.voxel_per_side)

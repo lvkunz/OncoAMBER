@@ -1,7 +1,7 @@
 import random
-from BasicGeometries import *
+from src.BasicGeometries import *
 import sys
-from CONFIG.config_instance import config
+from src.config_instance import config
 
 sys.setrecursionlimit(1500)
 rng = np.random.default_rng(config.seed)

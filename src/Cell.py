@@ -1,5 +1,5 @@
 import numpy as np
-from CONFIG.config_instance import config
+from src.config_instance import config
 
 class Cell (object):
     def __init__(self, radius, cycle_hours = 10, type = 'NormalCell'):
