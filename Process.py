@@ -1,21 +1,14 @@
-import random
-
 from World import *
-import numpy as np
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-from Cell import *
 from Voxel import *
-from scipy.stats import beta
-import ReadAndWrite as rw
+from Cell import *
 from BasicGeometries import *
 import pandas as pd
 from ScalarField import *
 import os
 import Terminal as term
-import BasicPlots as bp
 from matplotlib.colors import TwoSlopeNorm
-from config_instance import config
+from CONFIG.config_instance import config
+import matplotlib.pyplot as plt
 
 class Simulator: #this class is used to run the whole simulation
 
@@ -24,79 +17,98 @@ class Simulator: #this class is used to run the whole simulation
         self.finish_time = finish_time
         self.dt = dt
         self.time = 0
+    def show_cell_and_tumor_volume(self, number_tumor_cells, number_necrotic_cells, tumor_size, times):
+        # plot number of cells evolution
+        plt.plot(times, number_tumor_cells, 'purple')
+        plt.plot(times, number_necrotic_cells, 'black')
+        plt.title('Number of cells evolution')
+        plt.xlabel('Time')
+        plt.ylabel('Number of cells')
+        plt.grid(True)
+        plt.savefig('Plots/Number_cells_evolution.png')
+        plt.show()
 
-
-    def show(self, world: World, t = 0, slice = False): #this function is used to show the world at a certain time
-
+        # plot tumor size evolution
+        fig = plt.figure()
+        plt.plot(times, tumor_size, 'red')
+        plt.title('Tumor volume evolution')
+        plt.xlabel('Time')
+        plt.ylabel('Tumor volume [mm^3]')
+        plt.grid(True)
+        plt.savefig('Plots/Tumor_size_evolution.png')
+        plt.show()
+    def show(self, world: World, t = 0): #this function is used to show the world at a certain time
 
         DPI = 100
         size = world.half_length
 
         #plot vasculature
-        fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(25, 25), dpi=150, subplot_kw={'projection': '3d'})
-        fig.suptitle('Visualization at time t = ' + str(t) + ' hours', fontsize=16)
-        axes.view_init(30, 60)
-        axes.set_xlim(-size, size)
-        axes.set_ylim(-size, size)
-        axes.set_zlim(-size, size)
-        world.show_tumor_3D(axes, fig, 'number_of_tumor_cells', cmap='viridis', vmin=0, vmax=1000)
-        world.vasculature.plot(fig, axes)
-        axes.set_title('Vasculature')
-        plt.savefig('Plots/CurrentPlotting/t' + str(t) + '_Vasculature.png')
-        plt.show()
+        if config.show_tumor_and_vessels_3D:
+            fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(25, 25), dpi=150, subplot_kw={'projection': '3d'})
+            fig.suptitle('Visualization at time t = ' + str(t) + ' hours', fontsize=16)
+            axes.view_init(30, 60)
+            axes.set_xlim(-size, size)
+            axes.set_ylim(-size, size)
+            axes.set_zlim(-size, size)
+            world.show_tumor_3D(axes, fig, 'number_of_tumor_cells', cmap='viridis', vmin=0, vmax=1000)
+            world.vasculature.plot(fig, axes)
+            axes.set_title('Vasculature')
+            plt.savefig('Plots/CurrentPlotting/t' + str(t) + '_Vasculature.png')
+            plt.show()
 
+        if config.show_slices:
+            fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(25, 20), dpi=DPI)
+            fig.suptitle('Visualization at time t = ' + str(t) + ' hours', fontsize=16)
 
-        fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(25, 20), dpi=DPI)
-        fig.suptitle('Visualization at time t = ' + str(t) + ' hours', fontsize=16)
+            axes[0, 0].set_xlim(-size, size)
+            axes[0, 0].set_ylim(-size, size)
+            world.show_tumor_slice(axes[0, 0], fig, 'number_of_tumor_cells', levels= np.linspace(1, 1001, 11))
+            axes[0,0].grid(True)
+            axes[0,0].set_facecolor('whitesmoke')
+            axes[0, 0].set_title('Cells in voxels')
 
-        axes[0, 0].set_xlim(-size, size)
-        axes[0, 0].set_ylim(-size, size)
-        world.show_tumor_slice(axes[0, 0], fig, 'number_of_tumor_cells', levels= np.linspace(1, 1001, 11))
-        axes[0,0].grid(True)
-        axes[0,0].set_facecolor('whitesmoke')
-        axes[0, 0].set_title('Cells in voxels')
+            norm = TwoSlopeNorm(vmin=0, vcenter=15, vmax=100)
 
-        norm = TwoSlopeNorm(vmin=0, vcenter=15, vmax=100)
+            axes[0, 1].set_xlim(-size, size)
+            axes[0, 1].set_ylim(-size, size)
+            world.show_tumor_slice(axes[0, 1], fig, 'oxygen', cmap = 'RdBu', norm = norm, levels= np.linspace(0, 110, 16))
+            axes[0, 1].grid(True)
+            axes[0, 1].set_facecolor('whitesmoke')
+            axes[0, 1].set_title('Oxygen in voxels')
 
-        axes[0, 1].set_xlim(-size, size)
-        axes[0, 1].set_ylim(-size, size)
-        world.show_tumor_slice(axes[0, 1], fig, 'oxygen', cmap = 'RdBu', norm = norm, levels= np.linspace(0, 110, 16))
-        axes[0, 1].grid(True)
-        axes[0, 1].set_facecolor('whitesmoke')
-        axes[0, 1].set_title('Oxygen in voxels')
+            axes[1, 0].set_xlim(-size, size)
+            axes[1, 0].set_ylim(-size, size)
+            world.show_tumor_slice(axes[1, 0], fig, 'molecular_factors', factor='VEGF', levels= np.linspace(0.001, 1.0, 11), cmap='Oranges')
+            axes[1, 0].grid(True)
+            axes[1, 0].set_facecolor('whitesmoke')
+            axes[1, 0].set_title('VEGF in voxels')
 
-        axes[1, 0].set_xlim(-size, size)
-        axes[1, 0].set_ylim(-size, size)
-        world.show_tumor_slice(axes[1, 0], fig, 'molecular_factors', factor='VEGF', levels= np.linspace(0.001, 1.0, 11), cmap='Oranges')
-        axes[1, 0].grid(True)
-        axes[1, 0].set_facecolor('whitesmoke')
-        axes[1, 0].set_title('VEGF in voxels')
+            axes[1, 1].set_xlim(-size, size)
+            axes[1, 1].set_ylim(-size, size)
+            world.show_tumor_slice(axes[1, 1], fig, 'number_of_necrotic_cells', levels= np.linspace(1, 1001, 11))
+            axes[1, 1].grid(True)
+            axes[1, 1].set_facecolor('whitesmoke')
+            axes[1, 1].set_title('Necrosis in voxels')
 
-        axes[1, 1].set_xlim(-size, size)
-        axes[1, 1].set_ylim(-size, size)
-        world.show_tumor_slice(axes[1, 1], fig, 'number_of_necrotic_cells', levels= np.linspace(1, 1001, 11))
-        axes[1, 1].grid(True)
-        axes[1, 1].set_facecolor('whitesmoke')
-        axes[1, 1].set_title('Necrosis in voxels')
+            plt.tight_layout()
+            plt.savefig('Plots/CurrentPlotting/t' + str(t) + '_AllPlots.png')
+            plt.show()
 
-        plt.tight_layout()
-        plt.savefig('Plots/CurrentPlotting/t' + str(t) + '_AllPlots.png')
-        plt.show()
-
-        # voxels_positions = [[0,0,0],[0.06, 0.06, 0.0], [0.12,0.12,0.0]]
-        # fig, axes = plt.subplots(nrows=2, ncols=len(voxels_positions), figsize=(20, 10), dpi=100)
-        # fig.suptitle('Visualization at time t = ' + str(t) + ' hours', fontsize=16)
-        # for i in range(len(voxels_positions)):
-        #     #show histograms for the three voxels
-        #     axes[0, i].set_title('Voxel ' + str(i))
-        #     axes[0, i].set_xlabel('Oxygen')
-        #     axes[0, i].set_ylabel('Number of cells')
-        #     voxel = world.find_voxel(voxels_positions[i])
-        #     voxel.oxygen_histogram(axes[0, i], fig)
-        #     axes[1, i].set_xlabel('Vitality')
-        #     axes[1, i].set_ylabel('Number of cells')
-        #     voxel.vitality_histogram(axes[1, i], fig)
-        # plt.show()
+        if config.show_o2_vitality_histograms:
+            voxels_positions = [[0,0,0],[0.06, 0.06, 0.0], [0.12,0.12,0.0]]
+            fig, axes = plt.subplots(nrows=2, ncols=len(voxels_positions), figsize=(20, 10), dpi=100)
+            fig.suptitle('Visualization at time t = ' + str(t) + ' hours', fontsize=16)
+            for i in range(len(voxels_positions)):
+                #show histograms for the three voxels
+                axes[0, i].set_title('Voxel ' + str(i))
+                axes[0, i].set_xlabel('Oxygen')
+                axes[0, i].set_ylabel('Number of cells')
+                voxel = world.find_voxel(voxels_positions[i])
+                voxel.cycling_time_and_age_histogram(axes[0, i], fig)
+                axes[1, i].set_xlabel('Vitality')
+                axes[1, i].set_ylabel('Number of cells')
+                voxel.vitality_histogram(axes[1, i], fig)
+            plt.show()
 
     def run(self, world: World, video=False):
         print(f'Running simulation for {self.finish_time} hours with dt={self.dt}')
@@ -107,9 +119,7 @@ class Simulator: #this class is used to run the whole simulation
                               range(config.number_fractions)]
         applied_fractions = 0
 
-        number_tumor_cells = []
-        number_necrotic_cells = []
-        tumor_size = []
+        number_tumor_cells = []; number_necrotic_cells = []; tumor_size = []; times = []
 
         while self.time < self.finish_time:
             print(f'\033[1;31;47mTime: {self.time} hours / {self.finish_time} hours\033[0m')
@@ -128,42 +138,27 @@ class Simulator: #this class is used to run the whole simulation
                 process(world)
 
             if video:
-                self.show(world, self.time, slice=True)
+                self.show(world, self.time)
 
             number_tumor_cells.append(sum([voxel.number_of_tumor_cells() for voxel in world.voxel_list]))
             number_necrotic_cells.append(sum([voxel.number_of_necrotic_cells() for voxel in world.voxel_list]))
             tumor_size_ = world.measure_tumor_volume()
             tumor_size.append(tumor_size_ * 1000)
+            times.append(self.time)
 
-            print(f'Vessel volume in center voxel: {world.find_voxel([0, 0, 0]).vessel_volume}')
-
-            # plot number of cells evolution
-            plt.plot(np.linspace(0, self.time, len(number_tumor_cells)), number_tumor_cells, 'purple')
-            plt.title('Number of cells evolution')
-            plt.xlabel('Time')
-            plt.ylabel('Number of cells')
-            plt.grid(True)
-            plt.savefig('Plots/Number_cells_evolution.png')
-            plt.show()
-
-            # plot tumor size evolution
-            fig = plt.figure()
-            plt.plot(np.linspace(0, self.time, len(tumor_size)), tumor_size, 'red')
-            plt.title('Tumor volume evolution')
-            plt.xlabel('Time')
-            plt.ylabel('Tumor volume [mm^3]')
-            plt.grid(True)
-            plt.savefig('Plots/Tumor_size_evolution.png')
-            plt.show()
-
-            np.save('number_tumor_cells.npy', number_tumor_cells)
+            np.save('DataOutput/GrowthBenchMarkMu27sigma2/visco1000/number_tumor_cells.npy', number_tumor_cells)
             np.save('number_necrotic_cells.npy', number_necrotic_cells)
-            np.save('tumor_size.npy', tumor_size)
+            np.save('DataOutput/GrowthBenchMarkMu27sigma2/visco1000/tumor_size.npy', tumor_size)
+            np.save('DataOutput/GrowthBenchMarkMu27sigma2/visco1000/times.npy', times)
+
+            if config.show_cell_and_tumor_volume:
+                self.show_cell_and_tumor_volume(number_tumor_cells, number_necrotic_cells, tumor_size, times)
 
             self.time += self.dt
 
         print('Simulation finished')
-        self.show(world, self.time, slice=True)
+        if config.show_final:
+            self.show(world, self.time)
 
         return
 
@@ -179,23 +174,21 @@ class Process: #abstract class, represents all the processes that can happen in 
 class CellDivision(Process): #cell division process, cells divide in a voxel if they have enough vitality
     def __init__(self, name, dt, cycling_threshold, pressure_threshold = np.inf):
         super().__init__(name, dt)
+        self.dt = dt
         self.cycling_threshold = cycling_threshold
         self.pressure_threshold = pressure_threshold
 
     def __call__(self, voxel):
-        #print('CellDivision')
-        if voxel.pressure() < self.pressure_threshold:
+        if len(voxel.list_of_cells) > 0:
             for cell in voxel.list_of_cells:
-                if cell.vitality() > self.cycling_threshold:
-                    # Calculate the expected number of cell divisions in the time step
-                    expected_divisions = self.dt / cell.doubling_time
-                    # Use a Poisson distribution to model the number of cell divisions
-                    num_divisions = np.random.poisson(expected_divisions)
-                    for i in range(num_divisions):
-                        new_cell = cell.duplicate()
-                        voxel.add_cell(new_cell)
-        else:
-            if config.verbose: print('pressure = ', voxel.pressure(), ' > ', self.pressure_threshold, ' so no cell division')
+                if cell.time_spent_cycling >= cell.doubling_time:
+                    time_diff = cell.time_spent_cycling - cell.doubling_time
+                    leftover_time = self.dt - time_diff
+                    new_cell = cell.duplicate() #create a new cell (start cycling at 0)
+                    new_cell.time_spent_cycling = leftover_time #reset the time spent cycling
+                    cell.doubling_time = cell.random_doubling_time() #sample a new doubling time for the old cell
+                    cell.time_spent_cycling = leftover_time #reset the time spent cycling
+                    voxel.add_cell(new_cell) #add the new cell to the voxel
         return
 
 class CellDeath(Process): #cell necrosis process, cells die in a voxel if they have too low vitality
@@ -241,6 +234,8 @@ class CellAging(Process): #cell aging process, cells age in a voxel
                 cell.time_before_death -= self.dt
                 if cell.time_before_death < 0:
                     voxel.remove_cell(cell)
+            if cell.type == 'TumorCell' and cell.vitality() > config.vitality_cycling_threshold:
+                cell.time_spent_cycling += self.dt
 
         for n_cell in voxel.list_of_necrotic_cells:
             if n_cell.time_before_death is not None:
@@ -267,12 +262,10 @@ class CellMigration(Process): #cell migration process, cells migrate in the worl
                 n_events = exchange_matrix[voxel_num, neighbor.voxel_number] #number of expected events in the time step
                 n_moving_cells = np.random.poisson(n_events)
                 n_moving_cells = min(n_moving_cells, int(round(len(voxel.list_of_cells)*0.5)))
-                if n_moving_cells > 0:
-                    list_of_moving_cells = np.random.choice(voxel.list_of_cells, n_moving_cells, replace=False)
-                    for cell in list_of_moving_cells:
-                        if not cell.necrotic:
-                            if neighbor.add_cell(cell):
-                                voxel.remove_cell(cell)
+                list_of_moving_cells = np.random.choice(voxel.list_of_cells, n_moving_cells, replace=False)
+                for cell in list_of_moving_cells:
+                    if neighbor.add_cell(cell):
+                        voxel.remove_cell(cell)
 
 class UpdateCellOxygen(Process):
     def __init__(self, name, dt, voxel_half_length, effective_vessel_radius):
@@ -308,7 +301,7 @@ class UpdateCellOxygen(Process):
         self.alpha_map = ScalarField2D(points, values_alpha, bounds_error=False, fill_value= None)
         self.beta_map = ScalarField2D(points, values_beta, bounds_error=False, fill_value= None)
 
-        if config.verbose:
+        if config.show_alpha_beta_maps:
             # Plot the alpha and beta maps
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')
