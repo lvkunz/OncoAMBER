@@ -8,8 +8,6 @@ import matplotlib.tri as mtri
 import scipy.sparse as sparse
 from amber.config_instance import config
 
-
-
 class World:
     def __init__(self, half_length, number_of_voxels : int = 20):
         self.half_length = half_length
