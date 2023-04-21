@@ -51,7 +51,7 @@ class World:
         self.vasculature.update_vessels_radius_from_last(config.radius_root_vessels, radius_pressure_sensitive, pressure)
         return
 
-    def generate_healthy_vasculature(self, initial_vessel_number):
+    def generate_healthy_vasculature(self, initial_vessel_number, splitting_rate =0.3, mult_macro_steps=1, micro_steps=8, weight_direction=3.0, weight_vegf=1.0, weight_pressure=0.0, extra_step = True):
         initial_vessel_number = int(initial_vessel_number * 4 * self.half_length ** 2)
         sampler = qmc.Halton(2, seed=config.seed)
         points_z = (sampler.random(initial_vessel_number)[:,0] - 0.5) * self.half_length*2
@@ -75,7 +75,7 @@ class World:
             list_of_vessels.append(Vessel([points[j], points2[j]], 0.5))
         self.initiate_vasculature(list_of_vessels)
         def pressure(point):
-            return (self.half_length - abs(point[0]))
+            return (self.half_length - abs(point[0]))*0.3
         def vegf_gradient(point):
             if point[0] > 0:
                 return np.array([-point[0],0,0])*0.1
@@ -84,26 +84,27 @@ class World:
 
         self.vasculature.grow_and_split(
             dt=1,
-            splitting_rate=0.3,
+            splitting_rate=splitting_rate,
             vegf_gradient= vegf_gradient,
             pressure= pressure,
-            macro_steps=int(8.5*self.half_length),
-            micro_steps=8,
-            weight_direction=3.0,
-            weight_vegf=1.0,
-            weight_pressure=0.0
+            macro_steps=int(8.5*self.half_length*mult_macro_steps),
+            micro_steps=micro_steps,
+            weight_direction=weight_direction,
+            weight_vegf=weight_vegf,
+            weight_pressure=weight_pressure
         )
-        self.vasculature.grow_and_split(
-            dt=1,
-            splitting_rate=0.3,
-            vegf_gradient=vegf_gradient,
-            pressure=pressure,
-            macro_steps=1,
-            micro_steps=8,
-            weight_direction=5.0,
-            weight_vegf=0.1,
-            weight_pressure=0.0
-        )
+        if extra_step:
+            self.vasculature.grow_and_split(
+                dt=1,
+                splitting_rate=splitting_rate,
+                vegf_gradient=vegf_gradient,
+                pressure=pressure,
+                macro_steps=1,
+                micro_steps=micro_steps,
+                weight_direction=weight_direction,
+                weight_vegf=0.1,
+                weight_pressure=0.0
+            )
 
 
         self.vasculature.update_vessels_radius_from_last(config.radius_root_vessels, False, pressure)

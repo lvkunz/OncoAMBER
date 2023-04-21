@@ -57,7 +57,7 @@ o2_to_vitality_factor: 1.0              #factor for the conversion of oxygen to 
 viscosity: 1000                         #factor for diffusion of cells from one voxel to the next (not really a viscosity, it represents the cells adehsion too)
 vessel_step_size: 0.015                 #step size for vasculature growth
 growth_step_stop_threshold: 0.003       #threshold for step size for vasculature growth, under which growth stops
-
+new_vessels_per_hour: 5.0               #number of new vessels per hour
 
 # Graphics parameters
 show_time_steps: True                  #if True, show the time during the simulation

@@ -38,6 +38,9 @@ class Simulator: #this class is used to run the whole simulation
         plt.show()
     def show(self, world: World, t = 0): #this function is used to show the world at a certain time
 
+        if not os.path.exists('Plots/CurrentPlotting/'):
+            os.makedirs('Plots/CurrentPlotting/')
+
         DPI = 100
         size = world.half_length
 
@@ -147,6 +150,9 @@ class Simulator: #this class is used to run the whole simulation
             tumor_size.append(tumor_size_ * 1000)
             times.append(self.time)
 
+            if not os.path.exists('DataOutput/'):
+                os.makedirs('DataOutput/')
+
             np.save('DataOutput/number_tumor_cells.npy', number_tumor_cells)
             np.save('DataOutput/number_necrotic_cells.npy', number_necrotic_cells)
             np.save('DataOutput/tumor_size.npy', tumor_size)
@@ -158,6 +164,7 @@ class Simulator: #this class is used to run the whole simulation
             self.time += self.dt
 
         print('Simulation finished')
+
         if config.show_final:
             self.show(world, self.time)
 
@@ -274,8 +281,13 @@ class UpdateCellOxygen(Process):
         self.voxel_side = int(voxel_half_length*200) #um/100
         self.effective_vessel_radius = effective_vessel_radius
 
-        alpha_file_name = 'Micro-Oxygenation/save_alpha_dataframe' + str(self.voxel_side) + '.csv'
-        beta_file_name = 'Micro-Oxygenation/save_beta_dataframe' + str(self.voxel_side) + '.csv'
+        amber_dir = os.path.abspath(os.path.dirname(__file__))
+
+        alpha_file_name = 'save_alpha_dataframe' + str(self.voxel_side) + '.csv'
+        beta_file_name = 'save_beta_dataframe' + str(self.voxel_side) + '.csv'
+        alpha_file_name = os.path.join(amber_dir, alpha_file_name)
+        beta_file_name = os.path.join(amber_dir, beta_file_name)
+
         if not os.path.isfile(alpha_file_name) or not os.path.isfile(beta_file_name):
             print('voxel side', self.voxel_side)
             raise ValueError('alpha/beta file not found! It might be in the wrong directory or information for chosen voxel size is not stored. Check "BetaDistributionCalibration.py" to generate the file for the chosen voxel size.')

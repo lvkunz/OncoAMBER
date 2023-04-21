@@ -16,9 +16,14 @@ We'll integrate the radiation effects on individual cells using the simple inter
 
 ## Structure
 
-modules are organized as follows:
-amber.World: contains the world class, which is the main class of the simulation
-amber.Cell: contains the cell class, which is the main class of the simulation
-amber.Vessel: contains the vessel class, which is the main class of the simulation
+import amber 
+
+amber.World(--)
+amber.Cell(--)
+amber.Voxel(--)
+amber.Vessel(--)
+amber.VesselNetwork(--)
+amber.Simulator(--)
 etc. 
 
+example on github
