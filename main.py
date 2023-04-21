@@ -1,11 +1,7 @@
 import sys
 import time
-from src.config import Config
-from src.config_instance import *
-
-import OncoAMBER as amber
-
-
+from amber.config import Config
+from amber.config_instance import *
 
 default_config_file = 'CONFIG'
 if len(sys.argv) > 1:
@@ -18,8 +14,8 @@ config = Config.from_dict(config_dict)
 
 set_config_instance(config)
 
-from src.Cell import Cell
-from src.Process import *
+from amber.Cell import Cell
+from amber.Process import *
 
 
 #set seed for reproducibility

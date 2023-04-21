@@ -1,7 +1,7 @@
 import random
-from src.BasicGeometries import *
+from amber.BasicGeometries import *
 import sys
-from src.config_instance import config
+from amber.config_instance import config
 
 sys.setrecursionlimit(1500)
 rng = np.random.default_rng(config.seed)

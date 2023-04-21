@@ -1,5 +1,5 @@
 import numpy as np
-from src.config_instance import config
+from amber.config_instance import config
 
 class Cell (object):
     def __init__(self, radius, cycle_hours = 10, type = 'NormalCell'):

@@ -1,7 +1,7 @@
-from src.Terminal import *
+from amber.Terminal import *
 import os
-from src import ReadAndWrite as rw
-from src.World import World
+from amber import ReadAndWrite as rw
+from amber.World import World
 import matplotlib.pyplot as plt
 from CONFIG.config_instance import config
 

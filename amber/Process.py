@@ -1,11 +1,11 @@
-from src.World import *
-from src.Voxel import *
-from src.ScalarField import *
-import src.Terminal as term
-import src.ReadAndWrite as rw
+from amber.World import *
+from amber.Voxel import *
+from amber.ScalarField import *
+import amber.Terminal as term
+import amber.ReadAndWrite as rw
 import pandas as pd
 from matplotlib.colors import TwoSlopeNorm
-from src.config_instance import config
+from amber.config_instance import config
 import matplotlib.pyplot as plt
 import os
 

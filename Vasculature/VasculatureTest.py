@@ -1,10 +1,10 @@
 
-from src.Vessel import *
+from amber.Vessel import *
 
 import random
-from src.BasicGeometries import *
+from amber.BasicGeometries import *
 from graphviz import Digraph
-from src.ScalarField import *
+from amber.ScalarField import *
 
 
 

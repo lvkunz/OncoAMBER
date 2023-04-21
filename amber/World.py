@@ -1,12 +1,12 @@
-from src.Voxel import *
-from src.Vessel import *
-from src.ScalarField import *
-from src.BasicGeometries import *
+from amber.Voxel import *
+from amber.Vessel import *
+from amber.ScalarField import *
+from amber.BasicGeometries import *
 #np.set_printoptions(threshold=sys.maxsize)
 from scipy.stats import qmc
 import matplotlib.tri as mtri
 import scipy.sparse as sparse
-from src.config_instance import config
+from amber.config_instance import config
 
 
 

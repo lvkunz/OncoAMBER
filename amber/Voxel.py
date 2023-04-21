@@ -1,5 +1,5 @@
 import numpy as np
-from src.config_instance import config
+from amber.config_instance import config
 
 def sigmoid(L, x, x0, k):
     return L/(1 + np.exp(-k*(x-x0)))

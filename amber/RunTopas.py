@@ -1,9 +1,9 @@
-from src.Terminal import *
+from amber.Terminal import *
 import os
-import src.ReadAndWrite as rw
-from src.World import World
+import amber.ReadAndWrite as rw
+from amber.World import World
 import matplotlib.pyplot as plt
-from src.config_instance import config
+from amber.config_instance import config
 
 def RunTopasSimulation():
 
