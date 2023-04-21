@@ -1,10 +1,14 @@
 
-# !/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
+import io
 import os
 import sys
+from shutil import rmtree
 
-from setuptools import setup, Command
+from distutils.core import setup
+from setuptools import find_packages, Command
 
 # Package meta-data
 NAME = 'OncoAMBER'
@@ -12,8 +16,8 @@ DESCRIPTION = 'Agent-based model of tumor growth and response to radiation thera
 URL = 'https://github.com/lvkunz/AMBER'
 EMAIL = 'lvkunz@mgh.harvard.edu'
 AUTHOR = 'Louis Kunz'
-REQUIRES_PYTHON = ???
-VERSION = '1.0.0'
+REQUIRES_PYTHON = '>=3.8.2'
+VERSION = '1.0.2'
 
 # Required packages for this module to be executed
 REQUIRED = ['numpy', 'pandas', 'scipy']
@@ -66,7 +70,7 @@ class UploadCommand(Command):
         os.system('{0} setup.py sdist bdist_wheel --universal'.format(sys.executable))
 
         self.status('Uploading the package to PyPI via Twine...')
-        os.system('twine upload dist/*')
+        os.system('twine upload AMBER/*')
 
         self.status('Pushing git tags...')
         os.system('git tag v{0}'.format(about['__version__']))
@@ -83,9 +87,9 @@ setup(
     author_email=EMAIL,
     python_requires=REQUIRES_PYTHON,
     url=URL,
-    packages=['pyMicroDose'],
-    package_dir={'pyMicroDose': 'src'},
-    package_data={'pyMicroDose': ['nist/*.csv']},
+    packages=['OncoAMBER'],
+    package_dir={'AMBER': 'src'},
+    package_data={'AMBER': ['Micro-Oxygenation/*.csv']},
     install_requires=REQUIRED,
     extras_require=EXTRAS,
     # include_package_data=True,

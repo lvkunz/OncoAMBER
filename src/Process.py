@@ -1,6 +1,5 @@
 from src.World import *
 from src.Voxel import *
-from src.Cell import *
 from src.ScalarField import *
 import src.Terminal as term
 import src.ReadAndWrite as rw

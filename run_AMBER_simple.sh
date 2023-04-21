@@ -30,10 +30,8 @@ while ($COUNT < $ITER)
        rm -rf $DIR
     endif
 
-    mkdir -p $DIRbjobs
-    cp $INFILE $DIR
-    cp *.py $DIR
-    cp supportFiles/* $DIR
+    mkdir -p $DIR
+    cp -r $CURRENTPATH/amber/* $DIR
 
     set SEED = `bash -c 'echo $RANDOM'`
     sed -i "s/seed:.*/seed: $SEED/g" $DIR/$INFILE

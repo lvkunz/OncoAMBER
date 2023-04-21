@@ -3,7 +3,6 @@ from src.Vessel import *
 from src.ScalarField import *
 from src.BasicGeometries import *
 #np.set_printoptions(threshold=sys.maxsize)
-from scipy import ndimage
 from scipy.stats import qmc
 import matplotlib.tri as mtri
 import scipy.sparse as sparse

@@ -1,10 +1,8 @@
 import sys
 import time
-import tkinter as tk
-from tkinter import messagebox
-from src import ReadAndWrite as rw
 from src.config import Config
 from src.config_instance import *
+
 
 default_config_file = 'CONFIG'
 if len(sys.argv) > 1:
@@ -17,13 +15,7 @@ config = Config.from_dict(config_dict)
 
 set_config_instance(config)
 
-from src.BasicGeometries import *
-from src.ScalarField import *
-from src.Terminal import *
 from src.Cell import Cell
-from src.Vessel import *
-from src.Voxel import Voxel
-from src.World import World
 from src.Process import *
 
 
@@ -124,7 +116,3 @@ simulation_end = time.time()
 
 print('simulation time: ', simulation_end - simulation_start, ' seconds')
 print('total time: ', time.time() - start_time, ' seconds')
-
-root = tk.Tk()
-root.withdraw() # hide the main window
-messagebox.showinfo("Simulation Finished", "The simulation has finished after " + str(simulation_end - simulation_start) + " seconds")
