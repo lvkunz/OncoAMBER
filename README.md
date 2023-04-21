@@ -16,15 +16,9 @@ We'll integrate the radiation effects on individual cells using the simple inter
 
 ## Structure
 
-main: set up a world made of a voxel list a vasculature. Add healthy stroma cells in each voxel and add a few clonogenic tumor cells in the center. Creates a healthy vasculature.
-Then run the class simulaton that take for argument a list of process and the predefine world.
-
-
-## Shell Script to run the simulation
-
-This script takes three input arguments: the name of the Python input file ($INFILE), the number of iterations to run ($ITER), and the name of the configuration file ($CONFIG_NAME). It automatically determines the starting count number based on the existing directories in the ./output/$CONFIG_NAME directory. It then creates a new directory for each iteration of the simulation and copies the input files ($INFILE and all Python files) and support files to the new directory. It also generates a new random seed for each iteration and writes it to the input file.
-For each iteration, the script generates a new job submission script ($SCRIPT) using the cat command and submits it to the LSF job scheduler using the bsub command. The job name is set to "$INFILE-$CONFIG_NAME-$COUNT", where $INFILE is the name of the Python input file, $CONFIG_NAME is the name of the configuration file, and $COUNT is the iteration number. The script then increments the count and repeats the process until the specified number of iterations is reached.
-
-./run_AMBER.sh main.py 10 my_config
-
+modules are organized as follows:
+amber.World: contains the world class, which is the main class of the simulation
+amber.Cell: contains the cell class, which is the main class of the simulation
+amber.Vessel: contains the vessel class, which is the main class of the simulation
+etc. 
 
