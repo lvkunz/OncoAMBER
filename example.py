@@ -3,6 +3,9 @@ import time
 from amber.config import Config
 from amber.config_instance import *
 from amber.ReadAndWrite import *
+from amber.Cell import Cell
+from amber.Process import *
+
 
 default_config_file = 'CONFIG'
 if len(sys.argv) > 1:
@@ -14,11 +17,6 @@ config_dict = read_config_file(config_file)
 config = Config.from_dict(config_dict)
 
 set_config_instance(config)
-
-from amber.Cell import Cell
-from amber.Process import *
-
-import amber as am
 
 #set seed for reproducibility
 start_time = time.time()

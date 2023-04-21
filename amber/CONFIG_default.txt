@@ -7,8 +7,8 @@ seed: 0                                 #seed for random number generator. -1 fo
 
 #Initialisation
 vessel_number: 100                       #initial number of vessels for healthy tissue per cm^2
-initial_number_healthy_cells: 150         #initial number of healthy cells per voxel
-initial_number_tumor_cells: 500          #initial total number of tumor cells
+initial_number_healthy_cells: 100         #initial number of healthy cells per voxel
+initial_number_tumor_cells: 50          #initial total number of tumor cells
 tumor_initial_radius: 0.001 #cm
 doubling_time_healthy: 1 #hours
 doubling_time_tumor: 27   #hours
@@ -65,8 +65,9 @@ show_final: False                       #if True, show the final state of the si
 show_slices: True                       #if True, show a slice of the tumor during the simulation
 slice: x                                #what direction to slice the tumor (x or z
 show_o2_vitality_histograms: False       #if True, show a histogram of oxygen and vitality during the simulation
-show_tumor_and_vessels_3D: False        #if True, show the vasculature in 3D during the simulation with tumor cells
+show_tumor_and_vessels_3D: False
+visible_original_vessels: True          #if True, show the vasculature in 3D during the simulation with tumor cells
 show_alpha_beta_maps: False             #if True, show the distribution of the parameters beta and gamma
-show_cell_and_tumor_volume: True      #if True, show the volume of tumor cells and healthy cells during the simulation
+show_cell_and_tumor_volume: True       #if True, show the volume of tumor cells and healthy cells during the simulation
 verbose: False
 
