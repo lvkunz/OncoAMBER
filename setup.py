@@ -23,7 +23,7 @@ VERSION = '1.0.6'
 REQUIRED = ['numpy', 'pandas', 'scipy']
 
 # Optional packages
-EXTRAS = { 'plots' :['matplotlib'] }
+EXTRAS = { 'plots' :['matplotlib', 'seaborn'] }
 
 here = os.path.abspath(os.path.dirname(__file__))
 

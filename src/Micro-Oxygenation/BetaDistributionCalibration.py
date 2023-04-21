@@ -37,111 +37,110 @@ class Vessel:
 
         return distance
 
-side = 6 #um/100
-radius = 0.1
 
-def sigmoid(x, a=1, b=0.8):
-    return 1 / (1 + np.exp(-a*(x-b)))
+def run_calibration(side = 6, a = -7, b = 1, max_n = 100):
 
-def model(n, A, B, C, D):
-    return A * np.exp(B * n) + C * n + D
+    radius = 0.1
 
+    def sigmoid(x, a=1, b=0.8):
+        return 1 / (1 + np.exp(-a*(x-b)))
 
-a = -7 #um/100 give hypoxia threshold above 70 to 150um
-b = 1 #um/100
+    def model(n, A, B, C, D):
+        return A * np.exp(B * n) + C * n + D
 
-alpha_values = []
-beta_values = []
-all_n_values = []
-all_side_values = []
-all_pressure_values = []
+    alpha_values = []
+    beta_values = []
+    all_n_values = []
+    all_side_values = []
+    all_pressure_values = []
 
-n_values = list(range(1, 101, 1))
+    max = max_n + 1
+    n_values = list(range(1, max, 1))
 
-for p in range(9):
-    pressure = 0.1 * p
-    pressure = round(pressure, 3)
-    print('pressure', pressure)
-    for n_idx, n in enumerate(n_values):
-        print('n =', n)
-        print('side =', side)
-        sampler = qmc.Halton(2)
-        multiple_alpha_values = []
-        multiple_beta_values = []
-        for _ in range(10):
+    for p in range(9):
+        pressure = 0.1 * p
+        pressure = round(pressure, 3)
+        print('pressure', pressure)
+        for n_idx, n in enumerate(n_values):
+            print('n =', n)
+            print('side =', side)
+            sampler = qmc.Halton(2)
+            multiple_alpha_values = []
+            multiple_beta_values = []
+            for _ in range(10):
 
-            points_x = sampler.random(n)[:,0] * side #quasi random to have a distribution mimicking distance between vessels
-            points_y = sampler.random(n)[:,1] * side
-            # points_x = np.random.uniform(0, side, n) #pseudo random
-            # points_y = np.random.uniform(0, side, n)
-
-
-            vessels = []
-            for i in range(len(points_x)):
-                vessels.append(Vessel([points_x[i], points_y[i]], radius))
-
-            points = []
-            for i in range(5000):
-                point = [np.random.uniform(0, side), np.random.uniform(0, side), np.random.uniform(0, side)]
-                distances = []
-                for vessel in vessels:
-                    distances.append(vessel.closest_distance(point))
-                points.append(min(distances))
-
-            o2_values = []
-            for point in points:
-                b_ = b*(1 - pressure)
-                o2_values.append(sigmoid(point, a=a, b=b_))
+                points_x = sampler.random(n)[:,0] * side #quasi random to have a distribution mimicking distance between vessels
+                points_y = sampler.random(n)[:,1] * side
+                # points_x = np.random.uniform(0, side, n) #pseudo random
+                # points_y = np.random.uniform(0, side, n)
 
 
-            # Fit a beta distribution to the data
-            alpha, beta_param, _, _ = beta.fit(o2_values, floc=0, fscale=1.0)
-            multiple_alpha_values.append(alpha)
-            multiple_beta_values.append(beta_param)
+                vessels = []
+                for i in range(len(points_x)):
+                    vessels.append(Vessel([points_x[i], points_y[i]], radius))
 
-            # r = np.random.beta(alpha, beta_param, 5000)
-            # rbis = np.random.beta(modelled_alpha, modelled_beta, 5000)
+                points = []
+                for i in range(5000):
+                    point = [np.random.uniform(0, side), np.random.uniform(0, side), np.random.uniform(0, side)]
+                    distances = []
+                    for vessel in vessels:
+                        distances.append(vessel.closest_distance(point))
+                    points.append(min(distances))
 
-            # plt.figure()
-            # plt.hist(o2_values, bins=100, alpha=0.5, label='Data', color='blue', density=True)
-            # plt.hist(r, bins=100, alpha=0.5, label='Beta', color='red', density=True)
-            # # plt.hist(rbis, bins=100, alpha=0.5, label='Modelled Beta', color='green', density=True)
-            # # plt.plot(np.linspace(0, 1, 100), beta.pdf(np.linspace(0, 1, 100), alpha, beta_param))
-            # plt.title('n = ' + str(n) + ', side = ' + str(side) + ', pressure = ' + str(pressure) + '\n fitted alpha = ' + str(round(alpha,4)) + ', fitted beta = ' + str(round(beta_param,4)))#+ ', modelled alpha ' + str(round(modelled_alpha,4)) + 'modelled beta ' + str(round(modelled_beta,4)), fontsize=8)
-            # plt.xlabel('O2')
-            # plt.ylabel('Frequency')
-            # plt.legend()
-            # plt.show()
+                o2_values = []
+                for point in points:
+                    b_ = b*(1 - pressure)
+                    o2_values.append(sigmoid(point, a=a, b=b_))
 
-        alpha_mean = np.mean(multiple_alpha_values)
-        beta_param_mean = np.mean(multiple_beta_values)
 
-        alpha_values = np.append(alpha_values, alpha_mean)
-        beta_values = np.append(beta_values, beta_param_mean)
-        all_side_values = np.append(all_side_values, side)
-        all_n_values = np.append(all_n_values, n)
-        all_pressure_values = np.append(all_pressure_values, pressure)
+                # Fit a beta distribution to the data
+                alpha, beta_param, _, _ = beta.fit(o2_values, floc=0, fscale=1.0)
+                multiple_alpha_values.append(alpha)
+                multiple_beta_values.append(beta_param)
 
-pressure_column = np.unique(all_pressure_values)
-n_column = np.unique(all_n_values)
+                # r = np.random.beta(alpha, beta_param, 5000)
+                # rbis = np.random.beta(modelled_alpha, modelled_beta, 5000)
 
-alpha_values = alpha_values.reshape(len(pressure_column), len(n_column))
-beta_values = beta_values.reshape(len(pressure_column), len(n_column))
+                # plt.figure()
+                # plt.hist(o2_values, bins=100, alpha=0.5, label='Data', color='blue', density=True)
+                # plt.hist(r, bins=100, alpha=0.5, label='Beta', color='red', density=True)
+                # # plt.hist(rbis, bins=100, alpha=0.5, label='Modelled Beta', color='green', density=True)
+                # # plt.plot(np.linspace(0, 1, 100), beta.pdf(np.linspace(0, 1, 100), alpha, beta_param))
+                # plt.title('n = ' + str(n) + ', side = ' + str(side) + ', pressure = ' + str(pressure) + '\n fitted alpha = ' + str(round(alpha,4)) + ', fitted beta = ' + str(round(beta_param,4)))#+ ', modelled alpha ' + str(round(modelled_alpha,4)) + 'modelled beta ' + str(round(modelled_beta,4)), fontsize=8)
+                # plt.xlabel('O2')
+                # plt.ylabel('Frequency')
+                # plt.legend()
+                # plt.show()
 
-alpha_dataframe = pd.DataFrame(alpha_values, index=pressure_column, columns=n_column)
-print(alpha_dataframe)
+            alpha_mean = np.mean(multiple_alpha_values)
+            beta_param_mean = np.mean(multiple_beta_values)
 
-beta_dataframe = pd.DataFrame(beta_values, index=pressure_column, columns=n_column)
-print(beta_dataframe)
+            alpha_values = np.append(alpha_values, alpha_mean)
+            beta_values = np.append(beta_values, beta_param_mean)
+            all_side_values = np.append(all_side_values, side)
+            all_n_values = np.append(all_n_values, n)
+            all_pressure_values = np.append(all_pressure_values, pressure)
 
-alpha_dataframe.to_csv('alpha_dataframe' + str(side) + '.csv')
-beta_dataframe.to_csv('beta_dataframe' + str(side) + '.csv')
+    pressure_column = np.unique(all_pressure_values)
+    n_column = np.unique(all_n_values)
 
-sns.heatmap(alpha_dataframe, cmap='viridis')
-plt.show()
+    alpha_values = alpha_values.reshape(len(pressure_column), len(n_column))
+    beta_values = beta_values.reshape(len(pressure_column), len(n_column))
 
-sns.heatmap(beta_dataframe, cmap='viridis')
-plt.show()
+    alpha_dataframe = pd.DataFrame(alpha_values, index=pressure_column, columns=n_column)
+    print(alpha_dataframe)
+
+    beta_dataframe = pd.DataFrame(beta_values, index=pressure_column, columns=n_column)
+    print(beta_dataframe)
+
+    alpha_dataframe.to_csv('alpha_dataframe' + str(side) + '.csv')
+    beta_dataframe.to_csv('beta_dataframe' + str(side) + '.csv')
+
+    sns.heatmap(alpha_dataframe, cmap='viridis')
+    plt.show()
+
+    sns.heatmap(beta_dataframe, cmap='viridis')
+    plt.show()
 
 
 
