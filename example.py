@@ -2,6 +2,7 @@ import sys
 import time
 from amber.config import Config
 from amber.config_instance import *
+from amber.ReadAndWrite import *
 
 default_config_file = 'CONFIG'
 if len(sys.argv) > 1:
@@ -9,7 +10,7 @@ if len(sys.argv) > 1:
 else:
     config_file = default_config_file
 
-config_dict = rw.read_config_file(config_file)
+config_dict = read_config_file(config_file)
 config = Config.from_dict(config_dict)
 
 set_config_instance(config)
