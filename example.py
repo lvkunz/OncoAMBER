@@ -17,6 +17,7 @@ set_config_instance(config)
 from amber.Cell import Cell
 from amber.Process import *
 
+import amber as am
 
 #set seed for reproducibility
 start_time = time.time()
