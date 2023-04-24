@@ -5,6 +5,8 @@ conda activate myenv
 module purge
 module load python/3.8.2
 
+conda list
+
 set INFILE = $1
 set ITER = $2
 set CONFIG_NAME = $3
