@@ -1,8 +1,8 @@
 # General parameters
-half_length_world: 1.2 #cm
-voxel_per_side: 40
+half_length_world: 3.0 #cm
+voxel_per_side: 100
 dt: 24 #hours
-endtime: 48 #hours
+endtime: 960 #hours
 seed: -1                                 #seed for random number generator. -1 for random seed
 
 #Initialisation

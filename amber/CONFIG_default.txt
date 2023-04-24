@@ -2,7 +2,7 @@
 half_length_world: 1.2 #cm
 voxel_per_side: 40
 dt: 24 #hours
-endtime: 480 #hours
+endtime: 240 #hours
 seed: 0                                 #seed for random number generator. -1 for random seed
 
 #Initialisation
