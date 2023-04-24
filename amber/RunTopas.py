@@ -3,7 +3,6 @@ import os
 import amber.ReadAndWrite as rw
 from amber.World import World
 import matplotlib.pyplot as plt
-from amber.config_instance import config
 
 def RunTopasSimulation():
 

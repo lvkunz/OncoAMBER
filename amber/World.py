@@ -3,16 +3,16 @@ from amber.Vessel import *
 from amber.ScalarField import *
 from amber.BasicGeometries import *
 #np.set_printoptions(threshold=sys.maxsize)
-# from scipy.stats import qmc
+from scipy.stats import qmc
 import matplotlib.tri as mtri
 import scipy.sparse as sparse
-from amber.config_instance import config
 
 class World:
-    def __init__(self, half_length, number_of_voxels : int = 20):
+    def __init__(self, config , half_length, number_of_voxels : int = 20):
         self.half_length = half_length
         self.voxel_list = []
         self.total_number_of_voxels = number_of_voxels ** 3
+        self.config = config
         voxel_length = 2 * half_length / number_of_voxels
 
         for i in range(number_of_voxels):
@@ -25,17 +25,17 @@ class World:
                     ])
                     self.voxel_list.append(Voxel(position, half_length / number_of_voxels, voxel_number=i * number_of_voxels ** 2 + j * number_of_voxels + k))
         self.number_of_voxels = number_of_voxels
-        self.vasculature = VasculatureNetwork()
+        self.vasculature = VasculatureNetwork(self.config)
 
     def initiate_vasculature(self, list_of_mother_vessels):
-        self.vasculature = VasculatureNetwork(list_of_mother_vessels)
+        self.vasculature = VasculatureNetwork(self.config, list_of_mother_vessels)
         return
 
     def vasculature_growth(self, dt, splitting_rate, macro_steps=1, micro_steps=10, weight_direction=0.5, weight_vegf=0.5, weight_pressure=0.5, radius_pressure_sensitive = False):
         print('Vasculature growth')
         pressure_map = self.pressure_map(step_voxel=5)
         def pressure(point): return pressure_map.evaluate(point)
-        vegf = self.vegf_map(step_voxel= config.vegf_map_step_voxel)
+        vegf = self.vegf_map(step_voxel= self.config.vegf_map_step_voxel)
 
         def vegf_gradient(point): return vegf.gradient(point)
 
@@ -48,7 +48,7 @@ class World:
                                         weight_pressure = weight_pressure,
                                         pressure = pressure,
                                         vegf_gradient = vegf_gradient)
-        self.vasculature.update_vessels_radius_from_last(config.radius_root_vessels, radius_pressure_sensitive, pressure)
+        self.vasculature.update_vessels_radius_from_last(self.config.radius_root_vessels, radius_pressure_sensitive, pressure)
         return
 
     def generate_healthy_vasculature(self, initial_vessel_number, splitting_rate =0.3, mult_macro_steps=1, micro_steps=8, weight_direction=3.0, weight_vegf=1.0, weight_pressure=0.0, extra_step = True):
@@ -74,7 +74,7 @@ class World:
 
         list_of_vessels = []
         for j in range(len(points)):
-            list_of_vessels.append(Vessel([points[j], points2[j]], 0.5))
+            list_of_vessels.append(Vessel([points[j], points2[j]], 0.5, step_size=self.config.vessel_step_size))
         self.initiate_vasculature(list_of_vessels)
         def pressure(point):
             return (self.half_length - abs(point[0]))*0.3
@@ -109,10 +109,10 @@ class World:
             )
 
 
-        self.vasculature.update_vessels_radius_from_last(config.radius_root_vessels, False, pressure)
+        self.vasculature.update_vessels_radius_from_last(self.config.radius_root_vessels, False, pressure)
         for vessel in self.vasculature.list_of_vessels:
             vessel.in_growth = False
-            vessel.visible = config.visible_original_vessels
+            vessel.visible = self.config.visible_original_vessels
         return
 
     def random_points_for_voxels_concentration(self, num_points, molecule : str):
@@ -237,7 +237,7 @@ class World:
                 pressure_diff = voxel_pressure - pressures[j]
                 if pressure_diff > pressure_threshold:
                     t_res = (V / pressure_diff) * viscosity
-                    if config.verbose: print('t_res = ', t_res)
+                    if self.config.verbose: print('t_res = ', t_res)
                     n_events = dt / t_res
                     migration_matrix[i, j] = n_events
 
@@ -281,7 +281,7 @@ class World:
     def update_oxygen(self, o2_per_volume=1, diffusion_number=5):
         print('-- Computing oxygen map')
         for voxel in self.voxel_list:
-            voxel.oxygen = int((voxel.vessel_volume * o2_per_volume) / (np.pi * config.effective_vessel_radius**2 * voxel.half_length * 2))
+            voxel.oxygen = int((voxel.vessel_volume * o2_per_volume) / (np.pi * self.config.effective_vessel_radius**2 * voxel.half_length * 2))
         for i in range(diffusion_number):
             new_oxygen_map = np.zeros(self.total_number_of_voxels)
             print('--- o2 map computing', i, 'out of', diffusion_number)
@@ -344,7 +344,7 @@ class World:
                 index = middle_slice_x + j * self.number_of_voxels + i * self.number_of_voxels ** 2
                 voxel_list_x.append(self.voxel_list[index])
 
-        if config.slice == 'x':
+        if self.config.slice == 'x':
             voxel_list = voxel_list_x
         else:
             voxel_list = voxel_list_z
@@ -359,7 +359,7 @@ class World:
             values.append(value)
             positions.append(voxel.position)
 
-        if config.slice == 'x':
+        if self.config.slice == 'x':
             x = np.array([p[0] for p in positions])
             y = np.array([p[1] for p in positions])
             z = np.array(values)

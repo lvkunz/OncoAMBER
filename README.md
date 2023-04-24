@@ -18,6 +18,11 @@ We'll integrate the radiation effects on individual cells using the simple inter
 
 Download the github repository and run the following command in the main directory:
 
+github: https://github.com/lvkunz/OncoAMBER
+
+PyPi: https://pypi.org/project/OncoAMBER/
+
+
 sh install.sh 
 
 ## Usage

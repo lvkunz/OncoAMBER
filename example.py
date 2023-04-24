@@ -4,18 +4,13 @@ import random
 import sys
 import time
 
-
-
 if len(sys.argv) > 1:
     config_file = sys.argv[1]
 else:
-    config_file = 'amber/CONFIG_default' ## not reliable ##
+    raise ValueError('No config file specified')
 
 config_dict = amber.read_config_file(config_file)
-print('config_dict', config_dict['visible_original_vessels'])
 config = amber.Config.from_dict(config_dict)
-
-amber.set_config_instance(config)
 
 #set seed for reproducibility
 start_time = time.time()
@@ -29,7 +24,7 @@ print('seed', seed)
 np.random.seed(seed)
 random.seed(seed)
 
-world = amber.World(config.half_length_world, config.voxel_per_side)
+world = amber.World(config, config.half_length_world, config.voxel_per_side)
 
 #########################################################################################
 
@@ -37,7 +32,7 @@ world = amber.World(config.half_length_world, config.voxel_per_side)
 for i in range(world.total_number_of_voxels):
     if i %10000 == 0: print('Adding healthy cells to voxel number: ', i, ' out of ', world.total_number_of_voxels)
     for j in range(config.initial_number_healthy_cells):
-        cell = amber.Cell(config.radius_healthy_cells, cycle_hours=config.doubling_time_healthy, type='NormalCell')
+        cell = amber.Cell(config.radius_healthy_cells, cycle_hours=config.doubling_time_healthy, cycle_std=config.doubling_time_sd, type='NormalCell')
         cell.time_spent_cycling = 0
         world.voxel_list[i].add_cell(cell)
 
@@ -46,10 +41,17 @@ for i in range(config.initial_number_tumor_cells):
     if i % 10000 == 0: print('Adding tumor cells ', i, ' out of ', config.initial_number_tumor_cells)
     voxel = world.find_voxel(points[i])
     voxel.add_cell(
-        amber.Cell(config.radius_tumor_cells, cycle_hours=config.doubling_time_tumor, type='TumorCell'))
+        amber.Cell(config.radius_tumor_cells, cycle_hours=config.doubling_time_tumor, cycle_std=config.doubling_time_sd, type='TumorCell'))
 
 #generate vasculature and print related information
-world.generate_healthy_vasculature(config.vessel_number)
+world.generate_healthy_vasculature(config.vessel_number,
+            splitting_rate=0.1,
+            mult_macro_steps=1,
+            micro_steps=10,
+            weight_direction=0.5,
+            weight_vegf=0.4,
+            weight_pressure=0.2
+            )
 world.update_volume_occupied_by_vessels()
 print('Relative volume occupied by vessels, ratio: ', 100*(world.measure_vasculature_volume()/(world.half_length*2)**3), '%')
 print('Length of vasculature: ', 100*(world.measure_vasculature_length()/(world.half_length*2)**3), 'mm/mm^3')

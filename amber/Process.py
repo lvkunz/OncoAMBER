@@ -5,17 +5,17 @@ import amber.Terminal as term
 import amber.ReadAndWrite as rw
 import pandas as pd
 from matplotlib.colors import TwoSlopeNorm
-from amber.config_instance import config
 import matplotlib.pyplot as plt
 import os
 
 class Simulator: #this class is used to run the whole simulation
 
-    def __init__(self, list_of_process : list, finish_time, dt):
+    def __init__(self, config, list_of_process : list, finish_time, dt):
         self.list_of_process = list_of_process
         self.finish_time = finish_time
         self.dt = dt
         self.time = 0
+        self.config = config
     def show_cell_and_tumor_volume(self, number_tumor_cells, number_necrotic_cells, tumor_size, times):
         # plot number of cells evolution
         plt.plot(times, number_tumor_cells, 'purple')
@@ -41,11 +41,13 @@ class Simulator: #this class is used to run the whole simulation
         if not os.path.exists('Plots/CurrentPlotting/'):
             os.makedirs('Plots/CurrentPlotting/')
 
+        print('Graphics : ', self.config.show_tumor_and_vessels_3D, self.config.show_slices)
+
         DPI = 100
         size = world.half_length
 
         #plot vasculature
-        if config.show_tumor_and_vessels_3D:
+        if self.config.show_tumor_and_vessels_3D:
             fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(25, 25), dpi=150, subplot_kw={'projection': '3d'})
             fig.suptitle('Visualization at time t = ' + str(t) + ' hours', fontsize=16)
             axes.view_init(0, 90)
@@ -60,7 +62,7 @@ class Simulator: #this class is used to run the whole simulation
             plt.show()
             size = size*2
 
-        if config.show_slices:
+        if self.config.show_slices:
             fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(25, 20), dpi=DPI)
             fig.suptitle('Visualization at time t = ' + str(t) + ' hours', fontsize=16)
 
@@ -98,7 +100,7 @@ class Simulator: #this class is used to run the whole simulation
             plt.savefig('Plots/CurrentPlotting/t' + str(t) + '_AllPlots.png')
             plt.show()
 
-        if config.show_o2_vitality_histograms:
+        if self.config.show_o2_vitality_histograms:
             voxels_positions = [[0,0,0],[0.06, 0.06, 0.0], [0.12,0.12,0.0]]
             fig, axes = plt.subplots(nrows=2, ncols=len(voxels_positions), figsize=(20, 10), dpi=100)
             fig.suptitle('Visualization at time t = ' + str(t) + ' hours', fontsize=16)
@@ -119,7 +121,7 @@ class Simulator: #this class is used to run the whole simulation
         process_local = [process for process in self.list_of_process if not process.is_global]
         process_global = [process for process in self.list_of_process if process.is_global]
 
-        irradiations_times = [config.first_irradiation_time + i * config.time_between_fractions for i in
+        irradiations_times = [self.config.first_irradiation_time + i * self.config.time_between_fractions for i in
                               range(config.number_fractions)]
         applied_fractions = 0
 
@@ -128,9 +130,9 @@ class Simulator: #this class is used to run the whole simulation
         while self.time < self.finish_time:
             print(f'\033[1;31;47mTime: {self.time} hours / {self.finish_time} hours\033[0m')
 
-            if applied_fractions < config.number_fractions and self.time >= irradiations_times[applied_fractions]:
-                irrad = Irradiation('irrad', self.dt, config.topas_file, config.first_irradiation_time,
-                                    config.irradiation_intensity, world)
+            if applied_fractions < self.config.number_fractions and self.time >= irradiations_times[applied_fractions]:
+                irrad = Irradiation('irrad', self.dt, self.config.topas_file, self.config.first_irradiation_time,
+                                    self.config.irradiation_intensity, world)
                 irrad(world)
                 applied_fractions += 1
 
@@ -158,30 +160,31 @@ class Simulator: #this class is used to run the whole simulation
             np.save('DataOutput/tumor_size.npy', tumor_size)
             np.save('DataOutput/times.npy', times)
 
-            if config.show_cell_and_tumor_volume:
+            if self.config.show_cell_and_tumor_volume:
                 self.show_cell_and_tumor_volume(number_tumor_cells, number_necrotic_cells, tumor_size, times)
 
             self.time += self.dt
 
         print('Simulation finished')
 
-        if config.show_final:
+        if self.config.show_final:
             self.show(world, self.time)
 
         return
 
 class Process: #abstract class, represents all the processes that can happen in the simulation
-    def __init__(self, name, dt):
+    def __init__(self, config, name, dt):
         self.name = name
         self.dt = dt
         self.is_global = False
+        self.config = config
     def __call__(self, voxel):
         pass
 
 
 class CellDivision(Process): #cell division process, cells divide in a voxel if they have enough vitality
     def __init__(self, name, dt, cycling_threshold, pressure_threshold = np.inf):
-        super().__init__(name, dt)
+        super().__init__(config, 'CellDivision', dt)
         self.dt = dt
         self.cycling_threshold = cycling_threshold
         self.pressure_threshold = pressure_threshold
@@ -201,7 +204,7 @@ class CellDivision(Process): #cell division process, cells divide in a voxel if 
 
 class CellDeath(Process): #cell necrosis process, cells die in a voxel if they have too low vitality
     def __init__(self, name, dt, necrosis_threshold, necrosis_probability, apoptosis_threshold, apoptosis_probability):
-        super().__init__('CellNecrosis', dt)
+        super().__init__(config, 'CellNecrosis', dt)
         self.necrosis_threshold = necrosis_threshold
         self.necrosis_probability = necrosis_probability
         self.apoptosis_threshold = apoptosis_threshold
@@ -235,14 +238,14 @@ class CellDeath(Process): #cell necrosis process, cells die in a voxel if they h
 
 class CellAging(Process): #cell aging process, cells age in a voxel
     def __init__(self, name, dt):
-        super().__init__('CellAging', dt)
+        super().__init__(config,'CellAging', dt)
     def __call__(self, voxel):
         for cell in voxel.list_of_cells:
             if cell.time_before_death is not None:
                 cell.time_before_death -= self.dt
                 if cell.time_before_death < 0:
                     voxel.remove_cell(cell)
-            if cell.type == 'TumorCell' and cell.vitality() > config.vitality_cycling_threshold:
+            if cell.type == 'TumorCell' and cell.vitality() > self.config.vitality_cycling_threshold:
                 cell.time_spent_cycling += self.dt
 
         for n_cell in voxel.list_of_necrotic_cells:
@@ -255,7 +258,7 @@ class CellAging(Process): #cell aging process, cells age in a voxel
 
 class CellMigration(Process): #cell migration process, cells migrate in the world
     def __init__(self, name, dt, pressure_threshold):
-        super().__init__('CellMigration', dt)
+        super().__init__(config, 'CellMigration', dt)
         self.is_global = True #run on the whole world, after the other processes
         self.pressure_threshold = pressure_threshold
 
@@ -277,7 +280,7 @@ class CellMigration(Process): #cell migration process, cells migrate in the worl
 
 class UpdateCellOxygen(Process):
     def __init__(self, name, dt, voxel_half_length, effective_vessel_radius):
-        super().__init__('UpdateState', dt)
+        super().__init__(config, 'UpdateState', dt)
         self.voxel_side = int(voxel_half_length*200) #um/100
         self.effective_vessel_radius = effective_vessel_radius
 
@@ -314,7 +317,7 @@ class UpdateCellOxygen(Process):
         self.alpha_map = ScalarField2D(points, values_alpha, bounds_error=False, fill_value= None)
         self.beta_map = ScalarField2D(points, values_beta, bounds_error=False, fill_value= None)
 
-        if config.show_alpha_beta_maps:
+        if self.config.show_alpha_beta_maps:
             # Plot the alpha and beta maps
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')
@@ -354,7 +357,7 @@ class UpdateCellOxygen(Process):
             voxel.list_of_cells[i].oxygen = o2_values[i]
 class UpdateVoxelMolecules(Process): #update the molecules in the voxel (VEGF), other not implemented yet
     def __init__(self, name, dt, VEGF_production_per_cell, threshold_for_VEGF_production):
-        super().__init__('UpdateMolecules', dt)
+        super().__init__(config, 'UpdateMolecules', dt)
         self.VEGF_production_per_cell = VEGF_production_per_cell
         self.threshold_for_VEGF_production = threshold_for_VEGF_production
     def __call__(self, voxel: Voxel):
@@ -367,7 +370,7 @@ class UpdateVoxelMolecules(Process): #update the molecules in the voxel (VEGF), 
         return
 class UpdateVasculature(Process): #update the vasculature
     def __init__(self, name, dt, killing_radius_threshold, killing_length_threshold, o2_per_volume, diffusion_number, splitting_rate, macro_steps, micro_steps, weight_direction, weight_vegf, weight_pressure, radius_pressure_sensitive):
-        super().__init__('UpdateVasculature', dt)
+        super().__init__(config, 'UpdateVasculature', dt)
         self.is_global = True
         self.killing_radius_threshold = killing_radius_threshold
         self.killing_length_threshold = killing_length_threshold
@@ -419,7 +422,7 @@ class UpdateVasculature(Process): #update the vasculature
 
 class Irradiation(Process): #irradiation
     def __init__(self, name, dt, topas_file, irradiation_time, irradiation_intensity, world: World):
-        super().__init__('Irradiation', dt)
+        super().__init__(config, 'Irradiation', dt)
         self.irradiation_time = irradiation_time
         self.irradiation_intensity = irradiation_intensity
 

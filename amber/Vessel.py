@@ -1,13 +1,11 @@
 import random
 from amber.BasicGeometries import *
 import sys
-from amber.config_instance import config
 
 sys.setrecursionlimit(1500)
-rng = np.random.default_rng(config.seed)
 
 class Vessel:
-    def __init__(self, path, radius, parent_id=None, children_ids=None, in_growth=True):
+    def __init__(self, path, radius, step_size, parent_id=None, children_ids=None, in_growth=True):
         if children_ids is None:
             children_ids = []
         for point in path:
@@ -18,7 +16,7 @@ class Vessel:
         self.id = id(self)
         self.parent_id = parent_id
         self.children_ids = children_ids
-        self.step_size = config.vessel_step_size
+        self.step_size = step_size
         self.in_growth = in_growth
         self.healthy = False
         self.visible = True
@@ -39,11 +37,11 @@ class Vessel:
     def length(self):
         return np.sum(np.linalg.norm(np.diff(self.path, axis=0), axis=1))
 
-    def grow(self, vegf_gradient, pressure, steps=1, weight_direction=0.5, weight_vegf=0.5, weight_pressure=0.5):
+    def grow(self, limit_half_length, ref_vegf, ref_pressure, step_stop_threshold, vegf_gradient, pressure, steps=1, weight_direction=0.5, weight_vegf=0.5, weight_pressure=0.5):
         length = 0
         for i in range(steps):
-            step_size = self.step(vegf_gradient, pressure, weight_direction, weight_vegf, weight_pressure)
-            if step_size < config.growth_step_stop_threshold:
+            step_size = self.step(limit_half_length, ref_vegf, ref_pressure, vegf_gradient, pressure, weight_direction, weight_vegf, weight_pressure)
+            if step_size < step_stop_threshold:
                 self.in_growth = False
                 break
             length += step_size
@@ -51,15 +49,15 @@ class Vessel:
         # if step_size < config.growth_stop_threshold'] * self.step_size:
         #     self.in_growth = False
 
-    def step(self, vegf_gradient, pressure, weight_direction=0.5, weight_vegf=0.5, weight_pressure=0.5):
+    def step(self, half_length_world, ref_vegf, ref_pressure, vegf_gradient, pressure, weight_direction=0.5, weight_vegf=0.5, weight_pressure=0.5):
         if not isinstance(self.path, np.ndarray) or len(self.path.shape) != 2 or self.path.shape[1] != 3:
             raise ValueError("The 'self.path' array must be a 3D array with shape (n, 3)")
         last_point = np.array(self.path[-1])
         prev_point = np.array(self.path[-2]) if len(self.path) > 1 else last_point
 
-        if last_point[0] < -config.half_length_world or last_point[0] > config.half_length_world or \
-                last_point[1] < -config.half_length_world or last_point[1] > config.half_length_world or \
-                last_point[2] < -config.half_length_world or last_point[2] > config.half_length_world:
+        if last_point[0] < -half_length_world or last_point[0] > half_length_world or \
+                last_point[1] < -half_length_world or last_point[1] > half_length_world or \
+                last_point[2] < -half_length_world or last_point[2] > half_length_world:
             return 0
 
         direction = last_point - prev_point
@@ -86,16 +84,12 @@ class Vessel:
         # Normalize the weighted direction
         weighted_dir /= np.linalg.norm(weighted_dir)
 
-        if config.verbose:
-            print('vegf_grad_norm_scalar: ', vegf_grad_norm_scalar)
-            print('local_pressure: ', local_pressure)
-
         # Calculate the new point and add it
         step_size = self.step_size
-        if weight_vegf > 0 and vegf_grad_norm_scalar < config.reference_vegf_gradient:
-            step_size = step_size * (vegf_grad_norm_scalar / config.reference_vegf_gradient)
-        if weight_pressure > 0 and local_pressure > config.reference_pressure:
-            step_size = step_size * (config.reference_pressure / local_pressure)
+        if weight_vegf > 0 and vegf_grad_norm_scalar < ref_vegf:
+            step_size = step_size * (vegf_grad_norm_scalar / ref_vegf)
+        if weight_pressure > 0 and local_pressure > ref_pressure:
+            step_size = step_size * (ref_pressure / local_pressure)
 
         new_point = last_point + step_size * weighted_dir
         self.path = np.append(self.path, [new_point], axis=0)
@@ -111,7 +105,8 @@ class Vessel:
             else:
                 ax.plot(self.path[:, 0], self.path[:, 1], self.path[:, 2], color='mediumblue', alpha=0.1, linewidth= self.radius*300)
         return fig, ax
-    def choose_random_point(self):
+    def choose_random_point(self, seed):
+        rng = np.random.default_rng(seed)
         #choose random point on the path, not the first or last point
         if len(self.path) < 3:
             print(self.path)
@@ -126,10 +121,11 @@ class Vessel:
     def max_pressure(self, pressure):
         return np.max([pressure(point) for point in self.path])
 class VasculatureNetwork:
-    def __init__(self, list_of_vessels=None):
+    def __init__(self, config, list_of_vessels=None):
         if list_of_vessels is None:
             list_of_vessels = []
         self.list_of_vessels = list_of_vessels
+        self.config = config
 
     def branching(self, vessel_id, branching_point):
         if branching_point == [] or branching_point is None:
@@ -159,7 +155,7 @@ class VasculatureNetwork:
         #random_point = branching_point + np.array([random.uniform(-mother_vessel.step, mother_vessel.step), random.uniform(-mother_vessel.step, mother_vessel.step), random.uniform(-mother_vessel.step, mother_vessel.step)])
         # the radius has to be updated later
 
-        vessel_new = Vessel([branching_point], config.radius_root_vessels, parent_id= mother_vessel.id)  # the radius has to be updated later
+        vessel_new = Vessel([branching_point], self.config.radius_root_vessels, parent_id= mother_vessel.id)  # the radius has to be updated later
         mother_vessel.children_ids = [vessel_end.id, vessel_new.id]
         self.list_of_vessels.append(vessel_end)
         self.list_of_vessels.append(vessel_new)
@@ -214,7 +210,7 @@ class VasculatureNetwork:
 
         if pressure_sensitive:
             for vessel in self.list_of_vessels:
-                vessel.radius = vessel.radius / ((1 + (vessel.mean_pressure(pressure)))**config.radius_decrease_exponent)
+                vessel.radius = vessel.radius / ((1 + (vessel.mean_pressure(pressure)))**self.config.radius_decrease_exponent)
 
     def update_vessels_radius_from_root(self, root_radius, pressure_sensitive=False, pressure=None):
         print("Updating vessels radius from root")
@@ -243,7 +239,7 @@ class VasculatureNetwork:
         if pressure_sensitive:
             for vessel in self.list_of_vessels:
                 vessel.radius = vessel.radius / (
-                            (1 + (vessel.mean_pressure(pressure))) ** config.radius_decrease_exponent)
+                            (1 + (vessel.mean_pressure(pressure))) ** self.config.radius_decrease_exponent)
 
     def volume_occupied(self):
         points = []
@@ -276,11 +272,11 @@ class VasculatureNetwork:
                 if j % 1000 == 0: print('current number of vessels {}'.format(len(self.list_of_vessels)))
                 if vessel.in_growth:
                     total_path_length = vessel.step_size * micro_steps
-                    new_path_length = vessel.grow(vegf_gradient, pressure, micro_steps, weight_direction, weight_vegf, weight_pressure)
+                    new_path_length = vessel.grow(self.config.half_length_world, self.config.reference_vegf_gradient, self.config.reference_pressure, self.config.growth_step_stop_threshold, vegf_gradient, pressure, micro_steps, weight_direction, weight_vegf, weight_pressure)
                     if len(vessel.path) > 3:
                         splitting_rate_ = (new_path_length / total_path_length) * splitting_rate_
                         if random.uniform(0, 1) < splitting_rate_ * dt:
-                            branching_point = vessel.choose_random_point()
+                            branching_point = vessel.choose_random_point(self.config.seed)
                             self.branching(vessel.id, branching_point)
                 j += 1
     def print_vessel_tree_recursive(self, vessels, children_ids, indent):

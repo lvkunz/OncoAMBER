@@ -1,11 +1,10 @@
 import numpy as np
-from amber.config_instance import config
 
 def sigmoid(L, x, x0, k):
     return L/(1 + np.exp(-k*(x-x0)))
 
 class Voxel(object): #extra parameters are max_occupancy, viscosity
-        def __init__(self, position = np.array([0,0,0]), half_length = 0.1, list_of_cells_in=None, oxygen = 0, voxel_number = 0):
+        def __init__(self, position = np.array([0,0,0]), half_length = 0.1, viscosity = 100, list_of_cells_in=None, oxygen = 0, voxel_number = 0):
                 if list_of_cells_in is None:
                         list_of_cells_in = []
                 self.position = position
@@ -19,7 +18,7 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                 self.molecular_factors = {'EGF': 0, 'FGF': 0, 'HGF': 0, 'IGF': 0, 'TGF': 0, 'VEGF': 0, 'WNT': 0}
                 # if np.linalg.norm(self.position) < 5:
                 #         self.molecular_factors['VEGF'] = 1.0
-                self.viscosity = config.viscosity
+                self.viscosity = viscosity
                 self.vessel_volume = 0
 
         def number_of_tumor_cells(self):
@@ -55,8 +54,7 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                 points = np.random.uniform(-self.half_length, self.half_length, (n,3))
                 points = points + self.position
                 return points
-        def add_cell(self, cell):
-                max_occupancy = config.max_occupancy #hard spheres is 0.64, + consider a little bit of compression
+        def add_cell(self, cell, max_occupancy = 0.68):
                 if self.pressure() > max_occupancy:
                         #print('Voxel is full, pressure is', self.pressure(), ' number of cells is', self.number_of_alive_cells(), ' and number of necrotic cells is', self.number_of_necrotic_cells())
                         return False
@@ -95,13 +93,6 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                 for cell in self.list_of_cells:
                         vitality.append(cell.vitality())
                 ax.hist(vitality, bins=50, color='orange', alpha=0.5, range=(0, 1))
-                ax.vlines(config.vitality_cycling_threshold, 0, ax.get_ylim()[1], colors='darkgreen',
-                          linestyles='dashed')
-                ax.vlines(config.vitality_apoptosis_threshold, 0, ax.get_ylim()[1], colors='darkred',
-                          linestyles='dashed')
-                ax.vlines(config.vitality_necrosis_threshold, 0, ax.get_ylim()[1], colors='black',
-                          linestyles='dashed')
-                ax.vlines(config.o2_threshold_for_VEGF_production, 0, ax.get_ylim()[1], colors='purple', linestyles='dashed')
                 ax.set_xlim(0, 1)
                 ax.set_xlabel(
                         f'Vitality, Oxygen in voxel was = {self.oxygen} and number of cells = {self.number_of_alive_cells()}')
