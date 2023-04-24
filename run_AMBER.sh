@@ -52,7 +52,14 @@ while ($COUNT < $ITER)
 #BSUB -Q "140"
 cd $DIR
 
-time python $INFILE $CONFIG_NAME
+start_time=\$(date +%s.%N)
+
+conda run -n myenv python $INFILE $CONFIG_NAME
+
+end_time=\$(date +%s.%N)
+runtime=\$(echo "\$end_time - \$start_time" | bc)
+
+echo "Script took \${runtime} seconds to run."
 
 EOF
 
