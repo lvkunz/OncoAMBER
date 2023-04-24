@@ -3,45 +3,45 @@
 module purge
 module load anaconda/4.12.0
 
-set INFILE=$1
-set ITER=$2
-set CONFIG_NAME=$3
+INFILE=$1
+ITER=$2
+CONFIG_NAME=$3
 
-if ($ITER == "") then
-  set ITER = 1
-endif
+if [ -z "$ITER" ]; then
+  ITER=1
+fi
 
+COUNT=0
+while [ $COUNT -lt $ITER ]
+do
+    USER=$(whoami)
+    CURRENTPATH=$(pwd)
+    DATEDAY=$(date +%d)
+    DATEMONTH=$(date +%m)
+    DATEYEAR=$(date +%Y)
+    DATEHOUR=$(date +%H)
+    DATEMIN=$(date +%M)
+    DATE=${DATEYEAR}${DATEMONTH}${DATEDAY}
+    UNAME=$(uname)
 
-set COUNT = 0
-while ($COUNT < $ITER)
-    set USER = `whoami`
-    set CURRENTPATH = `pwd`
-    set DATEDAY  = `date | awk '{print $3}'`
-    set DATEMONTH = `date | awk '{print $2}'`
-    set DATEYEAR = `date | awk '{print $6}'`
-    set DATEHOUR  = `date | awk '{print $4}' | awk -F: '{print $1}'`
-    set DATEMIN   = `date | awk '{print $4}' | awk -F: '{print $2}'`
-    set DATE = $DATEYEAR$DATEMONTH$DATEDAY
-    set UNAME = `uname`
-
-    set DIR = $CURRENTPATH/output/$CONFIG_NAME/$INFILE-$COUNT
-    if ( -d $DIR ) then
-       echo Directory exists, removing and recreating $DIR
+    DIR=${CURRENTPATH}/output/${CONFIG_NAME}/${INFILE}-${COUNT}
+    if [ -d $DIR ]; then
+       echo "Directory exists, removing and recreating $DIR"
        rm -rf $DIR
-    endif
+    fi
 
     mkdir -p $DIR
     cp $INFILE $DIR
     cp ${CONFIG_NAME}.txt $DIR
 
-    set SEED = `bash -c 'echo $RANDOM'`
+    SEED=$(bash -c 'echo $RANDOM')
     sed -i "s/seed:.*/seed: $SEED/g" $DIR/$INFILE
 
-    set SCRIPT=$DIR/run_$INFILE-$CONFIG_NAME-$COUNT.csh
+    SCRIPT=$DIR/run_${INFILE}-${CONFIG_NAME}-${COUNT}.csh
 
-    cat - << EOF > $SCRIPT
+    cat << EOF > $SCRIPT
 #!/bin/bash
-#BSUB -J $INFILE-$CONFIG_NAME-$COUNT
+#BSUB -J ${INFILE}-${CONFIG_NAME}-${COUNT}
 #BSUB -q normal
 #BSUB -r
 #BSUB -C 0
@@ -52,7 +52,8 @@ cd $DIR
 
 start_time=\$(date +%s.%N)
 
-conda run -n myenv python $INFILE $CONFIG_NAME
+conda activate myenv
+python $INFILE $CONFIG_NAME
 
 end_time=\$(date +%s.%N)
 runtime=\$(echo "\$end_time - \$start_time" | bc)
@@ -65,6 +66,6 @@ EOF
 
    bsub  -e $DIR/log.err -o $DIR/log.out < $SCRIPT
 
-   @ COUNT = $COUNT + 1
+   COUNT=$(expr $COUNT + 1)
 
-end
+done
