@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.stats import qmc
+#from scipy.stats import qmc
 import matplotlib.pyplot as plt
 from scipy.stats import beta
 from scipy.optimize import curve_fit
@@ -64,15 +64,15 @@ def run_calibration(side = 6, a = -7, b = 1, max_n = 100):
         for n_idx, n in enumerate(n_values):
             print('n =', n)
             print('side =', side)
-            sampler = qmc.Halton(2)
+            # sampler = qmc.Halton(2)
             multiple_alpha_values = []
             multiple_beta_values = []
             for _ in range(10):
 
-                points_x = sampler.random(n)[:,0] * side #quasi random to have a distribution mimicking distance between vessels
-                points_y = sampler.random(n)[:,1] * side
-                # points_x = np.random.uniform(0, side, n) #pseudo random
-                # points_y = np.random.uniform(0, side, n)
+                # points_x = sampler.random(n)[:,0] * side #quasi random to have a distribution mimicking distance between vessels
+                # points_y = sampler.random(n)[:,1] * side
+                points_x = np.random.uniform(0, side, n) #pseudo random
+                points_y = np.random.uniform(0, side, n)
 
 
                 vessels = []
