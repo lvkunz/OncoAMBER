@@ -3,8 +3,6 @@
 module purge
 module load anaconda/4.12.0
 
-conda activate myenv
-
 set INFILE=$1
 set ITER=$2
 set CONFIG_NAME=$3
