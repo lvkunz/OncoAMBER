@@ -1,5 +1,4 @@
 import amber
-import amber
 import numpy as np
 import random
 import sys
@@ -17,8 +16,6 @@ print('config_dict', config_dict['visible_original_vessels'])
 config = amber.Config.from_dict(config_dict)
 
 amber.set_config_instance(config)
-
-import amber as am
 
 #set seed for reproducibility
 start_time = time.time()
