@@ -1,5 +1,7 @@
 #!/bin/bash
 
+conda activate myenv
+
 module purge
 module load python/3.8.2
 
@@ -30,10 +32,9 @@ while ($COUNT < $ITER)
        rm -rf $DIR
     endif
 
-    mkdir -p $DIRbjobs
+    mkdir -p $DIR
     cp $INFILE $DIR
-    cp *.py $DIR
-    cp supportFiles/* $DIR
+    cp ${CONFIG_NAME}.txt $DIR
 
     set SEED = `bash -c 'echo $RANDOM'`
     sed -i "s/seed:.*/seed: $SEED/g" $DIR/$INFILE
@@ -60,4 +61,5 @@ EOF
    bsub  -e $DIR/log.err -o $DIR/log.out < $SCRIPT
 
    @ COUNT = $COUNT + 1
+
 end
