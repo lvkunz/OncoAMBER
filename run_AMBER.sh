@@ -1,7 +1,9 @@
 #!/bin/bash
 
 module purge
-module load python/3.8.2
+module load anaconda/4.12.0
+
+conda activate myenv
 
 set INFILE = $1
 set ITER = $2
