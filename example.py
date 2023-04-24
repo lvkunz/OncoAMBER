@@ -1,4 +1,4 @@
-import amber
+import oncoamber as amber
 import numpy as np
 import random
 import sys
