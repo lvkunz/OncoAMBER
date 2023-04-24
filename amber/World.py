@@ -3,7 +3,7 @@ from amber.Vessel import *
 from amber.ScalarField import *
 from amber.BasicGeometries import *
 #np.set_printoptions(threshold=sys.maxsize)
-from scipy.stats import qmc
+# from scipy.stats import qmc
 import matplotlib.tri as mtri
 import scipy.sparse as sparse
 from amber.config_instance import config
@@ -53,9 +53,11 @@ class World:
 
     def generate_healthy_vasculature(self, initial_vessel_number, splitting_rate =0.3, mult_macro_steps=1, micro_steps=8, weight_direction=3.0, weight_vegf=1.0, weight_pressure=0.0, extra_step = True):
         initial_vessel_number = int(initial_vessel_number * 4 * self.half_length ** 2)
-        sampler = qmc.Halton(2, seed=config.seed)
-        points_z = (sampler.random(initial_vessel_number)[:,0] - 0.5) * self.half_length*2
-        points_y = (sampler.random(initial_vessel_number)[:,1] - 0.5) * self.half_length*2
+        # sampler = qmc.Halton(2, seed=config.seed)
+        # points_z = (sampler.random(initial_vessel_number)[:,0] - 0.5) * self.half_length*2
+        # points_y = (sampler.random(initial_vessel_number)[:,1] - 0.5) * self.half_length*2
+        points_z = np.random.uniform(-self.half_length, self.half_length, initial_vessel_number)
+        points_y = np.random.uniform(-self.half_length, self.half_length, initial_vessel_number)
         points_x = np.append(self.half_length * np.ones(initial_vessel_number//2), -self.half_length * np.ones(initial_vessel_number//2))
         points = []
         for i in range(len(points_x)):
