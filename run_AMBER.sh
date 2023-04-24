@@ -1,11 +1,7 @@
 #!/bin/bash
 
-conda activate myenv
-
 module purge
 module load python/3.8.2
-
-conda list
 
 set INFILE = $1
 set ITER = $2
@@ -55,6 +51,8 @@ while ($COUNT < $ITER)
 cd $DIR
 
 start_time=\$(date +%s.%N)
+
+conda activate myenv
 
 conda run -n myenv python $INFILE $CONFIG_NAME
 
