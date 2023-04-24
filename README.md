@@ -14,16 +14,28 @@ The angiogenesis process is based on a directed random walk that takes crowding 
 High crowding or pressure can lead to long-lasting hypoxia of cells and eventually result in their necrosis. 
 We'll integrate the radiation effects on individual cells using the simple interface provided by TOPAS and TOPAS-nBio, as well as other in-house DNA damage and DNA repair models.
 
-## Structure
+## Installation
 
-import amber 
+Download the github repository and run the following command in the main directory:
 
-amber.World(--)
-amber.Cell(--)
-amber.Voxel(--)
-amber.Vessel(--)
-amber.VesselNetwork(--)
-amber.Simulator(--)
+sh install.sh 
+
+## Usage
+
+import amber
+
+amber.World(-)
+amber.Cell(-)
+amber.Voxel(-)
+amber.Vessel(-)
+amber.VesselNetwork(-)
+amber.Simulator(-)
 etc. 
 
-example on github
+run example.py in the same directory as any CONFIG files you want to use using the following command:
+
+python example.py CONFIG 
+
+or on the cluster use:
+
+bash run_AMBER.sh example.py <n_iter> CONFIG
