@@ -5,9 +5,9 @@ module load anaconda/4.12.0
 
 conda activate myenv
 
-set INFILE = $1
-set ITER = $2
-set CONFIG_NAME = $3
+set INFILE=$1
+set ITER=$2
+set CONFIG_NAME=$3
 
 if ($ITER == "") then
   set ITER = 1
