@@ -2,14 +2,14 @@
 half_length_world: 1.2 #cm
 voxel_per_side: 40
 dt: 24 #hours
-endtime: 480 #hours
+endtime: 2000 #hours
 seed: -1                                 #seed for random number generator. -1 for random seed
 
 #Initialisation
 vessel_number: 100                       #initial number of vessels for healthy tissue per cm^2
 initial_number_healthy_cells: 1         #initial number of healthy cells per voxel
-initial_number_tumor_cells: 10000          #initial total number of tumor cells
-tumor_initial_radius: 0.15 #cm
+initial_number_tumor_cells: 100000          #initial total number of tumor cells
+tumor_initial_radius: 0.3 #cm
 doubling_time_healthy: 1 #hours
 doubling_time_tumor: 27   #hours
 doubling_time_sd: 2
@@ -51,7 +51,7 @@ macro_steps: 1                          #number of macro steps per time step for
 micro_steps: 6                          #number of micro steps per time step for vasculature growth
 weight_direction: 3.0                   #weight of direction for vasculature growth
 weight_vegf: 0.9                        #weight of VEGF gradient for vasculature growth
-weight_pressure: 0.9                    #weight of pressure for vasculature growth
+weight_pressure: 3.0                    #weight of pressure for vasculature growth
 radius_pressure_sensitive: True         #if True, radius of vessels is pressure sensitive and decreases with pressure
 o2_to_vitality_factor: 1.0              #factor for the conversion of oxygen to vitality
 viscosity: 1000                         #factor for diffusion of cells from one voxel to the next (not really a viscosity, it represents the cells adehsion too)
