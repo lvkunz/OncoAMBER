@@ -47,10 +47,10 @@ for i in range(config.initial_number_tumor_cells):
 world.generate_healthy_vasculature(config.vessel_number,
             splitting_rate=0.1,
             mult_macro_steps=1,
-            micro_steps=10,
-            weight_direction=0.5,
-            weight_vegf=0.4,
-            weight_pressure=0.2
+            micro_steps=11,
+            weight_direction=3.0,
+            weight_vegf=0.9,
+            weight_pressure=0.8,
             )
 world.update_volume_occupied_by_vessels()
 print('Relative volume occupied by vessels, ratio: ', 100*(world.measure_vasculature_volume()/(world.half_length*2)**3), '%')

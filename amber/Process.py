@@ -394,6 +394,7 @@ class UpdateVasculature(Process): #update the vasculature
         print('Total VEGF: ', total_VEGF)
         vessels = world.vasculature.list_of_vessels
         n_new_vessels = int(self.config.new_vessels_per_hour * self.dt)
+        n_new_vessels = min(n_new_vessels, len(vessels))
         chosen_vessels = random.sample(vessels, n_new_vessels)
 
         for vessel in chosen_vessels:
