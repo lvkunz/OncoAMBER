@@ -53,6 +53,7 @@ class Simulator: #this class is used to run the whole simulation
             axes.set_xlim(-size, size)
             axes.set_ylim(-size, size)
             axes.set_zlim(-size, size)
+            axes.view_init(90, 0)
             world.show_tumor_3D(axes, fig, 'number_of_tumor_cells', cmap='viridis', vmin=0, vmax=1000)
             world.vasculature.plot(fig, axes)
             axes.set_title('Vasculature')
