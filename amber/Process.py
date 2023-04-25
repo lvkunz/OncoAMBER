@@ -122,7 +122,7 @@ class Simulator: #this class is used to run the whole simulation
         process_global = [process for process in self.list_of_process if process.is_global]
 
         irradiations_times = [self.config.first_irradiation_time + i * self.config.time_between_fractions for i in
-                              range(config.number_fractions)]
+                              range(self.config.number_fractions)]
         applied_fractions = 0
 
         number_tumor_cells = []; number_necrotic_cells = []; tumor_size = []; times = []
@@ -183,7 +183,7 @@ class Process: #abstract class, represents all the processes that can happen in 
 
 
 class CellDivision(Process): #cell division process, cells divide in a voxel if they have enough vitality
-    def __init__(self, name, dt, cycling_threshold, pressure_threshold = np.inf):
+    def __init__(self, config, name, dt, cycling_threshold, pressure_threshold = np.inf):
         super().__init__(config, 'CellDivision', dt)
         self.dt = dt
         self.cycling_threshold = cycling_threshold
@@ -203,7 +203,7 @@ class CellDivision(Process): #cell division process, cells divide in a voxel if 
         return
 
 class CellDeath(Process): #cell necrosis process, cells die in a voxel if they have too low vitality
-    def __init__(self, name, dt, necrosis_threshold, necrosis_probability, apoptosis_threshold, apoptosis_probability):
+    def __init__(self, config, name, dt, necrosis_threshold, necrosis_probability, apoptosis_threshold, apoptosis_probability):
         super().__init__(config, 'CellNecrosis', dt)
         self.necrosis_threshold = necrosis_threshold
         self.necrosis_probability = necrosis_probability
@@ -237,7 +237,7 @@ class CellDeath(Process): #cell necrosis process, cells die in a voxel if they h
 
 
 class CellAging(Process): #cell aging process, cells age in a voxel
-    def __init__(self, name, dt):
+    def __init__(self, config, name, dt):
         super().__init__(config,'CellAging', dt)
     def __call__(self, voxel):
         for cell in voxel.list_of_cells:
@@ -257,7 +257,7 @@ class CellAging(Process): #cell aging process, cells age in a voxel
 
 
 class CellMigration(Process): #cell migration process, cells migrate in the world
-    def __init__(self, name, dt, pressure_threshold):
+    def __init__(self, config, name, dt, pressure_threshold):
         super().__init__(config, 'CellMigration', dt)
         self.is_global = True #run on the whole world, after the other processes
         self.pressure_threshold = pressure_threshold
@@ -279,7 +279,7 @@ class CellMigration(Process): #cell migration process, cells migrate in the worl
                         voxel.remove_cell(cell)
 
 class UpdateCellOxygen(Process):
-    def __init__(self, name, dt, voxel_half_length, effective_vessel_radius):
+    def __init__(self, config, name, dt, voxel_half_length, effective_vessel_radius):
         super().__init__(config, 'UpdateState', dt)
         self.voxel_side = int(voxel_half_length*200) #um/100
         self.effective_vessel_radius = effective_vessel_radius
@@ -356,7 +356,7 @@ class UpdateCellOxygen(Process):
         for i in range(n_cells):
             voxel.list_of_cells[i].oxygen = o2_values[i]
 class UpdateVoxelMolecules(Process): #update the molecules in the voxel (VEGF), other not implemented yet
-    def __init__(self, name, dt, VEGF_production_per_cell, threshold_for_VEGF_production):
+    def __init__(self, config, name, dt, VEGF_production_per_cell, threshold_for_VEGF_production):
         super().__init__(config, 'UpdateMolecules', dt)
         self.VEGF_production_per_cell = VEGF_production_per_cell
         self.threshold_for_VEGF_production = threshold_for_VEGF_production
@@ -369,7 +369,7 @@ class UpdateVoxelMolecules(Process): #update the molecules in the voxel (VEGF), 
         voxel.molecular_factors['VEGF'] = VEGF
         return
 class UpdateVasculature(Process): #update the vasculature
-    def __init__(self, name, dt, killing_radius_threshold, killing_length_threshold, o2_per_volume, diffusion_number, splitting_rate, macro_steps, micro_steps, weight_direction, weight_vegf, weight_pressure, radius_pressure_sensitive):
+    def __init__(self, config, name, dt, killing_radius_threshold, killing_length_threshold, o2_per_volume, diffusion_number, splitting_rate, macro_steps, micro_steps, weight_direction, weight_vegf, weight_pressure, radius_pressure_sensitive):
         super().__init__(config, 'UpdateVasculature', dt)
         self.is_global = True
         self.killing_radius_threshold = killing_radius_threshold
@@ -396,12 +396,12 @@ class UpdateVasculature(Process): #update the vasculature
             total_VEGF += voxel.molecular_factors['VEGF']
         print('Total VEGF: ', total_VEGF)
         vessels = world.vasculature.list_of_vessels
-        n_new_vessels = int(config.new_vessels_per_hour * self.dt)
+        n_new_vessels = int(self.config.new_vessels_per_hour * self.dt)
         chosen_vessels = random.sample(vessels, n_new_vessels)
 
         for vessel in chosen_vessels:
             if len(vessel.path) > 2:
-                point = vessel.choose_random_point()
+                point = vessel.choose_random_point(self.config.seed)
                 world.vasculature.branching(vessel.id, point)
 
         # for i in range(n_new_vessels):
@@ -421,7 +421,7 @@ class UpdateVasculature(Process): #update the vasculature
         world.update_oxygen(o2_per_volume = self.o2_per_volume, diffusion_number=self.diffusion_number)
 
 class Irradiation(Process): #irradiation
-    def __init__(self, name, dt, topas_file, irradiation_time, irradiation_intensity, world: World):
+    def __init__(self, config, name, dt, topas_file, irradiation_time, irradiation_intensity, world: World):
         super().__init__(config, 'Irradiation', dt)
         self.irradiation_time = irradiation_time
         self.irradiation_intensity = irradiation_intensity
@@ -444,7 +444,7 @@ class Irradiation(Process): #irradiation
     def __call__(self, world: World):
         for voxel in world.voxel_list:
             count = 0
-            probability = self.doses[voxel.voxel_number]*self.irradiation_intensity*config.death_rate_radiation
+            probability = self.doses[voxel.voxel_number]*self.irradiation_intensity*self.config.radiosensitivity
             for cell in voxel.list_of_cells:
                 if random.random() < probability:
                     if cell.time_before_death is None:

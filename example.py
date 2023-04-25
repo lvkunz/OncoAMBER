@@ -32,7 +32,7 @@ world = amber.World(config, config.half_length_world, config.voxel_per_side)
 for i in range(world.total_number_of_voxels):
     if i %10000 == 0: print('Adding healthy cells to voxel number: ', i, ' out of ', world.total_number_of_voxels)
     for j in range(config.initial_number_healthy_cells):
-        cell = amber.Cell(config.radius_healthy_cells, cycle_hours=config.doubling_time_healthy, cycle_std=config.doubling_time_sd, type='NormalCell')
+        cell = amber.Cell(config.radius_healthy_cells, cycle_hours=config.doubling_time_healthy, cycle_std=config.doubling_time_sd, radiosensitivity=config.radiosensitivity, o2_to_vitality_factor=config.o2_to_vitality_factor, type='NormalCell')
         cell.time_spent_cycling = 0
         world.voxel_list[i].add_cell(cell)
 
@@ -41,7 +41,7 @@ for i in range(config.initial_number_tumor_cells):
     if i % 10000 == 0: print('Adding tumor cells ', i, ' out of ', config.initial_number_tumor_cells)
     voxel = world.find_voxel(points[i])
     voxel.add_cell(
-        amber.Cell(config.radius_tumor_cells, cycle_hours=config.doubling_time_tumor, cycle_std=config.doubling_time_sd, type='TumorCell'))
+        amber.Cell(config.radius_tumor_cells, cycle_hours=config.doubling_time_tumor, cycle_std=config.doubling_time_sd, radiosensitivity=config.radiosensitivity, o2_to_vitality_factor=config.o2_to_vitality_factor, type='TumorCell'))
 
 #generate vasculature and print related information
 world.generate_healthy_vasculature(config.vessel_number,
@@ -64,30 +64,30 @@ world.update_oxygen(o2_per_volume=config.o2_per_volume, diffusion_number=config.
 end_time = config.endtime
 dt = config.dt
 
-celldivision = amber.CellDivision('cell_division', dt,
+celldivision = amber.CellDivision( config, 'cell_division', dt,
                                         cycling_threshold=config.vitality_cycling_threshold,
                                         pressure_threshold=config.pressure_threshold_division)
 
-celldeath = amber.CellDeath('cell_death', dt,
+celldeath = amber.CellDeath(config, 'cell_death', dt,
                                         apoptosis_threshold=config.vitality_apoptosis_threshold,
                                         apoptosis_probability=config.probability_apoptosis,
                                         necrosis_threshold=config.vitality_necrosis_threshold,
                                         necrosis_probability=config.probability_necrosis)
 
-cellaging = amber.CellAging('cell_aging', dt)
+cellaging = amber.CellAging(config, 'cell_aging', dt)
 
-cellmigration = amber.CellMigration('cell_migration', dt,
+cellmigration = amber.CellMigration(config, 'cell_migration', dt,
                                         pressure_threshold=config.pressure_threshold_migration)
 
-update_cell_state = amber.UpdateCellOxygen('update_cell_state', dt,
+update_cell_state = amber.UpdateCellOxygen(config, 'update_cell_state', dt,
                                         voxel_half_length=(config.half_length_world/config.voxel_per_side),
                                         effective_vessel_radius=config.effective_vessel_radius)
 
-update_molecules = amber.UpdateVoxelMolecules('update_molecules', dt,
+update_molecules = amber.UpdateVoxelMolecules(config, 'update_molecules', dt,
                                         VEGF_production_per_cell=config.VEGF_production_per_cell,
                                         threshold_for_VEGF_production=config.o2_threshold_for_VEGF_production)
 
-update_vessels = amber.UpdateVasculature('update_vessels', dt,
+update_vessels = amber.UpdateVasculature(config, 'update_vessels', dt,
                                         killing_radius_threshold=config.radius_killing_threshold,
                                         killing_length_threshold=config.length_killing_threshold,
                                         o2_per_volume=config.o2_per_volume,
@@ -107,7 +107,7 @@ list_of_processes = [update_cell_state, celldivision, celldeath, update_molecule
 
 simulation_start = time.time()
 
-sim = amber.Simulator(list_of_processes, end_time, dt)
+sim = amber.Simulator(config, list_of_processes, end_time, dt)
 sim.run(world, video=config.show_time_steps)
 
 simulation_end = time.time()

@@ -147,7 +147,7 @@ class VasculatureNetwork:
         mother_vessel.in_growth = False
 
         # create two new vessels
-        vessel_end = Vessel(path_end, mother_vessel.radius, parent_id= mother_vessel.id, children_ids=mother_vessel.children_ids, in_growth= mother_vessel.in_growth)
+        vessel_end = Vessel(path_end, mother_vessel.radius, self.config.vessel_step_size, parent_id= mother_vessel.id, children_ids=mother_vessel.children_ids, in_growth= mother_vessel.in_growth)
         for child_id in vessel_end.children_ids:
             child = self.get_vessel(child_id)
             child.parent_id = vessel_end.id
@@ -155,7 +155,7 @@ class VasculatureNetwork:
         #random_point = branching_point + np.array([random.uniform(-mother_vessel.step, mother_vessel.step), random.uniform(-mother_vessel.step, mother_vessel.step), random.uniform(-mother_vessel.step, mother_vessel.step)])
         # the radius has to be updated later
 
-        vessel_new = Vessel([branching_point], self.config.radius_root_vessels, parent_id= mother_vessel.id)  # the radius has to be updated later
+        vessel_new = Vessel([branching_point], self.config.radius_root_vessels, self.config.vessel_step_size, parent_id= mother_vessel.id)  # the radius has to be updated later
         mother_vessel.children_ids = [vessel_end.id, vessel_new.id]
         self.list_of_vessels.append(vessel_end)
         self.list_of_vessels.append(vessel_new)
