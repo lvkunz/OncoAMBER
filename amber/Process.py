@@ -50,8 +50,6 @@ class Simulator: #this class is used to run the whole simulation
         if self.config.show_tumor_and_vessels_3D:
             fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(25, 25), dpi=150, subplot_kw={'projection': '3d'})
             fig.suptitle('Visualization at time t = ' + str(t) + ' hours', fontsize=16)
-            axes.view_init(0, 90)
-            size = size/2
             axes.set_xlim(-size, size)
             axes.set_ylim(-size, size)
             axes.set_zlim(-size, size)
@@ -60,7 +58,6 @@ class Simulator: #this class is used to run the whole simulation
             axes.set_title('Vasculature')
             plt.savefig('Plots/CurrentPlotting/t' + str(t) + '_Vasculature.png')
             plt.show()
-            size = size*2
 
         if self.config.show_slices:
             fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(25, 20), dpi=DPI)
