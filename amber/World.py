@@ -3,7 +3,7 @@ from amber.Vessel import *
 from amber.ScalarField import *
 from amber.BasicGeometries import *
 #np.set_printoptions(threshold=sys.maxsize)
-from scipy.stats import qmc
+# from scipy.stats import qmc
 import matplotlib.tri as mtri
 import scipy.sparse as sparse
 
