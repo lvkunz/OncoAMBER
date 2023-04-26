@@ -89,7 +89,7 @@ class World:
             splitting_rate=splitting_rate,
             vegf_gradient= vegf_gradient,
             pressure= pressure,
-            macro_steps=int(8.5*self.half_length*mult_macro_steps),
+            macro_steps=int(9*self.half_length*mult_macro_steps),
             micro_steps=micro_steps,
             weight_direction=weight_direction,
             weight_vegf=weight_vegf,

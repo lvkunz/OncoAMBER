@@ -47,8 +47,8 @@ for i in range(config.initial_number_tumor_cells):
 world.generate_healthy_vasculature(config.vessel_number,
             splitting_rate=0.1,
             mult_macro_steps=1,
-            micro_steps=11,
-            weight_direction=3.0,
+            micro_steps=24,
+            weight_direction=3.5,
             weight_vegf=0.9,
             weight_pressure=0.8,
             )

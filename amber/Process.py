@@ -127,6 +127,8 @@ class Simulator: #this class is used to run the whole simulation
 
         while self.time < self.finish_time:
             print(f'\033[1;31;47mTime: {self.time} hours / {self.finish_time} hours\033[0m')
+            if video:
+                self.show(world, self.time)
 
             if applied_fractions < self.config.number_fractions and self.time >= irradiations_times[applied_fractions]:
                 irrad = Irradiation('irrad', self.dt, self.config.topas_file, self.config.first_irradiation_time,
@@ -141,8 +143,7 @@ class Simulator: #this class is used to run the whole simulation
                 print('Currently running global process:', process.name)
                 process(world)
 
-            if video:
-                self.show(world, self.time)
+
 
             number_tumor_cells.append(sum([voxel.number_of_tumor_cells() for voxel in world.voxel_list]))
             number_necrotic_cells.append(sum([voxel.number_of_necrotic_cells() for voxel in world.voxel_list]))

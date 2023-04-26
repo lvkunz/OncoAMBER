@@ -1,15 +1,15 @@
 # General parameters
-half_length_world: 1.2 #cm
-voxel_per_side: 40
+half_length_world: 3.0 #cm
+voxel_per_side: 100
 dt: 12 #hours
-endtime: 2000 #hours
+endtime: 480 #hours
 seed: -1                                 #seed for random number generator. -1 for random seed
 
 #Initialisation
 vessel_number: 100                      #initial number of vessels for healthy tissue per cm^2
-initial_number_healthy_cells: 1         #initial number of healthy cells per voxel
-initial_number_tumor_cells: 500000      #initial total number of tumor cells
-tumor_initial_radius: 0.4 #cm
+initial_number_healthy_cells: 120        #initial number of healthy cells per voxel
+initial_number_tumor_cells: 50      #initial total number of tumor cells
+tumor_initial_radius: 0.001 #cm
 doubling_time_healthy: 1 #hours
 doubling_time_tumor: 27   #hours
 doubling_time_sd: 2
@@ -27,7 +27,6 @@ radiosensitivity: 0.1                   #death rate of cells due to 1Gy of radia
 # Parameters for the simulation
 pressure_threshold_migration: 0.05      #threshold for pressure difference for migration to happen
 effective_vessel_radius: 0.001          #vessel radius used to compute n vessel in voxel depending on total volume of vessels
-n_vessel_multiplicator: 1               # ?
 vitality_cycling_threshold: 0.8         #threshold in vitality for cells to start cycling
 pressure_threshold_division: 0.68       #max pressure at which cell division can happen
 max_occupancy: 0.68                     #max pressure at which cells can't enter a voxel through migration or other means
@@ -51,13 +50,13 @@ macro_steps: 1                          #number of macro steps per time step for
 micro_steps: 6                          #number of micro steps per time step for vasculature growth
 weight_direction: 3.0                   #weight of direction for vasculature growth
 weight_vegf: 0.9                        #weight of VEGF gradient for vasculature growth
-weight_pressure: 3.0                    #weight of pressure for vasculature growth
+weight_pressure: 5.0                    #weight of pressure for vasculature growth
 radius_pressure_sensitive: True         #if True, radius of vessels is pressure sensitive and decreases with pressure
 o2_to_vitality_factor: 1.0              #factor for the conversion of oxygen to vitality
 viscosity: 1000                         #factor for diffusion of cells from one voxel to the next (not really a viscosity, it represents the cells adehsion too)
 vessel_step_size: 0.01                  #step size for vasculature growth
 growth_step_stop_threshold: 0.001       #threshold for step size for vasculature growth, under which growth stops
-new_vessels_per_hour: 100.0              #number of new vessels per hour
+new_vessels_per_hour: 10.0              #number of new vessels per hour
 
 # Graphics parameters
 show_time_steps: True                   #if True, show the time during the simulation
