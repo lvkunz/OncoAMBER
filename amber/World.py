@@ -8,7 +8,7 @@ import matplotlib.tri as mtri
 import scipy.sparse as sparse
 
 class World:
-    def __init__(self, config , half_length, number_of_voxels : int = 20):
+    def __init__(self, config, half_length, number_of_voxels: int = 20):
         self.half_length = half_length
         self.voxel_list = []
         self.total_number_of_voxels = number_of_voxels ** 3

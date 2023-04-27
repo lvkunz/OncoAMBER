@@ -21,11 +21,11 @@ print('python version', sys.version)
 print('Config file', config_file)
 print('seed', seed)
 
-# np.random.seed(seed)
-# random.seed(seed)
+np.random.seed(seed)
+random.seed(seed)
 
 print(config_dict)
-world = amber.World(config, config.half_length_world, config.voxel_per_side)
+world = amber.World(config, 1.0, 1)
 
 #########################################################################################
 
