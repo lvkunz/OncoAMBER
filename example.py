@@ -25,7 +25,7 @@ np.random.seed(seed)
 random.seed(seed)
 
 print(config_dict)
-world = amber.World(config, 1.0, 1)
+world = amber.World(config, config.half_length_world, config.voxel_per_side)
 
 #########################################################################################
 
