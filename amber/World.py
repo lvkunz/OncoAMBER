@@ -8,23 +8,23 @@ import matplotlib.tri as mtri
 import scipy.sparse as sparse
 
 class World:
-    def __init__(self, config, half_length, number_of_voxels: int = 20):
-        self.half_length = half_length
+    def __init__(self, config):
+        self.half_length = config.half_length_world
         self.voxel_list = []
-        self.total_number_of_voxels = number_of_voxels ** 3
+        self.number_of_voxels = config.voxel_per_side
+        self.total_number_of_voxels = self.number_of_voxels ** 3
         self.config = config
-        voxel_length = 2 * half_length / number_of_voxels
+        voxel_length = 2 * self.half_length / self.number_of_voxels
 
-        for i in range(number_of_voxels):
-            for j in range(number_of_voxels):
-                for k in range(number_of_voxels):
+        for i in range(self.number_of_voxels):
+            for j in range(self.number_of_voxels):
+                for k in range(self.number_of_voxels):
                     position = np.array([
-                        i * voxel_length - half_length + voxel_length / 2,
-                        j * voxel_length - half_length + voxel_length / 2,
-                        k * voxel_length - half_length + voxel_length / 2
+                        i * voxel_length - self.half_length + voxel_length / 2,
+                        j * voxel_length - self.half_length + voxel_length / 2,
+                        k * voxel_length - self.half_length + voxel_length / 2
                     ])
-                    self.voxel_list.append(Voxel(position, half_length / number_of_voxels, voxel_number=i * number_of_voxels ** 2 + j * number_of_voxels + k))
-        self.number_of_voxels = number_of_voxels
+                    self.voxel_list.append(Voxel(position, self.half_length / self.number_of_voxels, voxel_number=i * self.number_of_voxels ** 2 + j * self.number_of_voxels + k))
         self.vasculature = VasculatureNetwork(self.config)
 
     def initiate_vasculature(self, list_of_mother_vessels):
