@@ -1,7 +1,7 @@
 from amber.Terminal import *
 import os
 import amber.ReadAndWrite as rw
-from amber.World import World
+from amber.world import World
 import matplotlib.pyplot as plt
 
 def RunTopasSimulation():

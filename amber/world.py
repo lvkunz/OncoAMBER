@@ -1,5 +1,5 @@
-from amber.Voxel import *
-from amber.Vessel import *
+from amber.voxel import *
+from amber.vessel import *
 from amber.ScalarField import *
 from amber.BasicGeometries import *
 #np.set_printoptions(threshold=sys.maxsize)

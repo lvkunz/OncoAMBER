@@ -1,5 +1,5 @@
-from amber.World import *
-from amber.Voxel import *
+from amber.world import *
+from amber.voxel import *
 from amber.ScalarField import *
 import amber.Terminal as term
 import amber.ReadAndWrite as rw

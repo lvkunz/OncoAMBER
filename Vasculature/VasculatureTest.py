@@ -1,5 +1,5 @@
 
-from amber.Vessel import *
+from amber.vessel import *
 
 import random
 from amber.BasicGeometries import *
