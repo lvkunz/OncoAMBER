@@ -10,7 +10,7 @@ else:
     raise ValueError('No config file specified')
 
 config_dict = amber.read_config_file(config_file)
-config = amber.Config.from_dict(config_dict)
+config = amber.Config(config_dict)
 
 #set seed for reproducibility
 start_time = time.time()

@@ -8,6 +8,3 @@ class Config:
 
         if self.seed == -1:
             self.seed = np.random.randint(0, 1000000)
-    @classmethod
-    def from_dict(cls, config_dict):
-        return cls(config_dict)
