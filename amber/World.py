@@ -9,6 +9,8 @@ import scipy.sparse as sparse
 
 class World:
     def __init__(self, config):
+        print('Initializing world')
+        print(config.voxel_per_side, config.half_length_world)
         self.half_length = config.half_length_world
         self.voxel_list = []
         self.number_of_voxels = config.voxel_per_side
