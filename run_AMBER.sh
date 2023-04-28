@@ -34,9 +34,6 @@ do
     cp $INFILE $DIR
     cp ${CONFIG_NAME}.txt $DIR
 
-    SEED=$(bash -c 'echo $RANDOM')
-    sed -i "s/seed:.*/seed: $SEED/g" $DIR/$INFILE
-
     SCRIPT=$DIR/run_${INFILE}-${CONFIG_NAME}-${COUNT}.csh
 
     cat << EOF > $SCRIPT
