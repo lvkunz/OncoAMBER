@@ -11,6 +11,9 @@ else:
 
 config_dict = amber.read_config_file(config_file)
 config = amber.Config(config_dict)
+print('Config file')
+print(config)
+print(config.half_length_world)
 
 #set seed for reproducibility
 start_time = time.time()
