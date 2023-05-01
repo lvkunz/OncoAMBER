@@ -8,6 +8,5 @@ from .vessel import *
 from .world import *
 from .process import *
 from .Terminal import *
-from .RunTopas import *
 from .ScalarField import *
 from .BetaDistributionCalibration import *
