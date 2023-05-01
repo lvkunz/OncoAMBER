@@ -2,6 +2,7 @@ import amber
 import numpy as np
 import random
 import sys
+#sys.path.insert(0, '/PHShome/lk001/.conda/envs/lkenv/lib/python3.9/site-packages')
 import time
 import os
 
