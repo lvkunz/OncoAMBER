@@ -3,6 +3,12 @@ import numpy as np
 import random
 import sys
 import time
+import os
+
+print('Current working directory:', os.getcwd())
+#print the directory of amber
+print('Amber directory:', amber.__file__)
+
 
 if len(sys.argv) > 1:
     config_file = sys.argv[1]
