@@ -12,9 +12,8 @@ if [ -z "$ITER" ]; then
 fi
 
 # Set the range of DT values based on ITER
-MIN_DT=1
-MAX_DT=24
-DT_RANGE=$(echo "scale=3; (${MAX_DT} - ${MIN_DT}) / (${ITER} - 1)" | bc)
+
+DT_RANGE=$(echo "scale=3; (${MAX_DT} - ${MIN_DT}) / (${ITER} + 1)" | bc)
 
 COUNT=0
 while [ $COUNT -lt $ITER ]
