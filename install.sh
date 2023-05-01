@@ -1,5 +1,5 @@
 python setup.py sdist
-rm -r OncoAMBER.egg-info
+rm -rf OncoAMBER.egg-info
 mv dist/* .
-rm -r dist/
-pip install OncoAMBER-1.1.3.tar.gz
+rm -rf dist/
+conda install -c conda-forge OncoAMBER-1.1.3.tar.gz

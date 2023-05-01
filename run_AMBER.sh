@@ -49,7 +49,7 @@ cd $DIR
 
 start_time=\$(date +%s.%N)
 
-source activate lkenv
+conda activate amberenv
 python $INFILE $CONFIG_NAME
 
 end_time=\$(date +%s.%N)

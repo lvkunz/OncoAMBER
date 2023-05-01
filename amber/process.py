@@ -439,7 +439,6 @@ class Irradiation(Process): #irradiation
         # plot the simulation
         fig = plt.figure(figsize=(10, 10))
         ax = fig.add_subplot(111, projection='3d')
-        world.show_voxels_centers_dose(ax, fig, slice=True)
         plt.show()
     def __call__(self, world: World):
         for voxel in world.voxel_list:

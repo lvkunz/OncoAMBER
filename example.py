@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(0, '/PHShome/lk001/.conda/envs/lkenv/lib/python3.9/site-packages') #cluster
+sys.path.insert(0, '/PHShome/lk001/.conda/envs/amberenv/lib/python3.9/site-packages') #cluster
 import amber
 import numpy as np
 import random
