@@ -11,16 +11,11 @@ if [ -z "$ITER" ]; then
   ITER=1
 fi
 
-# Set the range of DT values based on ITER
-
-DT_RANGE=$(echo "scale=3; (${MAX_DT} - ${MIN_DT}) / (${ITER} + 1)" | bc)
-
 COUNT=0
 while [ $COUNT -lt $ITER ]
 do
-    # Compute the current DT value based on the iteration number
-    DT=$(echo "scale=3; ${MIN_DT} + ${COUNT} * ${DT_RANGE}" | bc)
-    sed -i "s/dt = .*/dt = ${DT}/" ${CONFIG_NAME}.txt
+    # Prompt the user to enter the DT value
+    read -p "Enter the DT value for iteration ${COUNT}: " DT
 
     USER=$(whoami)
     CURRENTPATH=$(pwd)
