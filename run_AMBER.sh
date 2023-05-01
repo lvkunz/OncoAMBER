@@ -53,7 +53,7 @@ do
 #BSUB -q normal
 #BSUB -r
 #BSUB -C 0
-#BSUB -n 8
+#BSUB -n 1
 #BSUB -R "rusage[mem=2500]"
 #BSUB -Q "140"
 cd $DIR
