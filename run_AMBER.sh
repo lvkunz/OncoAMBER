@@ -16,6 +16,7 @@ while [ $COUNT -lt $ITER ]
 do
     # Prompt the user to enter the DT value
     read -p "Enter the DT value for iteration ${COUNT}: " DT
+    sed -i "s/dt = .*/dt = ${DT}/" ${CONFIG_NAME}.txt
 
     USER=$(whoami)
     CURRENTPATH=$(pwd)
