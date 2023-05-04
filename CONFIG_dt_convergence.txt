@@ -46,7 +46,7 @@ radius_decrease_exponent: 4             #exponent for the decrease of radius of 
 o2_per_volume: 1.0                      #oxygen per volume of tissue
 diffusion_number: 3                     #number of diffusion steps per time step
 splitting_rate_vasculature: 0.01        #probability of splitting a vessel when growing
-macro_steps: 0.51                       #number of macro steps per hour for vasculature growth
+macro_steps: 0.0                       #number of macro steps per hour for vasculature growth
 micro_steps: 2                          #number of micro steps per macro step for vasculature growth
 weight_direction: 3.0                   #weight of direction for vasculature growth
 weight_vegf: 0.9                        #weight of VEGF gradient for vasculature growth
