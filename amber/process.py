@@ -153,10 +153,9 @@ class Simulator: #this class is used to run the whole simulation
             quiescent_cells = 0
             necrotic_cells = 0
             for voxel in world.voxel_list:
+                necrotic_cells += voxel.number_of_necrotic_cells()
                 for cell in voxel.list_of_cells:
                     if cell.type == 'TumorCell':
-                        if cell.necrotic:
-                            necrotic_cells += 1
                         if cell.vitality() > self.config.vitality_cycling_threshold:
                             cycling_cells += 1
                         else:

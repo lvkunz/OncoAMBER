@@ -1,14 +1,14 @@
 # General parameters
 half_length_world: 12 #mm
 voxel_per_side: 40
-dt: 5 #hours
+dt: 10 #hours
 endtime: 480 #hours
 seed: -1                                 #seed for random number generator. -1 for random seed
 
 #Initialisation
 vessel_number: 0.5                      #initial number of vessels for healthy tissue per mm^2
-initial_number_healthy_cells: 120        #initial number of healthy cells per voxel
-initial_number_tumor_cells: 10      #initial total number of tumor cells
+initial_number_healthy_cells: 100        #initial number of healthy cells per voxel
+initial_number_tumor_cells: 10     #initial total number of tumor cells
 tumor_initial_radius: 0.01 #mm
 doubling_time_healthy: 1 #hours
 doubling_time_tumor: 27   #hours
@@ -46,17 +46,17 @@ radius_decrease_exponent: 4             #exponent for the decrease of radius of 
 o2_per_volume: 1.0                      #oxygen per volume of tissue
 diffusion_number: 3                     #number of diffusion steps per time step
 splitting_rate_vasculature: 0.01        #probability of splitting a vessel when growing
-macro_steps: 1                          #number of macro steps per time step for vasculature growth
-micro_steps: 2                          #number of micro steps per time step for vasculature growth
+macro_steps: 0.51                       #number of macro steps per hour for vasculature growth
+micro_steps: 2                          #number of micro steps per macro step for vasculature growth
 weight_direction: 3.0                   #weight of direction for vasculature growth
 weight_vegf: 0.9                        #weight of VEGF gradient for vasculature growth
 weight_pressure: 5.0                    #weight of pressure for vasculature growth
 radius_pressure_sensitive: True         #if True, radius of vessels is pressure sensitive and decreases with pressure
 o2_to_vitality_factor: 1.0              #factor for the conversion of oxygen to vitality
-viscosity: 2000                        #factor for diffusion of cells from one voxel to the next (not really a viscosity, it represents the cells adehsion too)
-vessel_step_size: 0.1                  #step size for vasculature growth
-growth_step_stop_threshold: 0.01       #threshold for step size for vasculature growth, under which growth stops
-new_vessels_per_hour: 100.0              #number of new vessels per hour
+viscosity: 2000                         #factor for diffusion of cells from one voxel to the next (not really a viscosity, it represents the cells adehsion too)
+vessel_step_size: 0.1                   #step size for vasculature growth
+growth_step_stop_threshold: 0.01        #threshold for step size for vasculature growth, under which growth stops
+new_vessels_per_hour: 10.0              #number of new vessels per hour
 
 # Graphics parameters
 show_time_steps: True                   #if True, show the time during the simulation
