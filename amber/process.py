@@ -18,15 +18,15 @@ class Simulator: #this class is used to run the whole simulation
         self.config = config
     def show_cell_and_tumor_volume(self, number_tumor_cells, number_necrotic_cells, number_quiescent_cells, number_cycling_cells, tumor_size, times):
         # plot number of cells evolution
-        plt.plot(times, number_tumor_cells, 'blue')
-        plt.plot(times, number_cycling_cells, 'red')
-        plt.plot(times, number_quiescent_cells, 'green')
-        plt.plot(times, number_necrotic_cells, 'black')
-
+        plt.plot(times, number_tumor_cells, 'blue', label='All cells')
+        plt.plot(times, number_cycling_cells, 'red', label='Cycling cells')
+        plt.plot(times, number_quiescent_cells, 'green', label='Quiescent cells')
+        plt.plot(times, number_necrotic_cells, 'black', label='Necrotic cells')
         plt.title('Number of cells evolution')
         plt.xlabel('Time')
         plt.ylabel('Number of cells')
         plt.grid(True)
+        plt.legend()
         plt.savefig('Plots/Number_cells_evolution.png')
         plt.show()
 
@@ -153,19 +153,19 @@ class Simulator: #this class is used to run the whole simulation
             quiescent_cells = 0
             necrotic_cells = 0
             for voxel in world.voxel_list:
-
                 for cell in voxel.list_of_cells:
-                    if cell.necrotic:
-                        necrotic_cells += 1
-                    if cell.vitality() > self.config.vitality_cycling_threshold:
-                        cycling_cells += 1
-                    else:
-                        quiescent_cells += 1
+                    if cell.type == 'TumorCell':
+                        if cell.necrotic:
+                            necrotic_cells += 1
+                        if cell.vitality() > self.config.vitality_cycling_threshold:
+                            cycling_cells += 1
+                        else:
+                            quiescent_cells += 1
 
             number_cycling_cells.append(cycling_cells)
             number_quiescent_cells.append(quiescent_cells)
-            number_tumor_cells.append(cycling_cells + quiescent_cells)
             number_necrotic_cells.append(necrotic_cells)
+            number_tumor_cells.append(cycling_cells + quiescent_cells + necrotic_cells)
             tumor_size_ = world.measure_tumor_volume()
             tumor_size.append(tumor_size_)
             times.append(self.time)
