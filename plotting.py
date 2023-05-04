@@ -1,48 +1,77 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.lines import Line2D
 from scipy.optimize import curve_fit
 
-
-number_cells = np.load('GrowthBenchMarkMu27sigma2/visco1000/number_tumor_cells.npy', allow_pickle=True)
-tumor_size = np.load('GrowthBenchMarkMu27sigma2/visco1000/tumor_size.npy', allow_pickle=True)
-times = np.load('GrowthBenchMarkMu27sigma2/visco1000/times.npy', allow_pickle=True)
-
-plt.plot(number_cells)
-plt.show()
-plt.plot(tumor_size)
-plt.show()
-
-radius = (tumor_size/4)**(1/3)
-
-plt.plot(times, number_cells, 'purple')
-plt.title('Number of cells evolution')
-plt.xlabel('Time')
-plt.ylabel('Number of cells')
-plt.grid(True)
-plt.show()
-
-# plot tumor size evolution
-fig = plt.figure()
-plt.plot(times, tumor_size, 'red')
-plt.title('Tumor volume evolution')
-plt.xlabel('Time')
-plt.ylabel('Tumor volume [mm^3]')
-plt.grid(True)
-plt.show()
-
-#fit the data to an exponential curve
 def func(x, a, b, c):
     return a * np.exp(b * x)
 
-#fit the data
-popt1, pcov1 = curve_fit(func, times, number_cells, p0=(1, 0.01, number_cells[0]))
+number_cells_list = []
+tumor_size_list = []
+times_list = []
+for i in range(5):
+    number_cells = np.load(f'output_variable_dt/CONFIG/example.py-dt{i*5+5}-{i}/DataOutput/number_tumor_cells.npy', allow_pickle=True)
+    tumor_size = np.load(f'output_variable_dt/CONFIG/example.py-dt{i*5+5}-{i}/DataOutput/tumor_size.npy', allow_pickle=True)
+    times = np.load(f'output_variable_dt/CONFIG/example.py-dt{i*5+5}-{i}/DataOutput/times.npy', allow_pickle=True)
+    number_cells_list.append(number_cells)
+    tumor_size_list.append(tumor_size)
+    times_list.append(times)
 
-#fit the data
-popt2, pcov2 = curve_fit(func, times, tumor_size, p0=(1, 0.01, tumor_size[0]))
 
-popt3, pcov3 = curve_fit(func, times, radius, p0=(1, 0.01, radius[0]))
+# Plot the number of cells and tumor size for each simulation on a separate plot
+fig, axes = plt.subplots(2, 1, figsize=(8, 10))
+for i in range(5):
+    # Plot number of cells
+    axes[0].plot(times_list[i], number_cells_list[i], linewidth=2, alpha=1-0.2*i, label=f'dt = {i*5+5}')
+    # Plot tumor size
+    axes[1].plot(times_list[i], tumor_size_list[i], linewidth=2, alpha=1-0.2*i, label=f'dt = {i*5+5}')
 
+axes[0].set_title('Number of Cells Evolution')
+axes[0].set_xlabel('Time')
+axes[0].set_ylabel('Number of Cells')
+axes[0].set_xlim(0, 200)
+axes[0].set_ylim(0, 30000)
+axes[0].grid(True)
+axes[0].legend()
+
+axes[1].set_title('Tumor Volume Evolution')
+axes[1].set_xlabel('Time')
+axes[1].set_ylabel('Tumor Volume [mm^3]')
+axes[1].set_xlim(0, 200)
+axes[1].set_ylim(0, 60)
+axes[1].grid(True)
+axes[1].legend()
+
+plt.tight_layout()
+plt.savefig('growth_evolution.png')
+plt.show()
+
+
+# Fit the data to an exponential curve for each simulation and get the doubling time
+doubling_times_number_cells = []
+doubling_times_tumor_size = []
+for i in range(5):
+    # Fit number of cells
+    popt, pcov = curve_fit(func, times_list[i], number_cells_list[i], p0=(1, 0.01, number_cells_list[i][0]))
+    doubling_time = np.log(2)/popt[1]
+    doubling_times_number_cells.append(doubling_time)
+
+    # Fit tumor size
+    popt, pcov = curve_fit(func, times_list[i], tumor_size_list[i], p0=(1, 0.01, tumor_size_list[i][0]))
+    doubling_time = np.log(2)/popt[1]
+    doubling_times_tumor_size.append(doubling_time)
+
+print('Doubling times (Number of Cells):', doubling_times_number_cells)
+print('Doubling times (Tumor Size):', doubling_times_tumor_size)
+
+plt.plot([5, 10, 15, 20, 25], doubling_times_number_cells, 'o', label='Cells doubling time')
+plt.plot([5, 10, 15, 20, 25], doubling_times_tumor_size, 'o', label='Tumor volume doubling time')
+plt.xlabel('Time step')
+plt.ylabel('Doubling time [days]')
+plt.title('Doubling time vs. Time step')
+plt.legend()
+plt.grid(True)
+plt.savefig('doubling_time.png', dpi=300)
+plt.show()
 
 #plot the data and the fitted curve
 

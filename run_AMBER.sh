@@ -55,9 +55,8 @@ do
 
     # Ask user if they want to change another parameter
     read -p "Do you want to change another parameter? (y/n): " ANS
-    if [ $ANS == "n" ]; then
-        pass
-    elif [ $ANS == "y" ]; then
+
+    if [ $ANS == "y" ]; then
         # Ask user for parameter name and value
         read -p "Enter the parameter name: " PARAM_NAME
         read -p "Enter the parameter value: " PARAM_VALUE
