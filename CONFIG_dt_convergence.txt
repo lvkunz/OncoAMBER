@@ -1,14 +1,14 @@
 # General parameters
-half_length_world: 12 #mm
-voxel_per_side: 40
+half_length_world: 15 #mm
+voxel_per_side: 50
 dt: 10 #hours
 endtime: 200 #hours
 seed: 0                                 #seed for random number generator. -1 for random seed
 
 #Initialisation
 vessel_number: 0.5                      #initial number of vessels for healthy tissue per mm^2
-initial_number_healthy_cells: 100        #initial number of healthy cells per voxel
-initial_number_tumor_cells: 10     #initial total number of tumor cells
+initial_number_healthy_cells: 100       #initial number of healthy cells per voxel
+initial_number_tumor_cells: 10          #initial total number of tumor cells
 tumor_initial_radius: 0.01 #mm
 doubling_time_healthy: 1 #hours
 doubling_time_tumor: 27   #hours

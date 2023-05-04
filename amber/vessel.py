@@ -269,11 +269,18 @@ class VasculatureNetwork:
 
     def grow_and_split(self, dt, splitting_rate, vegf_gradient, pressure, macro_steps=1, micro_steps=10, weight_direction=0.5, weight_vegf=0.5, weight_pressure=0.5):
         micro_steps = micro_steps
-        macro_steps = int(macro_steps * dt)
-        if macro_steps == 0:
+
+        macro_steps_ = int(macro_steps * dt)
+
+        if macro_steps_ == 0:
             ValueError("Macro steps must be at least 1")
-            macro_steps = 1
-        for i in range(macro_steps):
+            if macro_steps == 0:
+                ValueError("Angiogenesis deactivation")
+                macro_steps_ = 0
+            else:
+                macro_steps_ = 1
+
+        for i in range(macro_steps_):
             print("Macro step {}".format(i))
             j = 0
             for vessel in self.list_of_vessels:
