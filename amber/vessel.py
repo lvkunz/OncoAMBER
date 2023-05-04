@@ -1,4 +1,7 @@
 import random
+
+import numpy as np
+
 from amber.BasicGeometries import *
 import sys
 
@@ -101,17 +104,19 @@ class Vessel:
     def plot(self,fig, ax, color='crimson'):
         if self.visible:
             if self.in_growth:
-                ax.plot(self.path[:, 0], self.path[:, 1], self.path[:, 2], color=color, alpha=0.7, linewidth= self.radius*300)
+                ax.plot(self.path[:, 0], self.path[:, 1], self.path[:, 2], color=color, alpha=0.7, linewidth= self.radius*30)
             else:
-                ax.plot(self.path[:, 0], self.path[:, 1], self.path[:, 2], color='mediumblue', alpha=0.1, linewidth= self.radius*300)
+                ax.plot(self.path[:, 0], self.path[:, 1], self.path[:, 2], color='mediumblue', alpha=0.1, linewidth= self.radius*30)
         return fig, ax
+
     def choose_random_point(self, seed):
-        rng = np.random.default_rng(seed)
-        #choose random point on the path, not the first or last point
+        # choose random point on the path, not the first or last point
         if len(self.path) < 3:
             print(self.path)
             raise ValueError("The vessel path is too short to choose a random point")
-        return rng.choice(self.path[1:-1])
+        random_index = random.randint(1, len(self.path) - 2)
+        return self.path[random_index]
+
     def mean_pressure(self, pressure):
         if len(self.path) < 2:
             return 0
@@ -298,3 +303,9 @@ class VasculatureNetwork:
             print(' ' * indent, f"ID: {root_vessel.id}  Radius: {root_vessel.radius:.5f}")
             if root_vessel.children_ids:
                 self.print_vessel_tree_recursive(vessels, root_vessel.children_ids, indent + 2)
+
+    def compute_VSL(self):
+        list_VSL = np.array([])
+        for vessel in self.list_of_vessels:
+            list_VSL = np.append(list_VSL, vessel.length())
+        return list_VSL

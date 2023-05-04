@@ -56,12 +56,12 @@ for i in range(config.initial_number_tumor_cells):
 
 #generate vasculature and print related information
 world.generate_healthy_vasculature(config.vessel_number,
-            splitting_rate=0.1,
-            mult_macro_steps=1,
-            micro_steps=24,
-            weight_direction=3.5,
+            splitting_rate=0.5,
+            mult_macro_steps=2.0,
+            micro_steps=20,
+            weight_direction=2.0,
             weight_vegf=0.9,
-            weight_pressure=0.8,
+            weight_pressure=0.0,
             )
 world.update_volume_occupied_by_vessels()
 print('Relative volume occupied by vessels, ratio: ', 100*(world.measure_vasculature_volume()/(world.half_length*2)**3), '%')
@@ -112,7 +112,6 @@ update_vessels = amber.UpdateVasculature(config, 'update_vessels', dt,
                                         radius_pressure_sensitive=config.radius_pressure_sensitive)
 
 list_of_processes = [update_cell_state, celldivision, celldeath, update_molecules, cellaging, cellmigration, update_vessels]
-
 
 #run the simulation and time it
 

@@ -5,6 +5,7 @@ from amber.BasicGeometries import *
 #np.set_printoptions(threshold=sys.maxsize)
 # from scipy.stats import qmc
 import matplotlib.tri as mtri
+import matplotlib.pyplot as plt
 import scipy.sparse as sparse
 
 class World:
@@ -60,7 +61,7 @@ class World:
         # points_y = (sampler.random(initial_vessel_number)[:,1] - 0.5) * self.half_length*2
         points_z = np.random.uniform(-self.half_length, self.half_length, initial_vessel_number)
         points_y = np.random.uniform(-self.half_length, self.half_length, initial_vessel_number)
-        points_x = np.append(self.half_length * np.ones(initial_vessel_number//2), -self.half_length * np.ones(initial_vessel_number//2))
+        points_x = -self.half_length * np.ones(initial_vessel_number)
         points = []
         for i in range(len(points_x)):
             points.append([points_x[i], points_y[i], points_z[i]])
@@ -79,37 +80,25 @@ class World:
             list_of_vessels.append(Vessel([points[j], points2[j]], 0.5, step_size=self.config.vessel_step_size))
         self.initiate_vasculature(list_of_vessels)
         def pressure(point):
-            return (self.half_length - abs(point[0]))*0.3
+            return (self.half_length - abs(point[0]))*0.06
         def vegf_gradient(point):
-            if point[0] > 0:
-                return np.array([-point[0],0,0])*0.1
-            else:
-                return np.array([-point[0],0,0])*0.1
+            return np.array([1,0,0])
+            # if point[0] > 0:
+            #     return np.array([-point[0],0,0])
+            # else:
+            #     return np.array([point[0],0,0])
 
         self.vasculature.grow_and_split(
             dt=1,
             splitting_rate=splitting_rate,
             vegf_gradient= vegf_gradient,
             pressure= pressure,
-            macro_steps=int(9*self.half_length*mult_macro_steps),
+            macro_steps=int(0.9*self.half_length*mult_macro_steps),
             micro_steps=micro_steps,
             weight_direction=weight_direction,
             weight_vegf=weight_vegf,
             weight_pressure=weight_pressure
         )
-        if extra_step:
-            self.vasculature.grow_and_split(
-                dt=1,
-                splitting_rate=splitting_rate,
-                vegf_gradient=vegf_gradient,
-                pressure=pressure,
-                macro_steps=1,
-                micro_steps=micro_steps,
-                weight_direction=weight_direction,
-                weight_vegf=0.1,
-                weight_pressure=0.0
-            )
-
 
         self.vasculature.update_vessels_radius_from_last(self.config.radius_root_vessels, False, pressure)
         for vessel in self.vasculature.list_of_vessels:
@@ -141,18 +130,31 @@ class World:
         return points
 
     def update_volume_occupied_by_vessels(self):
-        scorer = np.zeros((self.total_number_of_voxels))
-        print('-- Computing volume occupied by vessels in each voxel')
+        volume_score = np.zeros(self.total_number_of_voxels)
+        bifurcation_score = np.zeros(self.total_number_of_voxels)
+        length_score = np.zeros(self.total_number_of_voxels)
+        print('-- Computing volume and length occupied by vessels in each voxel')
         for vessel in self.vasculature.list_of_vessels:
-            for point in vessel.path:
-                voxel_n = self.find_voxel_number(point)
-                if voxel_n == -1:
+            if len(vessel.path) > 0:
+                voxel_n_ = self.find_voxel_number(vessel.path[0])
+                bifurcation_score[voxel_n_] += 1
+            for i in range(1, len(vessel.path)):
+                start_point = vessel.path[i - 1]
+                end_point = vessel.path[i]
+                start_voxel = self.find_voxel_number(start_point)
+                if start_voxel == -1:
                     continue
-                scorer[voxel_n] += vessel.volume_per_point()
-        print('-- Finishing up -- CHECK IF NECESSARY')
+                line_segment = end_point - start_point
+                line_segment_length = np.linalg.norm(line_segment)
+                length_score[start_voxel] += line_segment_length
+                volume_score[start_voxel] += vessel.volume_per_point()
+        print('-- Finishing up')
         for voxel in self.voxel_list:
-            voxel.vessel_volume = scorer[voxel.voxel_number]
+            voxel.vessel_volume = volume_score[voxel.voxel_number]
+            voxel.bifurcation_density = bifurcation_score[voxel.voxel_number]
+            voxel.vessel_length = length_score[voxel.voxel_number]
         return
+
 
     def update_biology_after_RT(self):
         print('-- Updating biology after RT')
@@ -284,6 +286,7 @@ class World:
         print('-- Computing oxygen map')
         for voxel in self.voxel_list:
             voxel.oxygen = int((voxel.vessel_volume * o2_per_volume) / (np.pi * self.config.effective_vessel_radius**2 * voxel.half_length * 2))
+            voxel.bifurcation_density += voxel.oxygen
         for i in range(diffusion_number):
             new_oxygen_map = np.zeros(self.total_number_of_voxels)
             print('--- o2 map computing', i, 'out of', diffusion_number)
@@ -472,6 +475,50 @@ class World:
             if voxel.number_of_tumor_cells() > 3:
                 volume += voxel.volume
         return volume
+
+    def show_angiogenesis_metrics(self, real = True):
+        # Extract the voxel values for each parameter
+        volume = self.voxel_list[0].volume
+        side = self.voxel_list[0].half_length*2
+        if real:
+            volume_values = [voxel.vessel_volume/volume for voxel in self.voxel_list]
+            length_values = [voxel.vessel_length/volume for voxel in self.voxel_list]
+
+        else:
+            capillary_volume = side*np.pi*self.config.effective_vessel_radius**2
+            volume_values = [voxel.oxygen*capillary_volume/volume for voxel in self.voxel_list]
+            length_values = [voxel.oxygen*side/volume for voxel in self.voxel_list]
+
+        bifurcation_values = [voxel.bifurcation_density / volume for voxel in self.voxel_list]
+        VSL_values = self.vasculature.compute_VSL()
+        # Calculate mean and median values
+        volume_mean = np.mean(volume_values)
+        volume_median = np.median(volume_values)
+        length_mean = np.mean(length_values)
+        length_median = np.median(length_values)
+        bifurcation_mean = np.mean(bifurcation_values)
+        bifurcation_median = np.median(bifurcation_values)
+        VSL_mean = np.mean(VSL_values)
+        VSL_median = np.median(VSL_values)
+
+        # Plot histograms for each parameter
+        fig, axes = plt.subplots(2, 2, figsize=(10, 8))
+        axes[0, 0].hist(volume_values, bins=20, color='blue')
+        axes[0, 0].set_title(f'Vessel volume density, mean: {volume_mean:.2f}, median: {volume_median:.2f}')
+        axes[0, 1].hist(length_values, bins=20, color='green')
+        axes[0, 1].set_title(f'Vessel length density, mean: {length_mean:.2f}, median: {length_median:.2f}')
+        axes[1, 0].hist(bifurcation_values, bins=20, color='red')
+        axes[1, 0].set_title(
+            f'Voxel bifurcation density, mean: {bifurcation_mean:.2f}, median: {bifurcation_median:.2f}')
+        axes[1, 1].hist(VSL_values, bins=20, color='purple')
+        axes[1, 1].set_title(f'Vessel segment length, mean: {VSL_mean:.2f}, median: {VSL_median:.2f}')
+        plt.show()
+
+
+
+
+
+
 
 
 
