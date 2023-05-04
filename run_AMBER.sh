@@ -50,12 +50,13 @@ do
     cp ${CONFIG_NAME}.txt $DIR
 
     # Update the configuration file with the DT value
+    read -p "Enter the DT value: " DT
     sed -i "s/dt: .*/dt: ${DT}/" ${DIR}/${CONFIG_NAME}.txt
 
     # Ask user if they want to change another parameter
     read -p "Do you want to change another parameter? (y/n): " ANS
     if [ $ANS == "n" ]; then
-        break
+        pass
     elif [ $ANS == "y" ]; then
         # Ask user for parameter name and value
         read -p "Enter the parameter name: " PARAM_NAME
