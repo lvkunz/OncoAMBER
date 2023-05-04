@@ -81,11 +81,11 @@ do
     cat << EOF > $SCRIPT
 #!/bin/bash
 #BSUB -J ${INFILE}-${CONFIG_NAME}-${COUNT}
-#BSUB -q normal
+#BSUB -q bigmem
 #BSUB -r
 #BSUB -C 0
 #BSUB -n 1
-#BSUB -R "rusage[mem=2500]"
+#BSUB -R "rusage[mem=64000]"
 #BSUB -Q "140"
 cd $DIR
 
