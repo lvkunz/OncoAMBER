@@ -48,7 +48,7 @@ diffusion_number: 3                     #number of diffusion steps per time step
 splitting_rate_vasculature: 0.01        #probability of splitting a vessel when growing
 macro_steps: 1                          #number of macro steps per time step for vasculature growth
 micro_steps: 6                          #number of micro steps per time step for vasculature growth
-weight_direction: 3.0                   #weight of direction for vasculature growth
+weight_direction: 3.0                      #weight of direction for vasculature growth
 weight_vegf: 0.9                        #weight of VEGF gradient for vasculature growth
 weight_pressure: 5.0                    #weight of pressure for vasculature growth
 radius_pressure_sensitive: True         #if True, radius of vessels is pressure sensitive and decreases with pressure

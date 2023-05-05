@@ -8,36 +8,51 @@ def func(x, a, b, c):
 number_cells_list = []
 tumor_size_list = []
 times_list = []
-for i in range(5):
-    number_cells = np.load(f'output_variable_dt/CONFIG/example.py-dt{i*5+5}-{i}/DataOutput/number_tumor_cells.npy', allow_pickle=True)
-    tumor_size = np.load(f'output_variable_dt/CONFIG/example.py-dt{i*5+5}-{i}/DataOutput/tumor_size.npy', allow_pickle=True)
-    times = np.load(f'output_variable_dt/CONFIG/example.py-dt{i*5+5}-{i}/DataOutput/times.npy', allow_pickle=True)
-    number_cells_list.append(number_cells)
-    tumor_size_list.append(tumor_size)
-    times_list.append(times)
 
+dt = [2, 3, 4, 5, 7, 9, 12, 15, 20, 25]
+
+paths = ['output_conv/CONFIG_dt_convergence_example.py_20230504_lk001_Linux/example.py_CONFIG_dt_convergence_dt_iter0/DataOutput/',
+                        'output_conv/CONFIG_dt_convergence_example.py_20230504_lk001_Linux/example.py_CONFIG_dt_convergence_dt2_iter1/DataOutput/',
+                        'output_conv/CONFIG_dt_convergence_example.py_20230504_lk001_Linux/example.py_CONFIG_dt_convergence_dt3_iter2/DataOutput/',
+                        'output_conv/CONFIG_dt_convergence_example.py_20230504_lk001_Linux/example.py_CONFIG_dt_convergence_dt4_iter3/DataOutput/',
+                        'output_conv/CONFIG_dt_convergence_example.py_20230504_lk001_Linux/example.py_CONFIG_dt_convergence_dt5_iter4/DataOutput/',
+                        'output_conv/CONFIG_dt_convergence_example.py_20230504_lk001_Linux/example.py_CONFIG_dt_convergence_dt7_iter5/DataOutput/',
+                        'output_conv/CONFIG_dt_convergence_example.py_20230504_lk001_Linux/example.py_CONFIG_dt_convergence_dt9_iter6/DataOutput/',
+                        'output_conv/CONFIG_dt_convergence_example.py_20230504_lk001_Linux/example.py_CONFIG_dt_convergence_dt12_iter7/DataOutput/',
+                        'output_conv/CONFIG_dt_convergence_example.py_20230504_lk001_Linux/example.py_CONFIG_dt_convergence_dt15_iter8/DataOutput/',
+                        'output_conv/CONFIG_dt_convergence_example.py_20230504_lk001_Linux/example.py_CONFIG_dt_convergence_dt20_iter9/DataOutput/']
+
+
+for i in range(len(paths)):
+    for path in paths:
+        number_cells = np.load(f'{path}number_tumor_cells.npy', allow_pickle=True)
+        tumor_size = np.load(f'{path}tumor_size.npy', allow_pickle=True)
+        times = np.load(f'{path}times.npy', allow_pickle=True)
+        number_cells_list.append(number_cells)
+        tumor_size_list.append(tumor_size)
+        times_list.append(times)
 
 # Plot the number of cells and tumor size for each simulation on a separate plot
 fig, axes = plt.subplots(2, 1, figsize=(8, 10))
-for i in range(5):
+for i in range(len(paths)):
     # Plot number of cells
-    axes[0].plot(times_list[i], number_cells_list[i], linewidth=2, alpha=1-0.2*i, label=f'dt = {i*5+5}')
+    axes[0].plot(times_list[i], number_cells_list[i], linewidth=2, alpha=0.5, label=f'dt =' + str(dt[i]))
     # Plot tumor size
-    axes[1].plot(times_list[i], tumor_size_list[i], linewidth=2, alpha=1-0.2*i, label=f'dt = {i*5+5}')
+    axes[1].plot(times_list[i], tumor_size_list[i], linewidth=2, alpha=0.5, label=f'dt =' + str(dt[i]))
 
 axes[0].set_title('Number of Cells Evolution')
 axes[0].set_xlabel('Time')
 axes[0].set_ylabel('Number of Cells')
-axes[0].set_xlim(0, 200)
-axes[0].set_ylim(0, 30000)
+# axes[0].set_xlim(0, 200)
+# axes[0].set_ylim(0, 30000)
 axes[0].grid(True)
 axes[0].legend()
 
 axes[1].set_title('Tumor Volume Evolution')
 axes[1].set_xlabel('Time')
 axes[1].set_ylabel('Tumor Volume [mm^3]')
-axes[1].set_xlim(0, 200)
-axes[1].set_ylim(0, 60)
+# axes[1].set_xlim(0, 200)
+# axes[1].set_ylim(0, 60)
 axes[1].grid(True)
 axes[1].legend()
 
@@ -49,10 +64,12 @@ plt.show()
 # Fit the data to an exponential curve for each simulation and get the doubling time
 doubling_times_number_cells = []
 doubling_times_tumor_size = []
-for i in range(5):
+for i in range(len(paths)):
+    print(paths[i])
     # Fit number of cells
     popt, pcov = curve_fit(func, times_list[i], number_cells_list[i], p0=(1, 0.01, number_cells_list[i][0]))
     doubling_time = np.log(2)/popt[1]
+    print('Doubling time (Number of Cells):', doubling_time)
     doubling_times_number_cells.append(doubling_time)
 
     # Fit tumor size
@@ -63,44 +80,19 @@ for i in range(5):
 print('Doubling times (Number of Cells):', doubling_times_number_cells)
 print('Doubling times (Tumor Size):', doubling_times_tumor_size)
 
-plt.plot([5, 10, 15, 20, 25], doubling_times_number_cells, 'o', label='Cells doubling time')
-plt.plot([5, 10, 15, 20, 25], doubling_times_tumor_size, 'o', label='Tumor volume doubling time')
+plt.plot(dt, doubling_times_number_cells, 'o', label='Cells doubling time')
+# plt.plot(dt, doubling_times_tumor_size, 'o', label='Tumor volume doubling time')
 plt.xlabel('Time step')
 plt.ylabel('Doubling time [days]')
 plt.title('Doubling time vs. Time step')
+plt.yscale('log')  # set y-axis to logarithmic scale
+
 plt.legend()
 plt.grid(True)
 plt.savefig('doubling_time.png', dpi=300)
 plt.show()
 
 #plot the data and the fitted curve
-
-#print the parameters
-print('Parameters for number of tumor cells:')
-print('a = ', popt1[0])
-print('b = ', popt1[1])
-#doubling time
-print('Doubling time: ', np.log(2)/popt1[1])
-print('c = ', popt1[2])
-
-print('Parameters for tumor size:')
-print('a = ', popt2[0])
-print('b = ', popt2[1])
-#doubling time
-print('Doubling time: ', np.log(2)/popt2[1])
-print('c = ', popt2[2])
-
-print('Parameters for tumor radius:')
-print('a = ', popt3[0])
-print('b = ', popt3[1])
-#doubling time
-print('Doubling time: ', np.log(2)/popt3[1])
-print('c = ', popt3[2])
-
-
-
-
-
 fig, axs = plt.subplots(2, 1, figsize=(14, 10))
 fig.set_dpi(300)
 # Plot number of tumor cells
