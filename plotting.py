@@ -9,18 +9,22 @@ number_cells_list = []
 tumor_size_list = []
 times_list = []
 
-dt = [2, 3, 4, 5, 7, 9, 12, 15, 20, 25]
+dt = [1, 2, 3, 4, 5, 7, 9, 12, 15, 20]
 
-paths = ['output_conv/CONFIG_dt_convergence_example.py_20230504_lk001_Linux/example.py_CONFIG_dt_convergence_dt_iter0/DataOutput/',
-                        'output_conv/CONFIG_dt_convergence_example.py_20230504_lk001_Linux/example.py_CONFIG_dt_convergence_dt2_iter1/DataOutput/',
-                        'output_conv/CONFIG_dt_convergence_example.py_20230504_lk001_Linux/example.py_CONFIG_dt_convergence_dt3_iter2/DataOutput/',
-                        'output_conv/CONFIG_dt_convergence_example.py_20230504_lk001_Linux/example.py_CONFIG_dt_convergence_dt4_iter3/DataOutput/',
-                        'output_conv/CONFIG_dt_convergence_example.py_20230504_lk001_Linux/example.py_CONFIG_dt_convergence_dt5_iter4/DataOutput/',
-                        'output_conv/CONFIG_dt_convergence_example.py_20230504_lk001_Linux/example.py_CONFIG_dt_convergence_dt7_iter5/DataOutput/',
-                        'output_conv/CONFIG_dt_convergence_example.py_20230504_lk001_Linux/example.py_CONFIG_dt_convergence_dt9_iter6/DataOutput/',
-                        'output_conv/CONFIG_dt_convergence_example.py_20230504_lk001_Linux/example.py_CONFIG_dt_convergence_dt12_iter7/DataOutput/',
-                        'output_conv/CONFIG_dt_convergence_example.py_20230504_lk001_Linux/example.py_CONFIG_dt_convergence_dt15_iter8/DataOutput/',
-                        'output_conv/CONFIG_dt_convergence_example.py_20230504_lk001_Linux/example.py_CONFIG_dt_convergence_dt20_iter9/DataOutput/']
+repo = 'output/CONFIG_dt_convergence_example.py_20230505_lk001_Linux/'
+
+paths = ['example.py_CONFIG_dt_convergence_dt_iter0/DataOutput/',
+        'example.py_CONFIG_dt_convergence_dt2_iter1/DataOutput/',
+        'example.py_CONFIG_dt_convergence_dt1_iter2/DataOutput/',
+        'example.py_CONFIG_dt_convergence_dt3_iter3/DataOutput/',
+        'example.py_CONFIG_dt_convergence_dt4_iter4/DataOutput/',
+        'example.py_CONFIG_dt_convergence_dt5_iter5/DataOutput/',
+        'example.py_CONFIG_dt_convergence_dt7_iter6/DataOutput/',
+        'example.py_CONFIG_dt_convergence_dt9_iter7/DataOutput/',
+        'example.py_CONFIG_dt_convergence_dt12_iter8/DataOutput/',
+        'example.py_CONFIG_dt_convergence_dt15_iter9/DataOutput/']
+
+paths = [repo + path for path in paths]
 
 
 for i in range(len(paths)):
