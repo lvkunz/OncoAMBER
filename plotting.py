@@ -1,6 +1,20 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
+import glob
+
+import os
+import glob
+
+def get_repository_names(path):
+    """
+    Returns a list of repository names in the given path.
+    """
+    repo_paths = glob.glob(os.path.join(path, "*/*/.git"))
+    repo_names = []
+    for repo_path in repo_paths:
+        repo_names.append(os.path.basename(os.path.dirname(repo_path)))
+    return repo_names
 
 def func(x, a, b, c):
     return a * np.exp(b * x)
@@ -9,20 +23,37 @@ number_cells_list = []
 tumor_size_list = []
 times_list = []
 
-dt = [1, 2, 3, 4, 5, 7, 9, 12, 15, 20]
+# dt = [10, 15, 20, 25, 30, 50, 2, 3, 4, 5]
+#
+# repo = 'output/CONFIG_dt_convergence_example.py_20230505_lk001_Linux/'
+#
+# paths = ['example.py_CONFIG_dt_convergence_dt5_iter0/DataOutput/',
+#         'example.py_CONFIG_dt_convergence_dt10_iter1/DataOutput/',
+#         'example.py_CONFIG_dt_convergence_dt15_iter2/DataOutput/',
+#         'example.py_CONFIG_dt_convergence_dt20_iter3/DataOutput/',
+#         'example.py_CONFIG_dt_convergence_dt25_iter4/DataOutput/',
+#         'example.py_CONFIG_dt_convergence_dt30_iter5/DataOutput/',
+#         'example.py_CONFIG_dt_convergence_dt50_iter6/DataOutput/',
+#         'example.py_CONFIG_dt_convergence_dt2_iter7/DataOutput/',
+#         'example.py_CONFIG_dt_convergence_dt3_iter8/DataOutput/',
+#         'example.py_CONFIG_dt_convergence_dt4_iter9/DataOutput/']
 
-repo = 'output/CONFIG_dt_convergence_example.py_20230505_lk001_Linux/'
 
-paths = ['example.py_CONFIG_dt_convergence_dt_iter0/DataOutput/',
-        'example.py_CONFIG_dt_convergence_dt2_iter1/DataOutput/',
-        'example.py_CONFIG_dt_convergence_dt1_iter2/DataOutput/',
-        'example.py_CONFIG_dt_convergence_dt3_iter3/DataOutput/',
-        'example.py_CONFIG_dt_convergence_dt4_iter4/DataOutput/',
-        'example.py_CONFIG_dt_convergence_dt5_iter5/DataOutput/',
-        'example.py_CONFIG_dt_convergence_dt7_iter6/DataOutput/',
-        'example.py_CONFIG_dt_convergence_dt9_iter7/DataOutput/',
-        'example.py_CONFIG_dt_convergence_dt12_iter8/DataOutput/',
-        'example.py_CONFIG_dt_convergence_dt15_iter9/DataOutput/']
+
+
+dt = [5, 10, 15, 20, 20]
+
+repo = 'output/CONFIG_dt_convergence_example.py_20230508_lk001_Linux/'
+
+#all repositories in repo:
+
+
+paths = ['example.py_CONFIG_dt_convergence_dt2_iter0/DataOutput/',
+        'example.py_CONFIG_dt_convergence_dt5_iter1/DataOutput/',
+        'example.py_CONFIG_dt_convergence_dt10_iter2/DataOutput/',
+        'example.py_CONFIG_dt_convergence_dt15_iter3/DataOutput/',
+        'example.py_CONFIG_dt_convergence_dt20_iter4/DataOutput/']
+
 
 paths = [repo + path for path in paths]
 
@@ -89,8 +120,7 @@ plt.plot(dt, doubling_times_number_cells, 'o', label='Cells doubling time')
 plt.xlabel('Time step')
 plt.ylabel('Doubling time [days]')
 plt.title('Doubling time vs. Time step')
-plt.yscale('log')  # set y-axis to logarithmic scale
-
+# plt.yscale('log')  # set y-axis to logarithmic scale
 plt.legend()
 plt.grid(True)
 plt.savefig('doubling_time.png', dpi=300)
