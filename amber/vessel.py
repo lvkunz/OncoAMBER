@@ -143,7 +143,7 @@ class VasculatureNetwork:
         path = mother_vessel.path
         if len(path) < 3:
             raise ValueError("Vessel with id {} has a path with less than 3 points".format(vessel_id))
-
+        visible = mother_vessel.visible
         split_index = np.where((path == branching_point))[0][0]
         path_begin, path_end = np.split(path, [split_index])
         #remove the first element of path_end to keep the same point distribution in space
@@ -159,8 +159,11 @@ class VasculatureNetwork:
         #choose random point around branching point
         #random_point = branching_point + np.array([random.uniform(-mother_vessel.step, mother_vessel.step), random.uniform(-mother_vessel.step, mother_vessel.step), random.uniform(-mother_vessel.step, mother_vessel.step)])
         # the radius has to be updated later
+        mother_vessel.visible = visible
+        vessel_end.visible = visible
 
         vessel_new = Vessel([branching_point], self.config.radius_root_vessels, self.config.vessel_step_size, parent_id= mother_vessel.id)  # the radius has to be updated later
+        vessel_new.visible = True
         mother_vessel.children_ids = [vessel_end.id, vessel_new.id]
         self.list_of_vessels.append(vessel_end)
         self.list_of_vessels.append(vessel_new)
