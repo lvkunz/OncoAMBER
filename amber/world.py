@@ -29,6 +29,10 @@ class World:
                     ])
                     self.voxel_list.append(Voxel(position, self.half_length / self.number_of_voxels, voxel_number=i * self.number_of_voxels ** 2 + j * self.number_of_voxels + k))
         self.vasculature = VasculatureNetwork(self.config)
+        self.o_volume_values = []
+        self.o_length_values = []
+        self.o_bifurcation_values = []
+        self.o_VSL_values = []
 
     def initiate_vasculature(self, list_of_mother_vessels):
         self.vasculature = VasculatureNetwork(self.config, list_of_mother_vessels)
@@ -476,7 +480,7 @@ class World:
                 volume += voxel.volume
         return volume
 
-    def show_angiogenesis_metrics(self, real = True):
+    def show_angiogenesis_metrics(self, real = True, first = True):
         # Extract the voxel values for each parameter
         volume = self.voxel_list[0].volume
         side = self.voxel_list[0].half_length*2
@@ -491,7 +495,14 @@ class World:
 
         bifurcation_values = [voxel.bifurcation_density / volume for voxel in self.voxel_list]
         VSL_values = self.vasculature.compute_VSL()
-        # Calculate mean and median values
+
+        #save values
+        if first:
+            self.o_volume_values = volume_values
+            self.o_length_values = length_values
+            self.o_bifurcation_values = bifurcation_values
+            self.o_VSL_values = VSL_values
+
         volume_mean = np.mean(volume_values)
         volume_median = np.median(volume_values)
         length_mean = np.mean(length_values)
