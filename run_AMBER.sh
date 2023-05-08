@@ -40,7 +40,6 @@ do
 
     # Update the configuration file with the DT value
     read -p "Enter the DT value: " DT
-    sed -i "s/dt: .*/dt: ${DT}/" ${DIR}/${CONFIG_NAME}.txt
 
     # Create a new directory for the current iteration
     DIR=${OUTPUT_DIR}/${INFILE}_${CONFIG_NAME}_dt${DT}_iter${COUNT}
@@ -53,6 +52,9 @@ do
     # Copy input files to the iteration directory
     cp $INFILE $DIR
     cp ${CONFIG_NAME}.txt $DIR
+
+    sed -i "s/dt: .*/dt: ${DT}/" ${DIR}/${CONFIG_NAME}.txt
+
 
     # Ask user if they want to change another parameter
     read -p "Do you want to change another parameter? (y/n): " ANS
