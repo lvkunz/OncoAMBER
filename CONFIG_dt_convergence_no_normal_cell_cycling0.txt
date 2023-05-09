@@ -1,6 +1,6 @@
 # General parameters
-half_length_world: 10.5 #mm
-voxel_per_side: 35
+half_length_world: 7.5 #mm
+voxel_per_side: 25
 dt: 20 #hours
 endtime: 1000 #hours
 seed: 1                                 #seed for random number generator. -1 for random seed
@@ -53,7 +53,7 @@ weight_vegf: 0.9                        #weight of VEGF gradient for vasculature
 weight_pressure: 5.0                    #weight of pressure for vasculature growth
 radius_pressure_sensitive: True         #if True, radius of vessels is pressure sensitive and decreases with pressure
 o2_to_vitality_factor: 1.0              #factor for the conversion of oxygen to vitality
-viscosity: 0.01                         #factor for diffusion of cells from one voxel to the next (not really a viscosity, it represents the cells adehsion too)
+viscosity: 1                         #factor for diffusion of cells from one voxel to the next (not really a viscosity, it represents the cells adehsion too)
 vessel_step_size: 0.1                   #step size for vasculature growth
 growth_step_stop_threshold: 0.01        #threshold for step size for vasculature growth, under which growth stops
 new_vessels_per_hour: 0.0               #number of new vessels per hour
