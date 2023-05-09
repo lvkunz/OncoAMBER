@@ -63,7 +63,7 @@ show_time_steps: True                   #if True, show the time during the simul
 show_final: False                       #if True, show the final state of the simulation
 show_slices: True                       #if True, show a slice of the tumor during the simulation
 slice: x                                #what direction to slice the tumor (x or z
-show_o2_vitality_histograms: False      #if True, show a histogram of oxygen and vitality during the simulation
+show_o2_vitality_histograms: True      #if True, show a histogram of oxygen and vitality during the simulation
 show_tumor_and_vessels_3D: True         #if True, show the vasculature in 3D during the simulation with tumor cells
 visible_original_vessels: False          #if True, show the original vasculature in 3D during the simulation
 show_alpha_beta_maps: False             #if True, show the distribution of the parameters beta and gamma

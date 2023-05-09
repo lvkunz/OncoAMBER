@@ -70,7 +70,8 @@ for i in range(len(paths)):
 # Fit the data to an exponential curve for each simulation and get the doubling time
 doubling_times_number_cells = []
 doubling_times_tumor_size = []
-fig, axes = plt.subplots(2, 1, figsize=(8, 10))
+dpi = 300
+fig, axes = plt.subplots(2, 1, figsize=(8, 10), dpi=dpi)
 for i in range(len(paths)):
     print(paths[i])
     # Fit number of cells
@@ -78,7 +79,7 @@ for i in range(len(paths)):
     popt, pcov = curve_fit(func, times_list[i], number_cells_list[i], p0=(3000, 3e-3, 0))
     print(popt)
     color = axes[0].plot(times_list[i], number_cells_list[i], 'o', markersize=1, alpha=0.5, label=f'dt =' + str(dt[i]))[0].get_color()
-    axes[0].plot(times_list[i], func(times_list[i], *popt), '-', color=color, label='fit dt =' + str(dt[i]))
+    # axes[0].plot(times_list[i], func(times_list[i], *popt), '-', color=color, label='fit dt =' + str(dt[i]))
     doubling_time = np.log(2)/popt[1]
     print('Doubling time (Number of Cells):', doubling_time)
     doubling_times_number_cells.append(doubling_time)
@@ -87,23 +88,23 @@ for i in range(len(paths)):
     popt, pcov = curve_fit(func, times_list[i], tumor_size_list[i], p0=(1, 0.003, 0))
     print(popt)
     axes[1].plot(times_list[i], tumor_size_list[i], 'o', color = color, markersize = 1, alpha=0.5, label=f'dt =' + str(dt[i]))
-    axes[1].plot(times_list[i], func(times_list[i], *popt), '-', color=color, label='fit dt =' + str(dt[i]))
+    # axes[1].plot(times_list[i], func(times_list[i], *popt), '-', color=color, label='fit dt =' + str(dt[i]))
     doubling_time = np.log(2)/popt[1]
     doubling_times_tumor_size.append(doubling_time)
 
 axes[0].set_title('Number of Cells Evolution')
 axes[0].set_xlabel('Time')
 axes[0].set_ylabel('Number of Cells')
-axes[0].set_xlim(0, 700)
-axes[0].set_ylim(0, 40000)
+axes[0].set_xlim(0, 200)
+axes[0].set_ylim(0, 2000)
 axes[0].grid(True)
 axes[0].legend()
 
 axes[1].set_title('Tumor Volume Evolution')
 axes[1].set_xlabel('Time')
 axes[1].set_ylabel('Tumor Volume [mm^3]')
-# axes[1].set_xlim(0, 200)
-# axes[1].set_ylim(0, 60)
+axes[1].set_xlim(0, 200)
+axes[1].set_ylim(0, 3)
 axes[1].grid(True)
 axes[1].legend()
 

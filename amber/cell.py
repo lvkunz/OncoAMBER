@@ -1,12 +1,15 @@
 import numpy as np
-
+import scipy.stats as stats
+from scipy.stats import gamma
 class Cell (object):
     def __init__(self, radius, cycle_hours, cycle_std, radiosensitivity, o2_to_vitality_factor, type = 'NormalCell'):
         self.radius = radius
         self.necrotic = False
         self.usual_cycle_length = cycle_hours
         self.cycle_length_std = cycle_std
-        self.doubling_time = self.random_doubling_time(self.usual_cycle_length, self.cycle_length_std) #new cells have a random doubling time
+        self.gamma_shape = (self.usual_cycle_length / self.cycle_length_std) ** 2
+        self.gamma_scale = self.cycle_length_std ** 2 / self.usual_cycle_length
+        self.doubling_time = self.random_doubling_time() #new cells have a random doubling time
         self.volume = 4/3 * np.pi * self.radius**3
         self.oxygen = 1.0
         self.radiosensitivity = radiosensitivity
@@ -16,7 +19,7 @@ class Cell (object):
             raise ValueError('Cell type must be either NormalCell or TumorCell')
         self.type = type
         self.time_before_death = None
-        self.time_spent_cycling = self.random_doubling_time(self.usual_cycle_length, self.cycle_length_std) #new cells have already been cycling for a random amount of time
+        self.time_spent_cycling = self.random_time_spent_cycling() #new cells have already been cycling for a random amount of time
     def duplicate(self): #returns a new cell with the same properties
         cell = Cell(self.radius, self.usual_cycle_length, self.cycle_length_std, self.radiosensitivity, self.o2_to_vitality_factor, self.type)
         cell.time_spent_cycling = 0 #the new cell has not been cycling yet
@@ -31,13 +34,9 @@ class Cell (object):
     def radiosensitivity(self):
         return self.radiosensitivity*self.oxygen
 
-    def random_doubling_time(self, mu = None, sigma = None):
-        if mu is None:
-            mu = self.usual_cycle_length
-        if sigma is None:
-            sigma = self.cycle_length_std
-        #return a sample of a gamma distribution with mean cycle_hours
-        shape = (mu / sigma) ** 2
-        scale = sigma ** 2 / mu
-        return np.random.gamma(shape = shape, scale = scale)
+    def random_doubling_time(self):
+        return np.random.gamma(shape = self.gamma_shape, scale = self.gamma_scale)
 
+    def random_time_spent_cycling(self):
+        longest_possible_time = self.doubling_time
+        return np.random.uniform(0, longest_possible_time)

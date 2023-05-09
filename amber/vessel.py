@@ -327,5 +327,5 @@ class VasculatureNetwork:
     def compute_diameters(self):
         list_diameters = np.array([])
         for vessel in self.list_of_vessels:
-            list_diameters = np.append(list_diameters, vessel.radius()*2)
+            list_diameters = np.append(list_diameters, vessel.radius*2)
         return list_diameters
