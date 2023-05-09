@@ -1,7 +1,7 @@
 # General parameters
 half_length_world: 10.5 #mm
 voxel_per_side: 35
-dt: 5 #hours
+dt: 2 #hours
 endtime: 1000 #hours
 seed: 1                                 #seed for random number generator. -1 for random seed
 
