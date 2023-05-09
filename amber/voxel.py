@@ -4,7 +4,7 @@ def sigmoid(L, x, x0, k):
     return L/(1 + np.exp(-k*(x-x0)))
 
 class Voxel(object): #extra parameters are max_occupancy, viscosity
-        def __init__(self, position = np.array([0,0,0]), half_length = 0.1, viscosity = 100, list_of_cells_in=None, oxygen = 0, voxel_number = 0):
+        def __init__(self, position, half_length, viscosity, list_of_cells_in=None, oxygen = 0, voxel_number = 0):
                 if list_of_cells_in is None:
                         list_of_cells_in = []
                 self.position = position

@@ -27,7 +27,7 @@ class World:
                         j * voxel_length - self.half_length + voxel_length / 2,
                         k * voxel_length - self.half_length + voxel_length / 2
                     ])
-                    self.voxel_list.append(Voxel(position, self.half_length / self.number_of_voxels, voxel_number=i * self.number_of_voxels ** 2 + j * self.number_of_voxels + k))
+                    self.voxel_list.append(Voxel(position, self.half_length / self.number_of_voxels, viscosity= self.config.viscosity, voxel_number=i * self.number_of_voxels ** 2 + j * self.number_of_voxels + k))
         self.vasculature = VasculatureNetwork(self.config)
         self.o_volume_values = []
         self.o_length_values = []
@@ -223,11 +223,9 @@ class World:
     def compute_exchange_matrix(self, dt, pressure_threshold):
         V = self.voxel_list[0].volume
         total_voxels = self.total_number_of_voxels
-
         # Extract pressure and viscosity values for all voxels
         pressures = np.array([voxel.pressure() for voxel in self.voxel_list])
         viscosities = np.array([voxel.viscosity for voxel in self.voxel_list])
-
         # Initialize migration matrix with zeros
         migration_matrix = sparse.lil_matrix((total_voxels, total_voxels), dtype=np.float32)
 
@@ -244,8 +242,11 @@ class World:
 
                 pressure_diff = voxel_pressure - pressures[j]
                 if pressure_diff > pressure_threshold:
+
                     t_res = (V / pressure_diff) * viscosity
-                    if self.config.verbose: print('t_res = ', t_res)
+                    if self.config.verbose:
+                        print('V, pressure diff, viscosity ', V, pressure_diff, viscosity)
+                        print('t_res = ', t_res)
                     n_events = dt / t_res
                     migration_matrix[i, j] = n_events
 
