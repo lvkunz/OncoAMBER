@@ -50,7 +50,8 @@ class Simulator: #this class is used to run the whole simulation
         size = world.half_length
 
         if self.config.show_angiogenesis_metrics:
-            world.show_angiogenesis_metrics(False)
+            first = (t == 0)
+            world.show_angiogenesis_metrics(False, first)
         #plot vasculature
         if self.config.show_tumor_and_vessels_3D:
             fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(25, 25), dpi=150, subplot_kw={'projection': '3d'})
