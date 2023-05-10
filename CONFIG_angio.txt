@@ -30,8 +30,8 @@ effective_vessel_radius: 0.01          #vessel radius used to compute n vessel i
 vitality_cycling_threshold: 0.8         #threshold in vitality for cells to start cycling
 pressure_threshold_division: 0.68       #max pressure at which cell division can happen
 max_occupancy: 0.68                     #max pressure at which cells can't enter a voxel through migration or other means
-vitality_apoptosis_threshold: 0.2       #threshold in vitality for cells to start apoptosis. DO NOT SET TO 0
-probability_apoptosis: 0                #probability of apoptosis under the threshold. you can set it to 0
+vitality_apoptosis_threshold: 0.25       #threshold in vitality for cells to start apoptosis. DO NOT SET TO 0
+probability_apoptosis: 0.01                #probability of apoptosis under the threshold. you can set it to 0
 vitality_necrosis_threshold: 0.1        #threshold in vitality for cells to start necrosis
 probability_necrosis: 0.1               #probability of necrosis under the threshold
 VEGF_production_per_cell: 0.001          #VEGF production per cell per hour?
@@ -53,7 +53,7 @@ weight_vegf: 0.9                        #weight of VEGF gradient for vasculature
 weight_pressure: 5.0                    #weight of pressure for vasculature growth
 radius_pressure_sensitive: True         #if True, radius of vessels is pressure sensitive and decreases with pressure
 o2_to_vitality_factor: 1.0              #factor for the conversion of oxygen to vitality
-viscosity: 1000                         #factor for diffusion of cells from one voxel to the next (not really a viscosity, it represents the cells adehsion too)
+viscosity: 2.0                         #factor for diffusion of cells from one voxel to the next (not really a viscosity, it represents the cells adehsion too)
 vessel_step_size: 0.1                  #step size for vasculature growth
 growth_step_stop_threshold: 0.01       #threshold for step size for vasculature growth, under which growth stops
 new_vessels_per_hour: 10.0              #number of new vessels per hour
@@ -68,6 +68,6 @@ show_tumor_and_vessels_3D: True         #if True, show the vasculature in 3D dur
 visible_original_vessels: False          #if True, show the original vasculature in 3D during the simulation
 show_alpha_beta_maps: False             #if True, show the distribution of the parameters beta and gamma
 show_cell_and_tumor_volume: True        #if True, show the volume of tumor cells and healthy cells during the simulation
-verbose: False
+verbose: True
 show_angiogenesis_metrics: True
 

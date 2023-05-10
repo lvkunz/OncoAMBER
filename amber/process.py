@@ -246,8 +246,11 @@ class CellDeath(Process): #cell necrosis process, cells die in a voxel if they h
             vitality = cell.vitality()
             if vitality < self.apoptosis_threshold:
                 sample = np.random.uniform(0, 1)
-                n = self.necrosis_curve(vitality)
-                a = self.apoptosis_curve(vitality) + n
+                p_necro = (1 - ((1-self.necrosis_curve(vitality))**self.dt))
+                p_apopt = (1 - ((1-self.apoptosis_curve(vitality))**self.dt))
+                if self.config.verbose: print('probability necro:', p_necro, 'probability apopto:', p_apopt)
+                n = p_necro
+                a = p_necro + p_apopt
                 if sample < n:
                     #necrosis
                     voxel.cell_becomes_necrotic(cell)

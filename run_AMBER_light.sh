@@ -24,7 +24,9 @@ DATE=${DATEYEAR}${DATEMONTH}${DATEDAY}
 UNAME=$(uname)
 
 # Create a new directory for the output
-OUTPUT_DIR=${CURRENTPATH}/output/${CONFIG_NAME}_${INFILE}_${DATE}_${USER}_${UNAME}
+DAY_DIR=${CURRENTPATH}/output/${DATE}_${USER}_${UNAME}
+OUTPUT_DIR=${DAY_DIR}/${CONFIG_NAME}_${INFILE}_${DATEHOUR}${DATEMIN}
+
 if [ -d $OUTPUT_DIR ]; then
    echo "Output directory exists, removing and recreating $OUTPUT_DIR"
    rm -rf $OUTPUT_DIR
@@ -35,53 +37,63 @@ mkdir -p $OUTPUT_DIR
 cp $INFILE $OUTPUT_DIR
 cp ${CONFIG_NAME}.txt $OUTPUT_DIR
 
-while [ $COUNT -lt $ITER ]
-do
 
-    # Update the configuration file with the DT value
-    read -p "Enter the DT value: " DT
+param_names=()
 
-    # Create a new directory for the current iteration
-    DIR=${OUTPUT_DIR}/${INFILE}_${CONFIG_NAME}_dt${DT}_iter${COUNT}
-    if [ -d $DIR ]; then
-       echo "Iteration directory exists, removing and recreating $DIR"
-       rm -rf $DIR
-    fi
-    mkdir -p $DIR
+# Loop until the user enters "none"
+while true; do
+  read -p "Enter a parameter name to change, or type 'none' to continue: " param_name
 
-    # Copy input files to the iteration directory
-    cp $INFILE $DIR
-    cp ${CONFIG_NAME}.txt $DIR
+  # Check if the user entered "none", and exit the loop if so
+  if [ "$param_name" == "none" ]; then
+    break
+  fi
 
-    sed -i "s/dt: .*/dt: ${DT}/" ${DIR}/${CONFIG_NAME}.txt
+  # Add the parameter name to the array
+  param_names+=("$param_name")
+done
 
+# Print the list of parameter names
+echo "Parameter names to be changed: ${param_names[@]}"
 
-    # Ask user if they want to change another parameter
-    read -p "Do you want to change another parameter? (y/n): " ANS
+for (( COUNT=0; COUNT<$ITER; COUNT++ )); do
 
-    if [ $ANS == "y" ]; then
-        # Ask user for parameter name and value
-        read -p "Enter the parameter name: " PARAM_NAME
-        read -p "Enter the parameter value: " PARAM_VALUE
-        sed -i "s/${PARAM_NAME}: .*/${PARAM_NAME}: ${PARAM_VALUE}/" ${DIR}/${CONFIG_NAME}.txt
+  # Create a new directory for the current iteration
+  DIR=${OUTPUT_DIR}/iter${COUNT}
+  if [ -d $DIR ]; then
+    echo "Iteration directory exists, removing and recreating $DIR"
+    rm -rf $DIR
+  fi
+  mkdir -p $DIR
 
-        # Modify the directory name to include the parameter name
-        DIR=${OUTPUT_DIR}/${INFILE}_${CONFIG_NAME}_dt${DT}_${PARAM_NAME}_${PARAM_VALUE}_iter${COUNT}
-        if [ -d $DIR ]; then
-           echo "Iteration directory exists, removing and recreating $DIR"
-           rm -rf $DIR
-        fi
-        mkdir -p $DIR
+  # Copy input files to the iteration directory
+  cp $INFILE $DIR
+  cp ${CONFIG_NAME}.txt $DIR
 
-        # Copy input files to the new iteration directory
-        cp $INFILE $DIR
-        cp ${CONFIG_NAME}.txt $DIR
-    fi
+  # Loop through each parameter name and prompt the user for a value
+  declare -A param_values=()
+  for param_name in "${param_names[@]}"; do
+    read -p "Enter the value for iteration $COUNT for the parameter $param_name: " param_value
+    param_values["$param_name"]="$param_value"
+  done
 
-    # Generate the script for the current iteration
-    SCRIPT=${DIR}/run_${INFILE}-${CONFIG_NAME}-${COUNT}.csh
+  # Create the CSV file with the parameter values for this iteration
+  if [ $COUNT -eq 0 ]; then
+    # Create the header row for the CSV file
+    echo "Iteration,${param_names[*]}" > ${OUTPUT_DIR}/${CONFIG_NAME}_${INFILE}_param_values.csv
+  fi
+  # Append the parameter values for this iteration to the CSV file
+  echo "$COUNT,${param_values[*]}" >> ${OUTPUT_DIR}/${CONFIG_NAME}_${INFILE}_param_values.csv
 
-    cat << EOF > $SCRIPT
+  # Modify the configuration file with the parameter values for this iteration
+  for param_name in "${!param_values[@]}"; do
+    sed -i "s/${param_name}: .*/${param_name}: ${param_values[$param_name]}/" ${DIR}/${CONFIG_NAME}.txt
+  done
+
+  # Generate the script for the current iteration
+  SCRIPT=${DIR}/run_${INFILE}-${CONFIG_NAME}-${COUNT}.csh
+
+  cat << EOF > $SCRIPT
 #!/bin/bash
 #BSUB -J ${INFILE}-${CONFIG_NAME}-${COUNT}
 #BSUB -q normal
@@ -104,10 +116,7 @@ echo "Script took \${runtime} seconds to run."
 
 EOF
 
-   chmod +x $SCRIPT
-
-   bsub  -e $DIR/log.err -o $DIR/log.out < $SCRIPT
-
-   COUNT=$(expr $COUNT + 1)
+  chmod +x $SCRIPT
+  bsub -e $DIR/log.err -o $DIR/log.out < $SCRIPT
 
 done

@@ -7,6 +7,8 @@ from amber.BasicGeometries import *
 import matplotlib.tri as mtri
 import matplotlib.pyplot as plt
 import scipy.sparse as sparse
+import pyvista as pv
+
 
 class World:
     def __init__(self, config):
@@ -556,9 +558,42 @@ class World:
         print('Vessel segment length')
         print(f'Mean: {VSL_mean:.2f}, Median: {VSL_median:.2f}, Std: {np.std(VSL_values):.2f}, Min: {np.min(VSL_values):.2f}, Max: {np.max(VSL_values):.2f}')
 
+    def generate_tumor_mesh(self, section='none', color_map='jet'):
+        # Calculate the density values for each voxel
+        voxel_densities = []
+        for voxel in self.voxel_list:
+            num_cells = len(voxel.list_of_cells)
+            voxel_volume = voxel.volume
+            density = num_cells / voxel_volume
+            voxel_densities.append(density)
 
+        # Calculate the dimensions and spacing for the grid
+        dimensions = [self.number_of_voxels] * 3
+        spacing = [2 * self.half_length / self.number_of_voxels] * 3
 
+        # Create a PyVista grid object from the voxel data
+        grid = pv.UniformGrid(dimensions)
+        grid.spacing = spacing
+        grid.origin = [-self.half_length] * 3
+        grid.point_arrays['values'] = np.array(voxel_densities)
 
+        # Generate a surface mesh from the grid using density-based modeling
+        surface = grid.threshold([0.1, 1.0], scalars='values').extract_geometry()
+
+        # Remove a section of the surface mesh to visualize the interior of the tumor
+        if section != 'none':
+            section_plane = pv.Plane(origin=(0, 0, 0), normal=section)
+            surface = surface.clip_with_plane(section_plane)
+
+        # Color-code the surface mesh based on the density of cells within each voxel
+        color_values = np.array(voxel_densities)
+        color_mapper = pv.get_cmap(color_map)
+        surface['Density'] = color_values
+        surface.cell_arrays['Density'] = color_values
+        surface = surface.cell_data_to_point_data()
+        surface['Color'] = color_mapper.map(color_values)
+
+        return surface
 
 
 

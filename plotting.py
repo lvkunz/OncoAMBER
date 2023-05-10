@@ -2,52 +2,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 import glob
-
 import os
-import glob
-
-def get_repository_names(path):
-    """
-    Returns a list of repository names in the given path.
-    """
-    repo_paths = glob.glob(os.path.join(path, "*/*/.git"))
-    repo_names = []
-    for repo_path in repo_paths:
-        repo_names.append(os.path.basename(os.path.dirname(repo_path)))
-    return repo_names
 
 def func(x, a, b, c):
     return a * (np.exp(b * x)) + c
 
-number_cells_list = []
-tumor_size_list = []
-times_list = []
-
-# dt = [10, 15, 20, 25, 30, 50, 2, 3, 4, 5]
-#
-# repo = 'output/CONFIG_dt_convergence_example.py_20230505_lk001_Linux/'
-#
-# paths = ['example.py_CONFIG_dt_convergence_dt5_iter0/DataOutput/',
-#         'example.py_CONFIG_dt_convergence_dt10_iter1/DataOutput/',
-#         'example.py_CONFIG_dt_convergence_dt15_iter2/DataOutput/',
-#         'example.py_CONFIG_dt_convergence_dt20_iter3/DataOutput/',
-#         'example.py_CONFIG_dt_convergence_dt25_iter4/DataOutput/',
-#         'example.py_CONFIG_dt_convergence_dt30_iter5/DataOutput/',
-#         'example.py_CONFIG_dt_convergence_dt50_iter6/DataOutput/',
-#         'example.py_CONFIG_dt_convergence_dt2_iter7/DataOutput/',
-#         'example.py_CONFIG_dt_convergence_dt3_iter8/DataOutput/',
-#         'example.py_CONFIG_dt_convergence_dt4_iter9/DataOutput/']
-
-
-
 CONFIG_file = 'CONFIG_dt_convergence_cycling0'
-CONFIG_file = 'CONFIG_dt_convergence_no_normal_cell'
+CONFIG_file = 'CONFIG_dt_convergence_no_normal_cell_cycling0'
+CONFIG_file = 'CONFIG_growth_visco10'
 
-repo = 'output/'+ CONFIG_file + '_example.py_20230508_lk001_Linux'
+repo = 'output/'+ CONFIG_file + '_example.py_20230509_lk001_Linux'
 
 #all repositories in repo:
 
-dt = [2, 3, 4, 5, 7, 10, 15]
+dt = [1, 2, 3, 4, 5, 7, 10]
 
 paths = []
 
@@ -56,15 +24,47 @@ for i, d in enumerate(dt):
     full_path = f'{repo}/{path}'
     paths.append(full_path)
 
+tmin = 0  # Minimum time
+tmax = 1000  # Maximum time
+show_fits = False  # Show the exponential fits
+show_necro = True
+show_quiet_cycling = True
 
-for i in range(len(paths)):
-    for path in paths:
-        number_cells = np.load(f'{path}number_tumor_cells.npy', allow_pickle=True)
-        tumor_size = np.load(f'{path}tumor_size.npy', allow_pickle=True)
-        times = np.load(f'{path}times.npy', allow_pickle=True)
-        number_cells_list.append(number_cells)
-        tumor_size_list.append(tumor_size)
-        times_list.append(times)
+dt_to_plot = [1, 10]
+
+number_cells_list = []
+necrotic_cells_list = []
+cycling_cells_list = []
+quiescent_cells_list = []
+tumor_size_list = []
+times_list = []
+
+for path in paths:
+    number_cells = np.load(f'{path}number_tumor_cells.npy', allow_pickle=True)
+    necrotic_cells = np.load(f'{path}number_necrotic_cells.npy', allow_pickle=True)
+    cycling_cells = np.load(f'{path}number_cycling_cells.npy', allow_pickle=True)
+    quiescent_cells = np.load(f'{path}number_quiescent_cells.npy', allow_pickle=True)
+    tumor_size = np.load(f'{path}tumor_size.npy', allow_pickle=True)
+    times = np.load(f'{path}times.npy', allow_pickle=True)
+
+    # Find the indices of the times that are within the time range
+    idx = np.where((times >= tmin) & (times <= tmax))[0]
+
+    # Filter the arrays to only include the data between tmin and tmax
+    number_cells = number_cells[idx]
+    tumor_size = tumor_size[idx]
+    necrotic_cells = necrotic_cells[idx]
+    cycling_cells = cycling_cells[idx]
+    quiescent_cells = quiescent_cells[idx]
+    times = times[idx]
+
+    # Append the filtered arrays to the lists
+    number_cells_list.append(number_cells)
+    tumor_size_list.append(tumor_size)
+    necrotic_cells_list.append(necrotic_cells)
+    cycling_cells_list.append(cycling_cells)
+    quiescent_cells_list.append(quiescent_cells)
+    times_list.append(times)
 
 
 # Fit the data to an exponential curve for each simulation and get the doubling time
@@ -72,39 +72,47 @@ doubling_times_number_cells = []
 doubling_times_tumor_size = []
 dpi = 300
 fig, axes = plt.subplots(2, 1, figsize=(8, 10), dpi=dpi)
+
+
 for i in range(len(paths)):
+    if len(dt_to_plot) > 0:
+        if dt[i] not in dt_to_plot:
+            continue
     print(paths[i])
     # Fit number of cells
-
-    popt, pcov = curve_fit(func, times_list[i], number_cells_list[i], p0=(3000, 3e-3, 0))
+    popt, pcov = curve_fit(func, times_list[i], number_cells_list[i], p0=(3000, 3e-3, 0), maxfev=100000)
     print(popt)
-    color = axes[0].plot(times_list[i], number_cells_list[i], 'o', markersize=1, alpha=0.5, label=f'dt =' + str(dt[i]))[0].get_color()
-    # axes[0].plot(times_list[i], func(times_list[i], *popt), '-', color=color, label='fit dt =' + str(dt[i]))
+    color = axes[0].plot(times_list[i], number_cells_list[i], '.', markersize=3, alpha=0.8, label=f'dt =' + str(dt[i]))[0].get_color()
+    if show_necro: axes[0].plot(times_list[i], necrotic_cells_list[i], 's', markersize=5, alpha=0.5, color=color)
+    if show_quiet_cycling:
+        axes[0].plot(times_list[i], cycling_cells_list[i], '+', markersize=3, alpha=0.5, color=color)
+        axes[0].plot(times_list[i], quiescent_cells_list[i], 'D', markersize=3, alpha=0.5, color=color)
+    if show_fits: axes[0].plot(times_list[i], func(times_list[i], *popt), '-', color=color, label='fit dt =' + str(dt[i]))
     doubling_time = np.log(2)/popt[1]
     print('Doubling time (Number of Cells):', doubling_time)
     doubling_times_number_cells.append(doubling_time)
 
     # Fit tumor size
-    popt, pcov = curve_fit(func, times_list[i], tumor_size_list[i], p0=(1, 0.003, 0))
+    popt, pcov = curve_fit(func, times_list[i], tumor_size_list[i], p0=(1, 0.003, 0), maxfev=100000)
     print(popt)
     axes[1].plot(times_list[i], tumor_size_list[i], 'o', color = color, markersize = 1, alpha=0.5, label=f'dt =' + str(dt[i]))
-    # axes[1].plot(times_list[i], func(times_list[i], *popt), '-', color=color, label='fit dt =' + str(dt[i]))
+    if show_fits: axes[1].plot(times_list[i], func(times_list[i], *popt), '-', color=color, label='fit dt =' + str(dt[i]))
     doubling_time = np.log(2)/popt[1]
     doubling_times_tumor_size.append(doubling_time)
 
 axes[0].set_title('Number of Cells Evolution')
 axes[0].set_xlabel('Time')
 axes[0].set_ylabel('Number of Cells')
-axes[0].set_xlim(0, 200)
-axes[0].set_ylim(0, 2000)
+# axes[0].set_xlim(0, 250)
+# axes[0].set_ylim(0, 2e5)
 axes[0].grid(True)
 axes[0].legend()
 
 axes[1].set_title('Tumor Volume Evolution')
 axes[1].set_xlabel('Time')
 axes[1].set_ylabel('Tumor Volume [mm^3]')
-axes[1].set_xlim(0, 200)
-axes[1].set_ylim(0, 3)
+# axes[1].set_xlim(0, 250)
+# axes[1].set_ylim(0, 50)
 axes[1].grid(True)
 axes[1].legend()
 

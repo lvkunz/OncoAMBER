@@ -54,6 +54,20 @@ for i in range(config.initial_number_tumor_cells):
     voxel.add_cell(
         amber.Cell(config.radius_tumor_cells, cycle_hours=config.doubling_time_tumor, cycle_std=config.doubling_time_sd, radiosensitivity=config.radiosensitivity, o2_to_vitality_factor=config.o2_to_vitality_factor, type='TumorCell'))
 
+
+# import pyvista as pv
+#
+# # Assume you have a `World` object called `world`
+# section = 'none' #(1, 0, 0)
+# color_map = 'jet'
+# surface = world.generate_tumor_mesh(section=section, color_map=color_map)
+#
+# # Plot the surface mesh
+# p = pv.Plotter()
+# p.add_mesh(surface, cmap=color_map, clim=[0, 1])
+# p.show()
+
+
 #generate vasculature and print related information
 world.generate_healthy_vasculature(config.vessel_number,
             splitting_rate=0.5,
@@ -121,6 +135,8 @@ sim = amber.Simulator(config, list_of_processes, end_time, dt)
 sim.run(world, video=config.show_time_steps)
 
 simulation_end = time.time()
+
+
 ##########################################################################################
 
 print('simulation time: ', simulation_end - simulation_start, ' seconds')
