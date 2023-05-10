@@ -80,7 +80,8 @@ for (( COUNT=0; COUNT<$ITER; COUNT++ )); do
   # Create the CSV file with the parameter values for this iteration
   if [ $COUNT -eq 0 ]; then
     # Create the header row for the CSV file
-    echo "Iteration,${param_names[*]}" > ${OUTPUT_DIR}/${CONFIG_NAME}_${INFILE}_param_values.csv
+    echo "Iteration ${param_names[*]}" > ${OUTPUT_DIR}/${CONFIG_NAME}_${INFILE}_param_values.csv
+
   fi
   # Append the parameter values for this iteration to the CSV file
   echo "$COUNT,${param_values[*]}" >> ${OUTPUT_DIR}/${CONFIG_NAME}_${INFILE}_param_values.csv
