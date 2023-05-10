@@ -27,6 +27,7 @@ param = np.array(param_space[parameter])
 number_of_iterations = len(param_space['Iteration'])
 
 paths = [f'{repo}/iter{i}/DataOutput/' for i in range(0, number_of_iterations)]
+
 print(paths)
 
 tmin = 0  # Minimum time
@@ -34,6 +35,9 @@ tmax = 1000  # Maximum time
 show_fits = False  # Show the exponential fits
 show_necro = True
 show_quiet_cycling = True
+local = True
+
+if local: paths = ['DataOutput/']
 
 param_to_plot = []
 
