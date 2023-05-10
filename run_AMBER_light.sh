@@ -92,9 +92,21 @@ for (( COUNT=0; COUNT<$ITER; COUNT++ )); do
 
   # Modify the configuration file with the parameter values for this iteration
   for param_name in "${!param_values[@]}"; do
-    sed -i "s/${param_name}: .*/${param_name}: ${param_values[$param_name]}/" ${DIR}/${CONFIG_NAME}.txt
-  done
+    # Backup the original file
+    cp ${DIR}/${CONFIG_NAME}.txt ${DIR}/${CONFIG_NAME}.txt.bak
 
+    # Attempt to replace the parameter
+    sed -i "s/${param_name}: .*/${param_name}: ${param_values[$param_name]}/" ${DIR}/${CONFIG_NAME}.txt
+
+    # Check if the file was changed
+    if cmp -s "${DIR}/${CONFIG_NAME}.txt" "${DIR}/${CONFIG_NAME}.txt.bak"; then
+      echo "Error: Parameter $param_name was not found in ${DIR}/${CONFIG_NAME}.txt"
+      exit 1
+    fi
+
+    # If the file was changed, remove the backup
+    rm ${DIR}/${CONFIG_NAME}.txt.bak
+  done
   # Generate the script for the current iteration
   SCRIPT=${DIR}/run_${INFILE}-${CONFIG_NAME}-${COUNT}.csh
 
