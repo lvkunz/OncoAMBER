@@ -84,7 +84,11 @@ for (( COUNT=0; COUNT<$ITER; COUNT++ )); do
 
   fi
   # Append the parameter values for this iteration to the CSV file
-  echo "$COUNT,${param_values[*]}" >> ${OUTPUT_DIR}/${CONFIG_NAME}_${INFILE}_param_values.csv
+  echo -n "$COUNT" >> ${OUTPUT_DIR}/${CONFIG_NAME}_${INFILE}_param_values.csv
+  for param_name in "${param_names[@]}"; do
+    echo -n " ${param_values[$param_name]}" >> ${OUTPUT_DIR}/${CONFIG_NAME}_${INFILE}_param_values.csv
+  done
+  echo "" >> ${OUTPUT_DIR}/${CONFIG_NAME}_${INFILE}_param_values.csv
 
   # Modify the configuration file with the parameter values for this iteration
   for param_name in "${!param_values[@]}"; do
