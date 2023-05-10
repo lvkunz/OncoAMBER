@@ -4,10 +4,6 @@ module purge
 module load anaconda/4.12.0
 #show the version of oncoamber installed on amberenv
 
-conda activate amberenv
-python -c "import amber; print(amber.__version__)"
-conda deactivate
-
 INFILE=$1
 ITER=$2
 CONFIG_NAME=$3

@@ -11,6 +11,7 @@ import pyvista as pv
 print('Current working directory:', os.getcwd())
 #print the directory of amber
 print('Amber directory:', amber.__file__)
+print('Amber version:', amber.__version__)
 
 
 if len(sys.argv) > 1:
