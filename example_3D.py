@@ -7,6 +7,53 @@ import time
 import os
 import pyvista as pv
 
+def show_tumor_3D_solid(world):
+
+    grid_shape = (world.number_of_voxels, world.number_of_voxels, world.number_of_voxels)
+    cell_counts = np.empty(grid_shape)
+    necro_counts = np.empty(grid_shape)
+
+    # Fill the array with the number of tumor cells in each voxel
+    for voxel in world.voxel_list:
+        i, j, k = np.unravel_index(voxel.voxel_number, grid_shape)
+        cell_counts[i, j, k] = voxel.number_of_tumor_cells()
+        necro_counts[i, j, k] = voxel.number_of_necrotic_cells()
+
+
+    # Create a vtkImageData object and assign the cell counts to it
+    grid = pv.UniformGrid()
+    grid.dimensions = grid_shape
+    grid.origin = (0, 0, 0)  # The bottom left corner of the data set
+    grid.spacing = (1, 1, 1)  # These are the cell sizes along each axis
+    grid.point_data['tumor'] = cell_counts.flatten(order="F")  # Flatten the array!
+    grid.point_data['necro'] = necro_counts.flatten(order='F')
+
+
+    contour_values = [1, 100, 300, 500, 800]
+    max = np.max(cell_counts)
+    #remove values below max from contour_values
+    contour_values = [x for x in contour_values if x < max]
+
+    contour_necro = [5]
+    max_necro = np.max(necro_counts)
+    contour_necro = [x for x in contour_necro if x < max_necro]
+
+    # Create a Plotter object
+    plotter = pv.Plotter()
+    plotter.add_mesh(grid.outline_corners(), color='k')
+
+    for i, value in enumerate(contour_values):
+        opacity = 0.3 + 0.5 * i / len(contour_values)
+        contour = grid.contour([value])
+        plotter.add_mesh(contour, cmap='jet', opacity= opacity, scalars='tumor')
+
+    for value in contour_necro:
+        contour_necro_mesh = grid.contour([value])
+        plotter.add_mesh(contour_necro_mesh, color='red', opacity=0.9, scalars='necro')
+
+    # Show the plot
+    plotter.show(auto_close=False,interactive=True)
+
 
 print('Current working directory:', os.getcwd())
 #print the directory of amber
@@ -58,7 +105,7 @@ for i in range(config.initial_number_tumor_cells):
 
 
 
-world.show_tumor_3D_solid()
+show_tumor_3D_solid(world)
 
 #generate vasculature and print related information
 world.generate_healthy_vasculature(config.vessel_number,
@@ -134,4 +181,4 @@ simulation_end = time.time()
 print('simulation time: ', simulation_end - simulation_start, ' seconds')
 print('total time: ', time.time() - start_time, ' seconds')
 
-world.show_tumor_3D_solid()
+show_tumor_3D_solid(world)
