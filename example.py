@@ -5,8 +5,6 @@ import numpy as np
 import random
 import time
 import os
-import pyvista as pv
-
 
 print('Current working directory:', os.getcwd())
 #print the directory of amber
