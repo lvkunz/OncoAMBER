@@ -8,6 +8,7 @@ import matplotlib.tri as mtri
 import matplotlib.pyplot as plt
 import scipy.sparse as sparse
 import pyvista as pv
+import matplotlib.cm as cm
 
 
 class World:
@@ -558,45 +559,52 @@ class World:
         print('Vessel segment length')
         print(f'Mean: {VSL_mean:.2f}, Median: {VSL_median:.2f}, Std: {np.std(VSL_values):.2f}, Min: {np.min(VSL_values):.2f}, Max: {np.max(VSL_values):.2f}')
 
-    def generate_tumor_mesh(self, section='none', color_map='jet'):
-        # Calculate the density values for each voxel
-        voxel_densities = []
+    def show_tumor_3D_solid(self):
+
+        grid_shape = (self.number_of_voxels, self.number_of_voxels, self.number_of_voxels)
+        cell_counts = np.empty(grid_shape)
+        necro_counts = np.empty(grid_shape)
+
+        # Fill the array with the number of tumor cells in each voxel
         for voxel in self.voxel_list:
-            num_cells = len(voxel.list_of_cells)
-            voxel_volume = voxel.volume
-            density = num_cells / voxel_volume
-            voxel_densities.append(density)
-
-        # Calculate the dimensions and spacing for the grid
-        dimensions = [self.number_of_voxels] * 3
-        spacing = [2 * self.half_length / self.number_of_voxels] * 3
-
-        # Create a PyVista grid object from the voxel data
-        grid = pv.UniformGrid(dimensions)
-        grid.spacing = spacing
-        grid.origin = [-self.half_length] * 3
-        grid.point_arrays['values'] = np.array(voxel_densities)
-
-        # Generate a surface mesh from the grid using density-based modeling
-        surface = grid.threshold([0.1, 1.0], scalars='values').extract_geometry()
-
-        # Remove a section of the surface mesh to visualize the interior of the tumor
-        if section != 'none':
-            section_plane = pv.Plane(origin=(0, 0, 0), normal=section)
-            surface = surface.clip_with_plane(section_plane)
-
-        # Color-code the surface mesh based on the density of cells within each voxel
-        color_values = np.array(voxel_densities)
-        color_mapper = pv.get_cmap(color_map)
-        surface['Density'] = color_values
-        surface.cell_arrays['Density'] = color_values
-        surface = surface.cell_data_to_point_data()
-        surface['Color'] = color_mapper.map(color_values)
-
-        return surface
+            i, j, k = np.unravel_index(voxel.voxel_number, grid_shape)
+            cell_counts[i, j, k] = voxel.number_of_tumor_cells()
+            necro_counts[i, j, k] = voxel.number_of_necrotic_cells()
 
 
+        # Create a vtkImageData object and assign the cell counts to it
+        grid = pv.UniformGrid()
+        grid.dimensions = grid_shape
+        grid.origin = (0, 0, 0)  # The bottom left corner of the data set
+        grid.spacing = (1, 1, 1)  # These are the cell sizes along each axis
+        grid.point_data['tumor'] = cell_counts.flatten(order="F")  # Flatten the array!
+        grid.point_data['necro'] = necro_counts.flatten(order='F')
 
+
+        contour_values = [1, 100, 300, 500, 800]
+        max = np.max(cell_counts)
+        #remove values below max from contour_values
+        contour_values = [x for x in contour_values if x < max]
+
+        contour_necro = [5]
+        max_necro = np.max(necro_counts)
+        contour_necro = [x for x in contour_necro if x < max_necro]
+
+        # Create a Plotter object
+        plotter = pv.Plotter()
+        plotter.add_mesh(grid.outline_corners(), color='k')
+
+        for i, value in enumerate(contour_values):
+            opacity = 0.3 + 0.5 * i / len(contour_values)
+            contour = grid.contour([value])
+            plotter.add_mesh(contour, cmap='jet', opacity= opacity, scalars='tumor')
+
+        for value in contour_necro:
+            contour_necro_mesh = grid.contour([value])
+            plotter.add_mesh(contour_necro_mesh, color='red', opacity=0.9, scalars='necro')
+
+        # Show the plot
+        plotter.show(auto_close=False,interactive=True)
 
 
 

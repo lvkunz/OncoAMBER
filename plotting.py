@@ -9,6 +9,8 @@ def func(x, a, b, c):
     return a * (np.exp(b * x)) + c
 
 repo = 'output/20230510_lk001_Linux/CONFIG_growth_diff_visco_example.py_1340'
+repo = 'output/20230510_lk001_Linux/CONFIG_avascular_example.py_1416'
+parameter = 'probability_apoptosis'
 
 csv_file = ''
 #all repositories in repo:
@@ -20,12 +22,11 @@ for filename in os.listdir(repo):
 
 param_space = pd.read_csv(f'{repo}/{csv_file}', sep=' ', header=0)
 print(param_space)
-parameter = 'viscosity'
 
-param = param_space[parameter]
+param = np.array(param_space[parameter])
 number_of_iterations = len(param_space['Iteration'])
 
-paths = [f'{repo}/iter{i}/DataOutput/' for i in range(0, number_of_iterations-1)]
+paths = [f'{repo}/iter{i}/DataOutput/' for i in range(0, number_of_iterations)]
 print(paths)
 
 tmin = 0  # Minimum time
@@ -121,30 +122,33 @@ axes[1].grid(True)
 axes[1].legend()
 
 plt.tight_layout()
-plt.savefig('growth_evolution.png')
+plt.savefig(repo+'/tumor_evolution.png', dpi=dpi)
 plt.show()
 
 print('Doubling times (Number of Cells):', doubling_times_number_cells)
 print('Doubling times (Tumor Size):', doubling_times_tumor_size)
 
+print(param)
+print(doubling_times_number_cells)
+
 plt.plot(param, doubling_times_number_cells, 'bo', label='Cells doubling time')
-plt.xlabel('Time step')
+plt.xlabel(parameter)
 plt.ylabel('Doubling time [days]')
-plt.title('Doubling time vs. Time step')
+plt.title('Doubling time vs. ' + parameter)
 # plt.yscale('log')  # set y-axis to logarithmic scale
 plt.legend()
 plt.grid(True)
-plt.savefig('doubling_time.png', dpi=300)
+plt.savefig(repo+'/doubling_time.png', dpi=300)
 plt.show()
 
 plt.plot(param, doubling_times_tumor_size, 'ro', label='Tumor volume doubling time')
-plt.xlabel('Time step')
+plt.xlabel(parameter)
 plt.ylabel('Doubling time [days]')
-plt.title('Doubling time vs. Time step')
+plt.title('Doubling time vs. ' + parameter)
 # plt.yscale('log')  # set y-axis to logarithmic scale
 plt.legend()
 plt.grid(True)
-plt.savefig('doubling_time_tumor_size.png', dpi=300)
+plt.savefig(repo+'/doubling_time_tumor_size.png', dpi=300)
 plt.show()
 
 # #plot the data and the fitted curve

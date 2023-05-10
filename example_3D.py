@@ -57,6 +57,9 @@ for i in range(config.initial_number_tumor_cells):
         amber.Cell(config.radius_tumor_cells, cycle_hours=config.doubling_time_tumor, cycle_std=config.doubling_time_sd, radiosensitivity=config.radiosensitivity, o2_to_vitality_factor=config.o2_to_vitality_factor, type='TumorCell'))
 
 
+
+world.show_tumor_3D_solid()
+
 #generate vasculature and print related information
 world.generate_healthy_vasculature(config.vessel_number,
             splitting_rate=0.5,
@@ -130,3 +133,5 @@ simulation_end = time.time()
 
 print('simulation time: ', simulation_end - simulation_start, ' seconds')
 print('total time: ', time.time() - start_time, ' seconds')
+
+world.show_tumor_3D_solid()
