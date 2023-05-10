@@ -3,26 +3,30 @@ import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 import glob
 import os
+import pandas as pd
 
 def func(x, a, b, c):
     return a * (np.exp(b * x)) + c
 
-CONFIG_file = 'CONFIG_dt_convergence_cycling0'
-CONFIG_file = 'CONFIG_dt_convergence_no_normal_cell_cycling0'
-CONFIG_file = 'CONFIG_growth_visco10'
+repo = 'output/20230510_lk001_Linux/CONFIG_growth_diff_visco_example.py_1340'
 
-repo = 'output/'+ CONFIG_file + '_example.py_20230509_lk001_Linux'
-
+csv_file = ''
 #all repositories in repo:
+#find csv file in repo
+for filename in os.listdir(repo):
+    # Check if the file is a csv file
+    if filename.endswith('.csv'):
+        csv_file = filename
 
-dt = [1, 2, 3, 4, 5, 7, 10]
+param_space = pd.read_csv(f'{repo}/{csv_file}', sep=' ', header=0)
+print(param_space)
+parameter = 'viscosity'
 
-paths = []
+param = param_space[parameter]
+number_of_iterations = len(param_space['Iteration'])
 
-for i, d in enumerate(dt):
-    path = f'example.py_{CONFIG_file}_dt{d}_iter{i}/DataOutput/'
-    full_path = f'{repo}/{path}'
-    paths.append(full_path)
+paths = [f'{repo}/iter{i}/DataOutput/' for i in range(0, number_of_iterations-1)]
+print(paths)
 
 tmin = 0  # Minimum time
 tmax = 1000  # Maximum time
@@ -30,7 +34,7 @@ show_fits = False  # Show the exponential fits
 show_necro = True
 show_quiet_cycling = True
 
-dt_to_plot = [1, 10]
+param_to_plot = []
 
 number_cells_list = []
 necrotic_cells_list = []
@@ -75,19 +79,19 @@ fig, axes = plt.subplots(2, 1, figsize=(8, 10), dpi=dpi)
 
 
 for i in range(len(paths)):
-    if len(dt_to_plot) > 0:
-        if dt[i] not in dt_to_plot:
+    if len(param_to_plot) > 0:
+        if param[i] not in param_to_plot:
             continue
     print(paths[i])
     # Fit number of cells
     popt, pcov = curve_fit(func, times_list[i], number_cells_list[i], p0=(3000, 3e-3, 0), maxfev=100000)
     print(popt)
-    color = axes[0].plot(times_list[i], number_cells_list[i], '.', markersize=3, alpha=0.8, label=f'dt =' + str(dt[i]))[0].get_color()
+    color = axes[0].plot(times_list[i], number_cells_list[i], '.', markersize=3, alpha=0.8, label=parameter+': '+str(param[i]))[0].get_color()
     if show_necro: axes[0].plot(times_list[i], necrotic_cells_list[i], 's', markersize=5, alpha=0.5, color=color)
     if show_quiet_cycling:
         axes[0].plot(times_list[i], cycling_cells_list[i], '+', markersize=3, alpha=0.5, color=color)
         axes[0].plot(times_list[i], quiescent_cells_list[i], 'D', markersize=3, alpha=0.5, color=color)
-    if show_fits: axes[0].plot(times_list[i], func(times_list[i], *popt), '-', color=color, label='fit dt =' + str(dt[i]))
+    if show_fits: axes[0].plot(times_list[i], func(times_list[i], *popt), '-', color=color, label='fit '+parameter+': '+str(param[i]))
     doubling_time = np.log(2)/popt[1]
     print('Doubling time (Number of Cells):', doubling_time)
     doubling_times_number_cells.append(doubling_time)
@@ -95,8 +99,8 @@ for i in range(len(paths)):
     # Fit tumor size
     popt, pcov = curve_fit(func, times_list[i], tumor_size_list[i], p0=(1, 0.003, 0), maxfev=100000)
     print(popt)
-    axes[1].plot(times_list[i], tumor_size_list[i], 'o', color = color, markersize = 1, alpha=0.5, label=f'dt =' + str(dt[i]))
-    if show_fits: axes[1].plot(times_list[i], func(times_list[i], *popt), '-', color=color, label='fit dt =' + str(dt[i]))
+    axes[1].plot(times_list[i], tumor_size_list[i], 'o', color = color, markersize = 1, alpha=0.5, label=parameter+': '+str(param[i]))
+    if show_fits: axes[1].plot(times_list[i], func(times_list[i], *popt), '-', color=color, label='fit '+parameter+': '+str(param[i]))
     doubling_time = np.log(2)/popt[1]
     doubling_times_tumor_size.append(doubling_time)
 
@@ -123,7 +127,7 @@ plt.show()
 print('Doubling times (Number of Cells):', doubling_times_number_cells)
 print('Doubling times (Tumor Size):', doubling_times_tumor_size)
 
-plt.plot(dt, doubling_times_number_cells, 'bo', label='Cells doubling time')
+plt.plot(param, doubling_times_number_cells, 'bo', label='Cells doubling time')
 plt.xlabel('Time step')
 plt.ylabel('Doubling time [days]')
 plt.title('Doubling time vs. Time step')
@@ -133,7 +137,7 @@ plt.grid(True)
 plt.savefig('doubling_time.png', dpi=300)
 plt.show()
 
-plt.plot(dt, doubling_times_tumor_size, 'ro', label='Tumor volume doubling time')
+plt.plot(param, doubling_times_tumor_size, 'ro', label='Tumor volume doubling time')
 plt.xlabel('Time step')
 plt.ylabel('Doubling time [days]')
 plt.title('Doubling time vs. Time step')
