@@ -27,14 +27,17 @@ start_time = time.time()
 DPI = 100
 
 seed = config.seed
-print('python version', sys.version)
-print('Config file', config_file)
-print('seed', seed)
-
 np.random.seed(seed)
 random.seed(seed)
 
-print(config_dict)
+print('python version', sys.version)
+print('Config file', config_file)
+print('#'*80)
+for key, value in config_dict.items():
+    print(key, value)
+print('#'*80)
+
+
 world = amber.World(config)
 
 #########################################################################################

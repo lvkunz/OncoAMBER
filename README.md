@@ -88,6 +88,7 @@ Then you will be prompted to enter the values for each parameter you chose to ch
 The script will then run all simulations and store them in an output folder. You'll find that the folder hierarchy goes through dates, name of config file and pyhton
 script, and then the iteration number. The output folder will contain all the data from the simulation, including the CONFIG file used for each iteration.
 The output folder will also contain a log file with the date and time of the simulation, as well as the parameters used for each iteration stored in a .csv file.
+If you'd like to change the seed to some random value I recommand setting it to -1 in the CONFIG file. The script will then generate a random seed for each iteration.
 
 To easily read the results of your simulations you can run the plotting,py script by changing the output folder directory you want to use and the name of the parameters you want to look at.
 You can also change t_min, t_max and choose to plot the results for all iterations or just a few of them.
