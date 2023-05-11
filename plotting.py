@@ -11,6 +11,9 @@ def func(x, a, b, c):
 repo = 'output/20230510_lk001_Linux/CONFIG_growth_diff_visco_example.py_1340'
 repo = 'output/20230510_lk001_Linux/CONFIG_avascular_example.py_1416'
 repo = 'output/20230510_lk001_Linux/CONFIG_dt_convergence_example.py_1412'
+repo = 'output/20230510_lk001_Linux/CONFIG_avascular_example.py_1752'
+repo = 'output/20230510_lk001_Linux/CONFIG_avascular_example.py_1806'
+repo = 'output/20230510_lk001_Linux/CONFIG_dt_convergence_example.py_1805'
 parameter = 'dt'
 
 csv_file = ''
@@ -32,7 +35,7 @@ paths = [f'{repo}/iter{i}/DataOutput/' for i in range(0, number_of_iterations)]
 print(paths)
 
 tmin = 0  # Minimum time
-tmax = 1000  # Maximum time
+tmax = 200  # Maximum time
 show_fits = False  # Show the exponential fits
 show_necro = True
 show_quiet_cycling = True
@@ -40,7 +43,7 @@ local = False
 
 if local: paths = ['DataOutput/']
 
-param_to_plot = [1]
+param_to_plot = []
 
 number_cells_list = []
 necrotic_cells_list = []
@@ -82,6 +85,7 @@ doubling_times_number_cells = []
 doubling_times_tumor_size = []
 dpi = 300
 fig, axes = plt.subplots(2, 1, figsize=(8, 10), dpi=dpi)
+
 
 
 for i in range(len(paths)):
@@ -211,50 +215,5 @@ plt.show()
 # plt.savefig('tumorgrowth.png')
 # plt.show()
 
-# def show_tumor_3D_solid(self):
-#
-#     grid_shape = (self.number_of_voxels, self.number_of_voxels, self.number_of_voxels)
-#     cell_counts = np.empty(grid_shape)
-#     necro_counts = np.empty(grid_shape)
-#
-#     # Fill the array with the number of tumor cells in each voxel
-#     for voxel in self.voxel_list:
-#         i, j, k = np.unravel_index(voxel.voxel_number, grid_shape)
-#         cell_counts[i, j, k] = voxel.number_of_tumor_cells()
-#         necro_counts[i, j, k] = voxel.number_of_necrotic_cells()
-#
-#
-#     # Create a vtkImageData object and assign the cell counts to it
-#     grid = pv.UniformGrid()
-#     grid.dimensions = grid_shape
-#     grid.origin = (0, 0, 0)  # The bottom left corner of the data set
-#     grid.spacing = (1, 1, 1)  # These are the cell sizes along each axis
-#     grid.point_data['tumor'] = cell_counts.flatten(order="F")  # Flatten the array!
-#     grid.point_data['necro'] = necro_counts.flatten(order='F')
-#
-#
-#     contour_values = [1, 100, 300, 500, 800]
-#     max = np.max(cell_counts)
-#     #remove values below max from contour_values
-#     contour_values = [x for x in contour_values if x < max]
-#
-#     contour_necro = [5]
-#     max_necro = np.max(necro_counts)
-#     contour_necro = [x for x in contour_necro if x < max_necro]
-#
-#     # Create a Plotter object
-#     plotter = pv.Plotter()
-#     plotter.add_mesh(grid.outline_corners(), color='k')
-#
-#     for i, value in enumerate(contour_values):
-#         opacity = 0.3 + 0.5 * i / len(contour_values)
-#         contour = grid.contour([value])
-#         plotter.add_mesh(contour, cmap='jet', opacity= opacity, scalars='tumor')
-#
-#     for value in contour_necro:
-#         contour_necro_mesh = grid.contour([value])
-#         plotter.add_mesh(contour_necro_mesh, color='red', opacity=0.9, scalars='necro')
-#
-#     # Show the plot
-#     plotter.show(auto_close=False,interactive=True)
+
 

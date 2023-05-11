@@ -30,7 +30,7 @@ class World:
                     ])
                     self.voxel_list.append(Voxel(position, self.half_length / self.number_of_voxels, viscosity= self.config.viscosity, voxel_number=i * self.number_of_voxels ** 2 + j * self.number_of_voxels + k))
         self.vasculature = VasculatureNetwork(self.config)
-        self.o_volume_values = []
+        self.o_diameters = []
         self.o_length_values = []
         self.o_bifurcation_values = []
         self.o_VSL_values = []
