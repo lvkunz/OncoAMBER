@@ -5,6 +5,7 @@
 import io
 import os
 import sys
+import re
 from shutil import rmtree
 from distutils.core import setup
 from setuptools import find_packages, Command
@@ -16,7 +17,6 @@ URL = 'https://github.com/lvkunz/AMBER'
 EMAIL = 'lvkunz@mgh.harvard.edu'
 AUTHOR = 'Louis Kunz'
 REQUIRES_PYTHON = '>=3.8.2'
-VERSION = False
 
 # Required packages for this module to be executed
 REQUIRED = ['numpy', 'pandas', 'scipy']
@@ -33,15 +33,19 @@ try:
 except:
     long_description = DESCRIPTION
 
-about = {}
-if not VERSION:
-    project_slug = "amber"
-    with open(os.path.join(os.path.dirname(__file__), '__init__.py')) as f:
-        exec(f.read(), about)
-else:
-    about['__version__'] = VERSION
+# Read the version from __init__.py
+version = ''
+init_file = os.path.join(os.path.dirname(__file__), 'amber', '__init__.py')
+with open(init_file, 'r') as f:
+    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", f.read(), re.M)
+    if version_match:
+        version = version_match.group(1)
 
-version = about.get('__version__')
+# Assign the version to the VERSION variable
+VERSION = version
+
+# Rest of your setup.py code...
+
 
 # Support setup.py upload
 class UploadCommand(Command):
@@ -73,13 +77,13 @@ class UploadCommand(Command):
         os.system('twine upload dist/*')
 
         self.status('Pushing git tags...')
-        os.system('git tag v{0}'.format(about['__version__']))
+        os.system('git tag v{0}'.format(VERSION))
         os.system('git push --tags')
 
 # Executing setup
 setup(
     name=NAME,
-    version=about['__version__'],
+    version=VERSION,
     description=DESCRIPTION,
     long_description=long_description,
     long_description_content_type='text/markdown',

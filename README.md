@@ -18,15 +18,27 @@ We'll integrate the radiation effects on individual cells using the simple inter
 
 Download the github repository and run the following command in the main directory:
 
-github: https://github.com/lvkunz/OncoAMBER
+```bash
+bash install.sh
+```
 
-PyPi: https://pypi.org/project/OncoAMBER/
+This will install the latest version of the amber package itself. Make sure to activate your python environment before running the command.
 
-
-sh install.sh 
+github: https://github.com/lvkunz/OncoAMBER; PyPi: https://pypi.org/project/OncoAMBER/
 
 ## Usage
 
+I recommand specifying the path to the amber package at the beginning of your python script:
+
+example:
+```python
+import sys
+sys.path.insert(0, '/PHShome/lk001/.conda/envs/amberenv/lib/python3.9/site-packages') #cluster
+```
+
+you can then import the amber package.
+
+```python
 import amber
 
 amber.World(-)
@@ -35,12 +47,48 @@ amber.Voxel(-)
 amber.Vessel(-)
 amber.VesselNetwork(-)
 amber.Simulator(-)
-etc. 
+etc
+```
 
-run example.py in the same directory as any CONFIG files you want to use using the following command:
+## Running the example locally
 
-python example.py CONFIG 
+The example.py file is explained in further details in the Tutorial.ipnyb notebook.
+However, you need to know that amber needs a CONFIG file to be run. This file contains all the parameters needed to run the simulation.
 
-or on the cluster use:
+you need to use the following terminal command to run the example:
+```bash
+python example.py CONFIG
+```
 
+Note that the CONFIG does not include the .txt extension! 
+
+If you're running the example through a GUI editor such as PyCharm, you can specify the CONFIG file in the run configuration. 
+
+On PyCharm, in the top right corner, click on the dropdown menu and select "Edit Configurations...".
+In the "Script parameters" field, type the name of the CONFIG file you want to use.
+
+## Running the example on the cluster
+
+To run the example on the cluster, you need to use the following command:
+
+```bash
 bash run_AMBER.sh example.py <n_iter> CONFIG
+```
+You might need to change the shell script for your own cluster.
+
+Where <n_iter> is the number of iterations you want to run. You can then decide which parameters you want to change in the CONFIG file for each iteration.
+For example when prompted 
+```
+Enter a parameter name to change, or type 'none' to continue: 
+```
+
+you can reply 'dt' to change the time step for each iteration. Choose all the parameters you want to change, then type 'none' to continue.
+Then you will be prompted to enter the values for each parameter you chose to change for each iteration.
+
+The script will then run all simulations and store them in an output folder. You'll find that the folder hierarchy goes through dates, name of config file and pyhton
+script, and then the iteration number. The output folder will contain all the data from the simulation, including the CONFIG file used for each iteration.
+The output folder will also contain a log file with the date and time of the simulation, as well as the parameters used for each iteration stored in a .csv file.
+
+To easily read the results of your simulations you can run the plotting,py script by changing the output folder directory you want to use and the name of the parameters you want to look at.
+You can also change t_min, t_max and choose to plot the results for all iterations or just a few of them.
+

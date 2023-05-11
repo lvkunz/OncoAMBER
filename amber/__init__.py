@@ -1,3 +1,4 @@
+__version__ = '1.2.8'
 from .config import *
 from .ReadAndWrite import *
 from .config import Config
@@ -10,4 +11,4 @@ from .process import *
 from .Terminal import *
 from .ScalarField import *
 from .BetaDistributionCalibration import *
-__version__ = '1.2.6'
+

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 module purge
 module load anaconda/4.12.0
