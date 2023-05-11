@@ -10,7 +10,7 @@ initial_number_healthy_cells: 50        #initial number of healthy cells per vox
 initial_number_tumor_cells: 100         #initial total number of tumor cells
 tumor_initial_radius: 0.01 #mm
 doubling_time_healthy: 1 #hours
-doubling_time_tumor: 27   #hours
+doubling_time_tumor: 54   #hours
 doubling_time_sd: 5
 radius_tumor_cells: 0.033 #mm
 radius_healthy_cells: 0.033 #mm
@@ -30,7 +30,7 @@ vitality_cycling_threshold: 0.9         #threshold in vitality for cells to star
 pressure_threshold_division: 0.68       #max pressure at which cell division can happen
 max_occupancy: 0.68                     #max pressure at which cells can't enter a voxel through migration or other means
 vitality_apoptosis_threshold: 0.9       #threshold in vitality for cells to start apoptosis. DO NOT SET TO 0
-probability_apoptosis: 0.01              #probability of apoptosis under the threshold. you can set it to 0
+probability_apoptosis: 0.1              #probability of apoptosis under the threshold. you can set it to 0
 vitality_necrosis_threshold: 0.05        #threshold in vitality for cells to start necrosis
 probability_necrosis: 0.05               #probability of necrosis under the threshold
 VEGF_production_per_cell: 0.001          #VEGF production per cell per hour?
@@ -60,13 +60,13 @@ new_vessels_per_hour: 0.0               #number of new vessels per hour
 # Graphics parameters
 show_time_steps: True                   #if True, show the time during the simulation
 show_final: False                       #if True, show the final state of the simulation
-show_slices: True                       #if True, show a slice of the tumor during the simulation
+show_slices: False                       #if True, show a slice of the tumor during the simulation
 slice: x                                #what direction to slice the tumor (x or z
 show_o2_vitality_histograms: False      #if True, show a histogram of oxygen and vitality during the simulation
 show_tumor_and_vessels_3D: False         #if True, show the vasculature in 3D during the simulation with tumor cells
 visible_original_vessels: False          #if True, show the original vasculature in 3D during the simulation
 show_alpha_beta_maps: False             #if True, show the distribution of the parameters beta and gamma
 show_cell_and_tumor_volume: True        #if True, show the volume of tumor cells and healthy cells during the simulation
-verbose: True
+verbose: False
 show_angiogenesis_metrics: False
 
