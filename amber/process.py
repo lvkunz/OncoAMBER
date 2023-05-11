@@ -237,9 +237,14 @@ class CellDeath(Process): #cell necrosis process, cells die in a voxel if they h
         return r
 
     def apoptosis_curve(self, x):
-        r_ = (self.apoptosis_probability / self.apoptosis_threshold) * x
-        if r_ < 0: r_ = 0
-        return r_
+        # r_ = (self.apoptosis_probability / self.apoptosis_threshold) * x
+        # if r_ < 0: r_ = 0
+        # return r_
+        if x < self.apoptosis_threshold:
+            return self.apoptosis_probability
+        else:
+            return 0
+
 
     def __call__(self, voxel):
         for cell in voxel.list_of_cells:

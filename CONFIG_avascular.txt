@@ -1,6 +1,6 @@
 half_length_world: 7.5 #mm
 voxel_per_side: 25
-dt: 20 #hours
+dt: 10 #hours
 endtime: 1000 #hours
 seed: 1                                 #seed for random number generator. -1 for random seed
 
@@ -26,13 +26,13 @@ radiosensitivity: 0.1                   #death rate of cells due to 1Gy of radia
 # Parameters for the simulation
 pressure_threshold_migration: 0.0      #threshold for pressure difference for migration to happen
 effective_vessel_radius: 0.01          #vessel radius used to compute n vessel in voxel depending on total volume of vessels
-vitality_cycling_threshold: 0.8         #threshold in vitality for cells to start cycling
+vitality_cycling_threshold: 0.9         #threshold in vitality for cells to start cycling
 pressure_threshold_division: 0.68       #max pressure at which cell division can happen
 max_occupancy: 0.68                     #max pressure at which cells can't enter a voxel through migration or other means
-vitality_apoptosis_threshold: 0.2       #threshold in vitality for cells to start apoptosis. DO NOT SET TO 0
-probability_apoptosis: 0.2                #probability of apoptosis under the threshold. you can set it to 0
-vitality_necrosis_threshold: 0.1        #threshold in vitality for cells to start necrosis
-probability_necrosis: 0.1               #probability of necrosis under the threshold
+vitality_apoptosis_threshold: 0.9       #threshold in vitality for cells to start apoptosis. DO NOT SET TO 0
+probability_apoptosis: 0.01              #probability of apoptosis under the threshold. you can set it to 0
+vitality_necrosis_threshold: 0.05        #threshold in vitality for cells to start necrosis
+probability_necrosis: 0.05               #probability of necrosis under the threshold
 VEGF_production_per_cell: 0.001          #VEGF production per cell per hour?
 o2_threshold_for_VEGF_production: 0.6   #threshold in vitality for cells to start producing VEGF
 vegf_map_step_voxel: 5                  # number of voxel for VEGF gradient computation, should be the order of the tumor size

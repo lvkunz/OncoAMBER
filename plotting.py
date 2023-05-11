@@ -13,8 +13,8 @@ repo = 'output/20230510_lk001_Linux/CONFIG_avascular_example.py_1416'
 repo = 'output/20230510_lk001_Linux/CONFIG_dt_convergence_example.py_1412'
 repo = 'output/20230510_lk001_Linux/CONFIG_avascular_example.py_1752'
 repo = 'output/20230510_lk001_Linux/CONFIG_avascular_example.py_1806'
-repo = 'output/20230510_lk001_Linux/CONFIG_dt_convergence_example.py_1805'
-parameter = 'dt'
+# repo = 'output/20230510_lk001_Linux/CONFIG_dt_convergence_example.py_1805'
+parameter = 'probability_apoptosis'
 
 csv_file = ''
 #all repositories in repo:
@@ -34,8 +34,8 @@ paths = [f'{repo}/iter{i}/DataOutput/' for i in range(0, number_of_iterations)]
 
 print(paths)
 
-tmin = 0  # Minimum time
-tmax = 200  # Maximum time
+tmin = 100  # Minimum time
+tmax = 400  # Maximum time
 show_fits = False  # Show the exponential fits
 show_necro = True
 show_quiet_cycling = True
