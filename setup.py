@@ -6,7 +6,6 @@ import io
 import os
 import sys
 from shutil import rmtree
-
 from distutils.core import setup
 from setuptools import find_packages, Command
 
@@ -17,7 +16,7 @@ URL = 'https://github.com/lvkunz/AMBER'
 EMAIL = 'lvkunz@mgh.harvard.edu'
 AUTHOR = 'Louis Kunz'
 REQUIRES_PYTHON = '>=3.8.2'
-VERSION = '1.2.6'
+VERSION = False
 
 # Required packages for this module to be executed
 REQUIRED = ['numpy', 'pandas', 'scipy']
@@ -34,14 +33,15 @@ try:
 except:
     long_description = DESCRIPTION
 
-# Load the package's __version__.py module as a dictionary
 about = {}
 if not VERSION:
-    project_slug = "OncoAMBER"
-    with open(os.path.join(here, project_slug, '__version__.py')) as f:
+    project_slug = "amber"
+    with open(os.path.join(os.path.dirname(__file__), '__init__.py')) as f:
         exec(f.read(), about)
 else:
     about['__version__'] = VERSION
+
+version = about.get('__version__')
 
 # Support setup.py upload
 class UploadCommand(Command):

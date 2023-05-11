@@ -9,7 +9,7 @@ import os
 print('Current working directory:', os.getcwd())
 #print the directory of amber
 print('Amber directory:', amber.__file__)
-
+print('Amber version:', amber.__version__)
 
 if len(sys.argv) > 1:
     config_file = sys.argv[1]
