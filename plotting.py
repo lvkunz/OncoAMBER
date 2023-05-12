@@ -8,15 +8,7 @@ import pandas as pd
 def func(x, a, b, c):
     return a * (np.exp(b * x)) + c
 
-repo = 'output/20230510_lk001_Linux/CONFIG_growth_diff_visco_example.py_1340'
-repo = 'output/20230510_lk001_Linux/CONFIG_avascular_example.py_1416'
-repo = 'output/20230510_lk001_Linux/CONFIG_dt_convergence_example.py_1412'
-repo = 'output/20230510_lk001_Linux/CONFIG_avascular_example.py_1752'
-repo = 'output/20230510_lk001_Linux/CONFIG_avascular_example.py_1806'
-# repo = 'output/20230510_lk001_Linux/CONFIG_dt_convergence_example.py_1805'
-repo = 'output/20230511_lk001_Linux/CONFIG_avascular_example.py_1222'
-repo = 'CONFIG_avascular_example.py_1601'
-parameter = 'probability_apoptosis'
+repo = '20230512_lk001_Linux/CONFIG_avascular_example.py_1141'
 
 csv_file = ''
 #all repositories in repo:
@@ -28,6 +20,10 @@ for filename in os.listdir(repo):
 
 param_space = pd.read_csv(f'{repo}/{csv_file}', sep=' ', header=0)
 print(param_space)
+
+print(param_space.columns)
+print(param_space.columns[1])
+parameter = param_space.columns[1]
 
 param = np.array(param_space[parameter])
 number_of_iterations = len(param_space['Iteration'])
@@ -45,7 +41,7 @@ local = False
 
 if local: paths = ['DataOutput/']
 
-param_to_plot = []
+param_to_plot = [1.0]
 
 number_cells_list = []
 necrotic_cells_list = []
@@ -96,25 +92,29 @@ for i in range(len(paths)):
             continue
     print(paths[i])
     # Fit number of cells
-    # popt, pcov = curve_fit(func, times_list[i], number_cells_list[i], p0=(3000, 3e-3, 0), maxfev=100000)
-    # print(popt)
+    if show_fits:
+        popt, pcov = curve_fit(func, times_list[i], number_cells_list[i], p0=(3000, 3e-3, 0), maxfev=100000)
+        print(popt)
     color = axes[0].plot(times_list[i], number_cells_list[i], '.', markersize=3, alpha=0.8, label=parameter+': '+str(param[i]))[0].get_color()
     if show_necro: axes[0].plot(times_list[i], necrotic_cells_list[i], 's', markersize=5, alpha=0.5, color=color)
     if show_quiet_cycling:
         axes[0].plot(times_list[i], cycling_cells_list[i], '+', markersize=3, alpha=0.5, color=color)
         axes[0].plot(times_list[i], quiescent_cells_list[i], 'D', markersize=3, alpha=0.5, color=color)
-    if show_fits: axes[0].plot(times_list[i], func(times_list[i], *popt), '-', color=color, label='fit '+parameter+': '+str(param[i]))
-    # doubling_time = np.log(2)/popt[1]
-    # print('Doubling time (Number of Cells):', doubling_time)
-    # doubling_times_number_cells.append(doubling_time)
+    if show_fits:
+        axes[0].plot(times_list[i], func(times_list[i], *popt), '-', color=color, label='fit '+parameter+': '+str(param[i]))
+        doubling_time = np.log(2)/popt[1]
+        print('Doubling time (Number of Cells):', doubling_time)
+        doubling_times_number_cells.append(doubling_time)
 
     # Fit tumor size
-    # popt, pcov = curve_fit(func, times_list[i], tumor_size_list[i], p0=(1, 0.003, 0), maxfev=100000)
-    # print(popt)
+    if show_fits:
+        popt, pcov = curve_fit(func, times_list[i], tumor_size_list[i], p0=(1, 0.003, 0), maxfev=100000)
+        print(popt)
     axes[1].plot(times_list[i], tumor_size_list[i], 'o', color = color, markersize = 1, alpha=0.5, label=parameter+': '+str(param[i]))
-    if show_fits: axes[1].plot(times_list[i], func(times_list[i], *popt), '-', color=color, label='fit '+parameter+': '+str(param[i]))
-    # doubling_time = np.log(2)/popt[1]
-    # doubling_times_tumor_size.append(doubling_time)
+    if show_fits:
+        axes[1].plot(times_list[i], func(times_list[i], *popt), '-', color=color, label='fit '+parameter+': '+str(param[i]))
+        doubling_time = np.log(2)/popt[1]
+        doubling_times_tumor_size.append(doubling_time)
 
 axes[0].set_title('Number of Cells Evolution')
 axes[0].set_xlabel('Time')
@@ -136,31 +136,32 @@ plt.tight_layout()
 plt.savefig(repo+'/tumor_evolution.png', dpi=dpi)
 plt.show()
 
-print('Doubling times (Number of Cells):', doubling_times_number_cells)
-print('Doubling times (Tumor Size):', doubling_times_tumor_size)
+if show_fits:
+    print('Doubling times (Number of Cells):', doubling_times_number_cells)
+    print('Doubling times (Tumor Size):', doubling_times_tumor_size)
 
-print(param)
-print(doubling_times_number_cells)
+    print(param)
+    print(doubling_times_number_cells)
 
-plt.plot(param, doubling_times_number_cells, 'bo', label='Cells doubling time')
-plt.xlabel(parameter)
-plt.ylabel('Doubling time [days]')
-plt.title('Doubling time vs. ' + parameter)
-# plt.yscale('log')  # set y-axis to logarithmic scale
-plt.legend()
-plt.grid(True)
-plt.savefig(repo+'/doubling_time.png', dpi=300)
-plt.show()
+    plt.plot(param, doubling_times_number_cells, 'bo', label='Cells doubling time')
+    plt.xlabel(parameter)
+    plt.ylabel('Doubling time [days]')
+    plt.title('Doubling time vs. ' + parameter)
+    # plt.yscale('log')  # set y-axis to logarithmic scale
+    plt.legend()
+    plt.grid(True)
+    plt.savefig(repo+'/doubling_time.png', dpi=300)
+    plt.show()
 
-plt.plot(param, doubling_times_tumor_size, 'ro', label='Tumor volume doubling time')
-plt.xlabel(parameter)
-plt.ylabel('Doubling time [days]')
-plt.title('Doubling time vs. ' + parameter)
-# plt.yscale('log')  # set y-axis to logarithmic scale
-plt.legend()
-plt.grid(True)
-plt.savefig(repo+'/doubling_time_tumor_size.png', dpi=300)
-plt.show()
+    plt.plot(param, doubling_times_tumor_size, 'ro', label='Tumor volume doubling time')
+    plt.xlabel(parameter)
+    plt.ylabel('Doubling time [days]')
+    plt.title('Doubling time vs. ' + parameter)
+    # plt.yscale('log')  # set y-axis to logarithmic scale
+    plt.legend()
+    plt.grid(True)
+    plt.savefig(repo+'/doubling_time_tumor_size.png', dpi=300)
+    plt.show()
 
 # #plot the data and the fitted curve
 # fig, axs = plt.subplots(2, 1, figsize=(14, 10))
