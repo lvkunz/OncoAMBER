@@ -1,9 +1,6 @@
 import numpy as np
-#from scipy.stats import qmc
 import matplotlib.pyplot as plt
 from scipy.stats import beta
-from scipy.optimize import curve_fit
-from mpl_toolkits.mplot3d import Axes3D
 import pandas as pd
 import seaborn as sns
 
