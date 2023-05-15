@@ -1,16 +1,13 @@
 import numpy as np
-#from scipy.stats import qmc
 import matplotlib.pyplot as plt
 from scipy.stats import beta
-from scipy.optimize import curve_fit
-from mpl_toolkits.mplot3d import Axes3D
 import pandas as pd
 import seaborn as sns
 
 class Vessel:
-    def __init__(self, origin, radius):
+    def __init__(self, origin, radius, length):
         self.origin = (origin[0], origin[1], 0)
-        self.end = (origin[0], origin[1], side)
+        self.end = (origin[0], origin[1], length)
         self.radius = radius
 
     def closest_distance(self, point):
@@ -77,7 +74,7 @@ def run_calibration(side = 6, a = -7, b = 1, max_n = 100):
 
                 vessels = []
                 for i in range(len(points_x)):
-                    vessels.append(Vessel([points_x[i], points_y[i]], radius))
+                    vessels.append(Vessel([points_x[i], points_y[i]], radius, side))
 
                 points = []
                 for i in range(5000):
@@ -141,6 +138,4 @@ def run_calibration(side = 6, a = -7, b = 1, max_n = 100):
 
     sns.heatmap(beta_dataframe, cmap='viridis')
     plt.show()
-
-
 
