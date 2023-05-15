@@ -8,7 +8,7 @@ import pandas as pd
 def func(x, a, b, c):
     return a * (np.exp(b * x)) + c
 
-repo = '20230512_lk001_Linux/CONFIG_avascular_example.py_1141'
+repo = 'output/20230514_lk001_Linux/CONFIG_avascular_example.py_1557'
 
 csv_file = ''
 #all repositories in repo:
@@ -33,15 +33,15 @@ paths = [f'{repo}/iter{i}/DataOutput/' for i in range(0, number_of_iterations)]
 print(paths)
 
 tmin = 0  # Minimum time
-tmax = 100  # Maximum time
+tmax = 1200  # Maximum time
 show_fits = False  # Show the exponential fits
 show_necro = True
 show_quiet_cycling = True
 local = False
+param_to_plot = []
 
 if local: paths = ['DataOutput/']
 
-param_to_plot = [1.0]
 
 number_cells_list = []
 necrotic_cells_list = []
@@ -59,8 +59,7 @@ for path in paths:
     times = np.load(f'{path}times.npy', allow_pickle=True)
 
     # Find the indices of the times that are within the time range
-    idx = np.where((times >= tmin)) #& (times <= tmax))[0]
-
+    idx = np.where((times >= tmin) & (times<=tmax))
     # Filter the arrays to only include the data between tmin and tmax
     number_cells = number_cells[idx]
     tumor_size = tumor_size[idx]
