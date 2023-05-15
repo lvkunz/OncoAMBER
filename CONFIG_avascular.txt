@@ -30,7 +30,7 @@ vitality_cycling_threshold: 0.9         #threshold in vitality for cells to star
 pressure_threshold_division: 0.68       #max pressure at which cell division can happen
 max_occupancy: 0.68                     #max pressure at which cells can't enter a voxel through migration or other means
 vitality_apoptosis_threshold: 0.9       #threshold in vitality for cells to start apoptosis. DO NOT SET TO 0
-probability_apoptosis: 0.1              #probability of apoptosis under the threshold. you can set it to 0
+probability_apoptosis: 0.03              #probability of apoptosis under the threshold. you can set it to 0
 vitality_necrosis_threshold: 0.05        #threshold in vitality for cells to start necrosis
 probability_necrosis: 0.05               #probability of necrosis under the threshold
 VEGF_production_per_cell: 0.001          #VEGF production per cell per hour?
