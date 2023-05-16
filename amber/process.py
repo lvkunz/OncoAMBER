@@ -219,7 +219,7 @@ class CellDivision(Process): #cell division process, cells divide in a voxel if 
                     new_cell.time_spent_cycling = leftover_time #reset the time spent cycling
                     cell.doubling_time = cell.random_doubling_time() #sample a new doubling time for the old cell
                     cell.time_spent_cycling = leftover_time #reset the time spent cycling
-                    voxel.add_cell(new_cell) #add the new cell to the voxel
+                    voxel.add_cell(new_cell, self.config.max_occupancy) #add the new cell to the voxel
         return
 
 class CellDeath(Process): #cell necrosis process, cells die in a voxel if they have too low vitality
@@ -306,7 +306,7 @@ class CellMigration(Process): #cell migration process, cells migrate in the worl
                 n_moving_cells = min(n_moving_cells, int(round(len(voxel.list_of_cells)*0.5)))
                 list_of_moving_cells = np.random.choice(voxel.list_of_cells, n_moving_cells, replace=False)
                 for cell in list_of_moving_cells:
-                    if neighbor.add_cell(cell):
+                    if neighbor.add_cell(cell, self.config.max_occupancy):
                         voxel.remove_cell(cell)
 
 class UpdateCellOxygen(Process):

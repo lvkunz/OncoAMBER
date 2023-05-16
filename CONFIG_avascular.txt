@@ -38,14 +38,14 @@ o2_threshold_for_VEGF_production: 0.6   #threshold in vitality for cells to star
 vegf_map_step_voxel: 5                  # number of voxel for VEGF gradient computation, should be the order of the tumor size
 reference_vegf_gradient: 0.9            #reference value at which step size for vasculature remains the same, under, the step size is decreased linearly
 reference_pressure: 0.3                 #reference value at which step size for vasculature remains the same, above, the step size is decreased linearly
-radius_root_vessels: 0.1               #radius of the endvessels of the tree
-radius_killing_threshold: 0.02         #threshold radius of vessels getting killed by pressure or because they are too small
+radius_root_vessels: 0.1                #radius of the endvessels of the tree
+radius_killing_threshold: 0.02          #threshold radius of vessels getting killed by pressure or because they are too small
 length_killing_threshold: 0.0           #threshold length of vessels killed because they are too small
 radius_decrease_exponent: 4             #exponent for the decrease of radius of vessels depending on pressure
 o2_per_volume: 1.0                      #oxygen per volume of tissue
 diffusion_number: 3                     #number of diffusion steps per time step
 splitting_rate_vasculature: 0.01        #probability of splitting a vessel when growing
-macro_steps: 1.0                       #number of macro steps per hour for vasculature growth
+macro_steps: 1.0                        #number of macro steps per hour for vasculature growth
 micro_steps: 1                          #number of micro steps per macro step for vasculature growth
 weight_direction: 3.0                   #weight of direction for vasculature growth
 weight_vegf: 0.9                        #weight of VEGF gradient for vasculature growth

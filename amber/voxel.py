@@ -60,7 +60,7 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                 points = np.random.uniform(-self.half_length, self.half_length, (n,3))
                 points = points + self.position
                 return points
-        def add_cell(self, cell, max_occupancy = 0.68):
+        def add_cell(self, cell, max_occupancy):
                 if self.pressure() > max_occupancy:
                         #print('Voxel is full, pressure is', self.pressure(), ' number of cells is', self.number_of_alive_cells(), ' and number of necrotic cells is', self.number_of_necrotic_cells())
                         return False
