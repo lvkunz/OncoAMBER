@@ -48,6 +48,7 @@ necrotic_cells_list = []
 cycling_cells_list = []
 quiescent_cells_list = []
 tumor_size_list = []
+tumor_size_free_list = []
 times_list = []
 
 for path in paths:
@@ -56,6 +57,7 @@ for path in paths:
     cycling_cells = np.load(f'{path}number_cycling_cells.npy', allow_pickle=True)
     quiescent_cells = np.load(f'{path}number_quiescent_cells.npy', allow_pickle=True)
     tumor_size = np.load(f'{path}tumor_size.npy', allow_pickle=True)
+    tumor_size_free = np.load(f'{path}tumor_size_free.npy', allow_pickle=True)
     times = np.load(f'{path}times.npy', allow_pickle=True)
 
     # Find the indices of the times that are within the time range
@@ -63,6 +65,7 @@ for path in paths:
     # Filter the arrays to only include the data between tmin and tmax
     number_cells = number_cells[idx]
     tumor_size = tumor_size[idx]
+    tumor_size_free = tumor_size_free[idx]
     necrotic_cells = necrotic_cells[idx]
     cycling_cells = cycling_cells[idx]
     quiescent_cells = quiescent_cells[idx]
@@ -71,6 +74,7 @@ for path in paths:
     # Append the filtered arrays to the lists
     number_cells_list.append(number_cells)
     tumor_size_list.append(tumor_size)
+    tumor_size_free_list.append(tumor_size_free)
     necrotic_cells_list.append(necrotic_cells)
     cycling_cells_list.append(cycling_cells)
     quiescent_cells_list.append(quiescent_cells)
@@ -110,6 +114,7 @@ for i in range(len(paths)):
         popt, pcov = curve_fit(func, times_list[i], tumor_size_list[i], p0=(1, 0.003, 0), maxfev=100000)
         print(popt)
     axes[1].plot(times_list[i], tumor_size_list[i], 'o', color = color, markersize = 1, alpha=0.5, label=parameter+': '+str(param[i]))
+    axes[1].plot(times_list[i], tumor_size_free_list[i], '+', color = color, markersize = 1, alpha=0.5)
     if show_fits:
         axes[1].plot(times_list[i], func(times_list[i], *popt), '-', color=color, label='fit '+parameter+': '+str(param[i]))
         doubling_time = np.log(2)/popt[1]

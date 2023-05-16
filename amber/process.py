@@ -16,7 +16,7 @@ class Simulator: #this class is used to run the whole simulation
         self.dt = dt
         self.time = 0
         self.config = config
-    def show_cell_and_tumor_volume(self, number_tumor_cells, number_necrotic_cells, number_quiescent_cells, number_cycling_cells, tumor_size, times):
+    def show_cell_and_tumor_volume(self, number_tumor_cells, number_necrotic_cells, number_quiescent_cells, number_cycling_cells, tumor_size, tumor_size_free, times):
         # plot number of cells evolution
         plt.plot(times, number_tumor_cells, 'blue', label='All cells')
         plt.plot(times, number_cycling_cells, 'red', label='Cycling cells')
@@ -33,6 +33,7 @@ class Simulator: #this class is used to run the whole simulation
         # plot tumor size evolution
         fig = plt.figure()
         plt.plot(times, tumor_size, 'red')
+        plt.plot(times, tumor_size_free, 'blue')
         plt.title('Tumor volume evolution')
         plt.xlabel('Time')
         plt.ylabel('Tumor volume [mm^3]')
@@ -129,8 +130,8 @@ class Simulator: #this class is used to run the whole simulation
                               range(self.config.number_fractions)]
         applied_fractions = 0
 
-        number_cycling_cells = []; number_quiescent_cells = []; number_necrotic_cells = []; tumor_size = []; times = [];
-        number_tumor_cells = []
+        number_cycling_cells = []; number_quiescent_cells = []; number_necrotic_cells = [];
+        tumor_size = []; tumor_size_free = []; times = []; number_tumor_cells = []
 
         while self.time < self.finish_time:
             print(f'\033[1;31;47mTime: {self.time} hours / {self.finish_time} hours\033[0m')
@@ -166,8 +167,9 @@ class Simulator: #this class is used to run the whole simulation
             number_quiescent_cells.append(quiescent_cells)
             number_necrotic_cells.append(necrotic_cells)
             number_tumor_cells.append(cycling_cells + quiescent_cells + necrotic_cells)
-            tumor_size_ = world.measure_tumor_volume()
+            tumor_size_, tumor_size_free_ = world.measure_tumor_volume()
             tumor_size.append(tumor_size_)
+            tumor_size_free.append(tumor_size_free_)
             times.append(self.time)
 
             if not os.path.exists('DataOutput/'):
@@ -178,10 +180,11 @@ class Simulator: #this class is used to run the whole simulation
             np.save('DataOutput/number_cycling_cells.npy', number_cycling_cells)
             np.save('DataOutput/number_quiescent_cells.npy', number_quiescent_cells)
             np.save('DataOutput/tumor_size.npy', tumor_size)
+            np.save('DataOutput/tumor_size_free.npy', tumor_size_free)
             np.save('DataOutput/times.npy', times)
 
             if self.config.show_cell_and_tumor_volume:
-                self.show_cell_and_tumor_volume(number_tumor_cells, number_necrotic_cells, number_quiescent_cells, number_cycling_cells, tumor_size, times)
+                self.show_cell_and_tumor_volume(number_tumor_cells, number_necrotic_cells, number_quiescent_cells, number_cycling_cells, tumor_size, tumor_size_free, times)
 
             self.time += self.dt
 

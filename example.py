@@ -48,14 +48,14 @@ for i in range(world.total_number_of_voxels):
     for j in range(config.initial_number_healthy_cells):
         cell = amber.Cell(config.radius_healthy_cells, cycle_hours=config.doubling_time_healthy, cycle_std=config.doubling_time_sd, radiosensitivity=config.radiosensitivity, o2_to_vitality_factor=config.o2_to_vitality_factor, type='NormalCell')
         cell.time_spent_cycling = 0
-        world.voxel_list[i].add_cell(cell)
+        world.voxel_list[i].add_cell(cell, config.max_occupancy)
 
 points = amber.Sphere(config.tumor_initial_radius, [0, 0, 0]).generate_random_points(config.initial_number_tumor_cells)
 for i in range(config.initial_number_tumor_cells):
     if i % 10000 == 0: print('Adding tumor cells ', i, ' out of ', config.initial_number_tumor_cells)
     voxel = world.find_voxel(points[i])
     voxel.add_cell(
-        amber.Cell(config.radius_tumor_cells, cycle_hours=config.doubling_time_tumor, cycle_std=config.doubling_time_sd, radiosensitivity=config.radiosensitivity, o2_to_vitality_factor=config.o2_to_vitality_factor, type='TumorCell'))
+        amber.Cell(config.radius_tumor_cells, cycle_hours=config.doubling_time_tumor, cycle_std=config.doubling_time_sd, radiosensitivity=config.radiosensitivity, o2_to_vitality_factor=config.o2_to_vitality_factor, type='TumorCell'), config.max_occupancy)
 
 
 #generate vasculature and print related information

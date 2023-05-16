@@ -476,11 +476,14 @@ class World:
         return volume
 
     def measure_tumor_volume(self):
-        volume = 0
+        volume_necrotic_free = 0
+        volume_total = 0
         for voxel in self.voxel_list:
-            if voxel.number_of_tumor_cells() > 3:
-                volume += voxel.volume
-        return volume
+            if voxel.number_of_tumor_cells() > 0:
+                volume_necrotic_free += voxel.volume
+            if voxel.number_of_tumor_cells() > 0 or voxel.number_of_necrotic_cells() > 0:
+                volume_total += voxel.volume
+        return volume_total, volume_necrotic_free
 
     def show_angiogenesis_metrics(self, real=True, first=True):
         # Extract the voxel values for each parameter
