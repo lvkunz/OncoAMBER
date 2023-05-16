@@ -21,12 +21,13 @@ DATEMONTH=$(date +%m)
 DATEYEAR=$(date +%Y)
 DATEHOUR=$(date +%H)
 DATEMIN=$(date +%M)
+DATESEC=$(date +%S)
 DATE=${DATEYEAR}${DATEMONTH}${DATEDAY}
 UNAME=$(uname)
 
 # Create a new directory for the output
 DAY_DIR=${CURRENTPATH}/output/${DATE}_${USER}_${UNAME}
-OUTPUT_DIR=${DAY_DIR}/${CONFIG_NAME}_${INFILE}_${DATEHOUR}${DATEMIN}
+OUTPUT_DIR=${DAY_DIR}/${CONFIG_NAME}_${INFILE}_${DATEHOUR}${DATEMIN}${DATESEC}
 
 if [ -d $OUTPUT_DIR ]; then
    echo "Output directory exists, removing and recreating $OUTPUT_DIR"

@@ -237,7 +237,6 @@ class World:
 
             # Find neighbors of the current voxel
             neighbors = self.find_neighbors(voxel_i)
-
             for neighbor in neighbors:
                 j = neighbor.voxel_number
 
@@ -251,6 +250,10 @@ class World:
                     n_events = dt / t_res
                     migration_matrix[i, j] = n_events
 
+            # pressure pushing cells to move towards the center of the tumor
+            voxel_distance = np.linalg.norm(voxel_i.position)
+            neighbor_towards_center = self.find_voxel_number(voxel_i.position / voxel_distance)
+            migration_matrix[i, neighbor_towards_center] += self.config.pressure_coefficient_central_migration * dt * voxel_distance
         # Convert the lil_matrix to a csr_matrix for faster arithmetic operations
         migration_matrix = migration_matrix.tocsr()
 

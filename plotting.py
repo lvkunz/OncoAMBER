@@ -8,7 +8,7 @@ import pandas as pd
 def func(x, a, b, c):
     return a * (np.exp(b * x)) + c
 
-repo = 'output/20230515_lk001_Linux/CONFIG_smaller_voxel_example.py_1602'
+repo = 'output/20230516_lk001_Linux/CONFIG_avascular_no_necro_example.py_1139'
 
 csv_file = ''
 #all repositories in repo:
@@ -113,8 +113,8 @@ for i in range(len(paths)):
     if show_fits:
         popt, pcov = curve_fit(func, times_list[i], tumor_size_list[i], p0=(1, 0.003, 0), maxfev=100000)
         print(popt)
-    axes[1].plot(times_list[i], tumor_size_list[i], 'o', color = color, markersize = 1, alpha=0.5, label=parameter+': '+str(param[i]))
-    axes[1].plot(times_list[i], tumor_size_free_list[i], '+', color = color, markersize = 1, alpha=0.5)
+    axes[1].plot(times_list[i], tumor_size_list[i], 'o', color = color, markersize = 3, alpha=0.5, label=parameter+': '+str(param[i]))
+    axes[1].plot(times_list[i], tumor_size_free_list[i], '+', color = color, markersize = 3, alpha=0.5)
     if show_fits:
         axes[1].plot(times_list[i], func(times_list[i], *popt), '-', color=color, label='fit '+parameter+': '+str(param[i]))
         doubling_time = np.log(2)/popt[1]
