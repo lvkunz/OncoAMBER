@@ -321,7 +321,7 @@ class World:
         print('-- Computing oxygen map')
         side = self.voxel_list[0].half_length * 2
         for voxel in self.voxel_list:
-            voxel.oxygen = int((voxel.vessel_volume * o2_per_volume) / (np.pi * self.config.effective_vessel_radius**2 * voxel.half_length * 2))
+            voxel.oxygen = int((voxel.vessel_volume * o2_per_volume) / side)
             voxel.bifurcation_density += voxel.oxygen
         diffusion_number = int(capillary_length / side)
         for i in range(diffusion_number):
@@ -329,9 +329,10 @@ class World:
             print('--- o2 map computing', i, 'out of', diffusion_number)
             for voxel in self.voxel_list:
                 sum = voxel.oxygen
-                for neighbor in self.find_neighbors(voxel):
+                list_neighbors = self.find_moor_neighbors(voxel)
+                for neighbor in list_neighbors:
                     sum += neighbor.oxygen
-                new_oxygen_map[voxel.voxel_number] = sum / (1 + len(self.find_neighbors(voxel)))
+                new_oxygen_map[voxel.voxel_number] = sum / (1 + len(list_neighbors))
             for voxel in self.voxel_list:
                 voxel.oxygen = int(new_oxygen_map[voxel.voxel_number])
         return

@@ -1,4 +1,4 @@
-half_length_world: 10 #mm
+half_length_world: 5 #mm
 voxel_per_side: 50
 dt: 5 #hours
 endtime: 3000 #hours
@@ -24,14 +24,13 @@ irradiation_intensity: 10               #duration of radiation
 radiosensitivity: 0.1                   #death rate of cells due to 1Gy of radiation
 
 # Parameters for the simulation
-pressure_threshold_migration: 0.0      #threshold for pressure difference for migration to happen
-effective_vessel_radius: 0.01          #vessel radius used to compute n vessel in voxel depending on total volume of vessels
-vitality_cycling_threshold: 0.9         #threshold in vitality for cells to start cycling
 max_occupancy: 0.68                     #max pressure at which cells can't enter a voxel through migration or other means
+vitality_cycling_threshold: 0.9         #threshold in vitality for cells to start cycling
 vitality_apoptosis_threshold: 0.9       #threshold in vitality for cells to start apoptosis. DO NOT SET TO 0
-probability_apoptosis: 0.03              #probability of apoptosis under the threshold. you can set it to 0
 vitality_necrosis_threshold: 0.05        #threshold in vitality for cells to start necrosis
-probability_necrosis: 0.0               #probability of necrosis under the threshold
+probability_apoptosis: 0.03              #probability of apoptosis under the threshold. you can set it to 0
+probability_necrosis: 0.0                #probability of necrosis under the threshold
+viscosity: 1.0                          #factor for diffusion of cells from one voxel to the next (not really a viscosity, it's more a diffusion coeff)
 pressure_coefficient_central_migration: 0.0 #coefficient accounting for the number of cells moving from one voxel towards the center in n_cells/mm*hours
 VEGF_production_per_cell: 0.001          #VEGF production per cell per hour?
 o2_threshold_for_VEGF_production: 0.6   #threshold in vitality for cells to start producing VEGF
@@ -52,7 +51,6 @@ weight_vegf: 0.9                        #weight of VEGF gradient for vasculature
 weight_pressure: 5.0                    #weight of pressure for vasculature growth
 radius_pressure_sensitive: True         #if True, radius of vessels is pressure sensitive and decreases with pressure
 o2_to_vitality_factor: 1.0              #factor for the conversion of oxygen to vitality
-viscosity: 1.0                         #factor for diffusion of cells from one voxel to the next (not really a viscosity, it represents the cells adehsion too)
 vessel_step_size: 0.1                   #step size for vasculature growth
 growth_step_stop_threshold: 0.01        #threshold for step size for vasculature growth, under which growth stops
 new_vessels_per_hour: 0.0               #number of new vessels per hour
@@ -63,9 +61,9 @@ show_final: False                       #if True, show the final state of the si
 show_slices: True                       #if True, show a slice of the tumor during the simulation
 slice: x                                #what direction to slice the tumor (x or z
 show_o2_vitality_histograms: False      #if True, show a histogram of oxygen and vitality during the simulation
-show_tumor_and_vessels_3D: False         #if True, show the vasculature in 3D during the simulation with tumor cells
-visible_original_vessels: False          #if True, show the original vasculature in 3D during the simulation
-show_alpha_beta_maps: False             #if True, show the distribution of the parameters beta and gamma
+show_tumor_and_vessels_3D: True         #if True, show the vasculature in 3D during the simulation with tumor cells
+visible_original_vessels: True         #if True, show the original vasculature in 3D during the simulation
+show_alpha_beta_maps: True             #if True, show the distribution of the parameters beta and gamma
 show_cell_and_tumor_volume: True        #if True, show the volume of tumor cells and healthy cells during the simulation
 verbose: False
 show_angiogenesis_metrics: False
