@@ -34,7 +34,7 @@ paths = [paths[i] for i in range(0, number_of_iterations) if i != 5]
 print(paths)
 
 tmin = 0  # Minimum time
-tmax = 300  # Maximum time
+tmax = 3000  # Maximum time
 show_fits = False  # Show the exponential fits
 show_necro = False
 show_quiet_cycling = False

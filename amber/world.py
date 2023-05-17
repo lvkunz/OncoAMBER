@@ -277,7 +277,7 @@ class World:
             # pressure pushing cells to move towards the center of the tumor
             voxel_distance = np.linalg.norm(voxel_i.position)
             neighbor_towards_center = self.find_voxel_number(voxel_i.position * (1 - side/voxel_distance))
-            migration_matrix[i, neighbor_towards_center] += self.config.pressure_coefficient_central_migration * dt * voxel_distance
+            migration_matrix[i, neighbor_towards_center] += self.config.pressure_coefficient_central_migration * dt * (voxel_distance**2)
         # Convert the lil_matrix to a csr_matrix for faster arithmetic operations
         migration_matrix = migration_matrix.tocsr()
         #show the matrix
