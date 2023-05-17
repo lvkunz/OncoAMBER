@@ -8,7 +8,7 @@ import pandas as pd
 def func(x, a, b, c):
     return a * (np.exp(b * x)) + c
 
-repo = 'output/20230517_lk001_Linux/CONFIG_avascular_example.py_154333'
+repo = 'output/20230517_lk001_Linux/CONFIG_diffusion_only_example.py_165338'
 
 csv_file = ''
 #all repositories in repo:
