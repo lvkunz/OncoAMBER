@@ -91,12 +91,10 @@ celldeath = amber.CellDeath(config, 'cell_death', dt,
 
 cellaging = amber.CellAging(config, 'cell_aging', dt)
 
-cellmigration = amber.CellMigration(config, 'cell_migration', dt,
-                                        pressure_threshold=config.pressure_threshold_migration)
+cellmigration = amber.CellMigration(config, 'cell_migration', dt)
 
 update_cell_state = amber.UpdateCellOxygen(config, 'update_cell_state', dt,
-                                        voxel_half_length=(config.half_length_world/config.voxel_per_side),
-                                        effective_vessel_radius=config.effective_vessel_radius)
+                                        voxel_half_length=(config.half_length_world/config.voxel_per_side))
 
 update_molecules = amber.UpdateVoxelMolecules(config, 'update_molecules', dt,
                                         VEGF_production_per_cell=config.VEGF_production_per_cell,

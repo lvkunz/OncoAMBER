@@ -1,4 +1,4 @@
-half_length_world: 5 #mm
+half_length_world: 10 #mm
 voxel_per_side: 50
 dt: 5 #hours
 endtime: 3000 #hours
@@ -41,7 +41,7 @@ radius_root_vessels: 0.1                #radius of the endvessels of the tree
 radius_killing_threshold: 0.02          #threshold radius of vessels getting killed by pressure or because they are too small
 length_killing_threshold: 0.0           #threshold length of vessels killed because they are too small
 radius_decrease_exponent: 4             #exponent for the decrease of radius of vessels depending on pressure
-o2_per_volume: 1.0                      #oxygen per volume of tissue
+o2_per_volume: 20000.0                  #oxygen per volume of tissue
 capillary_length: 2.0                   #length of capillaries in mm, will give a number of diffusion averagings steps
 splitting_rate_vasculature: 0.01        #probability of splitting a vessel when growing
 macro_steps: 1.0                        #number of macro steps per hour for vasculature growth

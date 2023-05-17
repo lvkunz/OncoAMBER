@@ -291,13 +291,12 @@ class CellAging(Process): #cell aging process, cells age in a voxel
 
 
 class CellMigration(Process): #cell migration process, cells migrate in the world
-    def __init__(self, config, name, dt, pressure_threshold):
+    def __init__(self, config, name, dt):
         super().__init__(config, 'CellMigration', dt)
         self.is_global = True #run on the whole world, after the other processes
-        self.pressure_threshold = pressure_threshold
 
     def __call__(self, world: World):
-        exchange_matrix = world.compute_exchange_matrix(self.dt, pressure_threshold=self.pressure_threshold)
+        exchange_matrix = world.compute_exchange_matrix(self.dt)
         for voxel in world.voxel_list:
             voxel_num = voxel.voxel_number
             if voxel_num % 10000 == 0: print('voxel number = ', voxel_num)
@@ -312,10 +311,9 @@ class CellMigration(Process): #cell migration process, cells migrate in the worl
                     if neighbor.add_cell(cell, self.config.max_occupancy):
                         voxel.remove_cell(cell)
 class UpdateCellOxygen(Process):
-    def __init__(self, config, name, dt, voxel_half_length, effective_vessel_radius):
+    def __init__(self, config, name, dt, voxel_half_length):
         super().__init__(config, 'UpdateState', dt)
         self.voxel_side = int(voxel_half_length*20) #um/100
-        self.effective_vessel_radius = effective_vessel_radius
 
         amber_dir = os.path.abspath(os.path.dirname(__file__))
 

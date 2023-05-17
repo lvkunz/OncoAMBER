@@ -242,7 +242,7 @@ class World:
         neighbors_voxels = [self.voxel_list[n] for n in neighbors]
         return neighbors_voxels
 
-    def compute_exchange_matrix(self, dt, pressure_threshold):
+    def compute_exchange_matrix(self, dt):
         V = self.voxel_list[0].volume
         side = self.voxel_list[0].half_length * 2
         total_voxels = self.total_number_of_voxels
@@ -265,7 +265,7 @@ class World:
                 pressure_diff = voxel_pressure - pressures[j]
                 distance = np.linalg.norm(voxel_i.position - neighbor.position)
                 coeff = (side/distance) * dt
-                if pressure_diff > pressure_threshold:
+                if pressure_diff > 0:
 
                     t_res = (V / pressure_diff) * viscosity
                     if self.config.verbose:
