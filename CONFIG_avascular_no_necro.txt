@@ -29,7 +29,7 @@ effective_vessel_radius: 0.01          #vessel radius used to compute n vessel i
 vitality_cycling_threshold: 0.9         #threshold in vitality for cells to start cycling
 max_occupancy: 0.68                     #max pressure at which cells can't enter a voxel through migration or other means
 vitality_apoptosis_threshold: 0.9       #threshold in vitality for cells to start apoptosis. DO NOT SET TO 0
-probability_apoptosis: 0.1              #probability of apoptosis under the threshold. you can set it to 0
+probability_apoptosis: 0.03              #probability of apoptosis under the threshold. you can set it to 0
 vitality_necrosis_threshold: 0.05        #threshold in vitality for cells to start necrosis
 probability_necrosis: 0.0               #probability of necrosis under the threshold
 pressure_coefficient_central_migration: 100.0 #coefficient accounting for the number of cells moving from one voxel towards the center in n_cells/mm*hours

@@ -81,7 +81,7 @@ dt = config.dt
 
 celldivision = amber.CellDivision( config, 'cell_division', dt,
                                         cycling_threshold=config.vitality_cycling_threshold,
-                                        pressure_threshold=config.pressure_threshold_division)
+                                        pressure_threshold=config.max_occupancy)
 
 celldeath = amber.CellDeath(config, 'cell_death', dt,
                                         apoptosis_threshold=config.vitality_apoptosis_threshold,
