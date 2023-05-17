@@ -195,6 +195,27 @@ class World:
         voxel_number = self.find_voxel_number(position)
         return self.voxel_list[voxel_number]
 
+    def find_moor_neighbors(self, voxel):
+        # finds the Moore's neighbors of a voxel
+        voxel_number = voxel.voxel_number
+        num_voxels = self.number_of_voxels
+        i = voxel_number // (num_voxels ** 2)
+        j = (voxel_number // num_voxels) % num_voxels
+        k = voxel_number % num_voxels
+
+        neighbors = []
+        for di in [-1, 0, 1]:
+            for dj in [-1, 0, 1]:
+                for dk in [-1, 0, 1]:
+                    if di == 0 and dj == 0 and dk == 0:
+                        continue
+                    if (0 <= i + di < num_voxels) and (0 <= j + dj < num_voxels) and (0 <= k + dk < num_voxels):
+                        neighbors.append((i + di) * num_voxels ** 2 + (j + dj) * num_voxels + (k + dk))
+
+        neighbors_voxels = [self.voxel_list[n] for n in neighbors]
+        return neighbors_voxels
+
+
     def find_neighbors(self, voxel):
         #finds the neighbors of a voxel
         voxel_number = voxel.voxel_number
@@ -237,27 +258,31 @@ class World:
             viscosity = viscosities[i]
 
             # Find neighbors of the current voxel
-            neighbors = self.find_neighbors(voxel_i)
+            neighbors = self.find_moor_neighbors(voxel_i)
             for neighbor in neighbors:
                 j = neighbor.voxel_number
 
                 pressure_diff = voxel_pressure - pressures[j]
+                distance = np.linalg.norm(voxel_i.position - neighbor.position)
+                coeff = (side/distance) * dt
                 if pressure_diff > pressure_threshold:
 
                     t_res = (V / pressure_diff) * viscosity
                     if self.config.verbose:
                         print('V, pressure diff, viscosity ', V, pressure_diff, viscosity)
                         print('t_res = ', t_res)
-                    n_events = dt / t_res
+                    n_events = coeff / t_res
                     migration_matrix[i, j] = n_events
 
             # pressure pushing cells to move towards the center of the tumor
             voxel_distance = np.linalg.norm(voxel_i.position)
-            neighbor_towards_center = self.find_voxel_number(side*(voxel_i.position / voxel_distance))
+            neighbor_towards_center = self.find_voxel_number(voxel_i.position * (1 - side/voxel_distance))
             migration_matrix[i, neighbor_towards_center] += self.config.pressure_coefficient_central_migration * dt * voxel_distance
         # Convert the lil_matrix to a csr_matrix for faster arithmetic operations
         migration_matrix = migration_matrix.tocsr()
-
+        #show the matrix
+        # plt.spy(migration_matrix)
+        # plt.show()
         return migration_matrix
 
     def topas_param_file(self, name : str):
@@ -292,11 +317,13 @@ class World:
             voxel.dose = doses[voxel.voxel_number]
         return
 
-    def update_oxygen(self, o2_per_volume=1, diffusion_number=5):
+    def update_oxygen(self, o2_per_volume=1, capillary_length=5):
         print('-- Computing oxygen map')
+        side = self.voxel_list[0].half_length * 2
         for voxel in self.voxel_list:
             voxel.oxygen = int((voxel.vessel_volume * o2_per_volume) / (np.pi * self.config.effective_vessel_radius**2 * voxel.half_length * 2))
             voxel.bifurcation_density += voxel.oxygen
+        diffusion_number = int(capillary_length / side)
         for i in range(diffusion_number):
             new_oxygen_map = np.zeros(self.total_number_of_voxels)
             print('--- o2 map computing', i, 'out of', diffusion_number)

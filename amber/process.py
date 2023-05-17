@@ -301,17 +301,16 @@ class CellMigration(Process): #cell migration process, cells migrate in the worl
         for voxel in world.voxel_list:
             voxel_num = voxel.voxel_number
             if voxel_num % 10000 == 0: print('voxel number = ', voxel_num)
-            list_of_neighbors = world.find_neighbors(voxel)
+            list_of_neighbors = world.find_moor_neighbors(voxel)
             np.random.shuffle(list_of_neighbors) #shuffle the list to avoid bias
             for neighbor in list_of_neighbors:
                 n_events = exchange_matrix[voxel_num, neighbor.voxel_number] #number of expected events in the time step
                 n_moving_cells = np.random.poisson(n_events)
-                n_moving_cells = min(n_moving_cells, int(round(len(voxel.list_of_cells)*0.5)))
+                n_moving_cells = min(n_moving_cells, int(round(len(voxel.list_of_cells))))
                 list_of_moving_cells = np.random.choice(voxel.list_of_cells, n_moving_cells, replace=False)
                 for cell in list_of_moving_cells:
                     if neighbor.add_cell(cell, self.config.max_occupancy):
                         voxel.remove_cell(cell)
-
 class UpdateCellOxygen(Process):
     def __init__(self, config, name, dt, voxel_half_length, effective_vessel_radius):
         super().__init__(config, 'UpdateState', dt)
@@ -403,13 +402,13 @@ class UpdateVoxelMolecules(Process): #update the molecules in the voxel (VEGF), 
         voxel.molecular_factors['VEGF'] = VEGF
         return
 class UpdateVasculature(Process): #update the vasculature
-    def __init__(self, config, name, dt, killing_radius_threshold, killing_length_threshold, o2_per_volume, diffusion_number, splitting_rate, macro_steps, micro_steps, weight_direction, weight_vegf, weight_pressure, radius_pressure_sensitive):
+    def __init__(self, config, name, dt, killing_radius_threshold, killing_length_threshold, o2_per_volume, capillary_length, splitting_rate, macro_steps, micro_steps, weight_direction, weight_vegf, weight_pressure, radius_pressure_sensitive):
         super().__init__(config, 'UpdateVasculature', dt)
         self.is_global = True
         self.killing_radius_threshold = killing_radius_threshold
         self.killing_length_threshold = killing_length_threshold
         self.o2_per_volume = o2_per_volume
-        self.diffusion_number = diffusion_number
+        self.capillary_length = capillary_length
         self.dt = dt
         self.splitting_rate = splitting_rate
         self.macro_steps = macro_steps
@@ -453,7 +452,7 @@ class UpdateVasculature(Process): #update the vasculature
         world.vasculature_growth(self.dt, self.splitting_rate, self.macro_steps, self.micro_steps, self.weight_direction, self.weight_vegf, self.weight_pressure, self.radius_pressure_sensitive)
         world.update_volume_occupied_by_vessels()
         # world.vasculature.print_vessel_tree()
-        world.update_oxygen(o2_per_volume = self.o2_per_volume, diffusion_number=self.diffusion_number)
+        world.update_oxygen(o2_per_volume = self.o2_per_volume, capillary_length = self.capillary_length)
 
 class Irradiation(Process): #irradiation
     def __init__(self, config, name, dt, topas_file, irradiation_time, irradiation_intensity, world: World):

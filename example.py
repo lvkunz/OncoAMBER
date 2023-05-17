@@ -71,7 +71,7 @@ world.update_volume_occupied_by_vessels()
 print('Relative volume occupied by vessels, ratio: ', 100*(world.measure_vasculature_volume()/(world.half_length*2)**3), '%')
 print('Length of vasculature: ', 100*(world.measure_vasculature_length()/(world.half_length*2)**3), 'mm/mm^3')
 print('Area of vasculature: ', 10*(world.measure_vasculature_area()/(world.half_length*2)**3), 'mm^2/mm^3')
-world.update_oxygen(o2_per_volume=config.o2_per_volume, diffusion_number=config.diffusion_number)
+world.update_oxygen(o2_per_volume=config.o2_per_volume, capillary_length=config.capillary_length)
 
 ##########################################################################################
 
@@ -106,7 +106,7 @@ update_vessels = amber.UpdateVasculature(config, 'update_vessels', dt,
                                         killing_radius_threshold=config.radius_killing_threshold,
                                         killing_length_threshold=config.length_killing_threshold,
                                         o2_per_volume=config.o2_per_volume,
-                                        diffusion_number=config.diffusion_number,
+                                        capillary_length=config.capillary_length,
                                         splitting_rate=config.splitting_rate_vasculature,
                                         macro_steps=config.macro_steps,
                                         micro_steps=config.micro_steps,

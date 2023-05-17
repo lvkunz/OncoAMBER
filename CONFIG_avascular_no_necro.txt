@@ -1,6 +1,6 @@
 half_length_world: 7.5 #mm
 voxel_per_side: 25
-dt: 30 #hours
+dt: 5 #hours
 endtime: 3000 #hours
 seed: 1                                 #seed for random number generator. -1 for random seed
 
@@ -32,7 +32,7 @@ vitality_apoptosis_threshold: 0.9       #threshold in vitality for cells to star
 probability_apoptosis: 0.03              #probability of apoptosis under the threshold. you can set it to 0
 vitality_necrosis_threshold: 0.05        #threshold in vitality for cells to start necrosis
 probability_necrosis: 0.0               #probability of necrosis under the threshold
-pressure_coefficient_central_migration: 100.0 #coefficient accounting for the number of cells moving from one voxel towards the center in n_cells/mm*hours
+pressure_coefficient_central_migration: 0.0 #coefficient accounting for the number of cells moving from one voxel towards the center in n_cells/mm*hours
 VEGF_production_per_cell: 0.001          #VEGF production per cell per hour?
 o2_threshold_for_VEGF_production: 0.6   #threshold in vitality for cells to start producing VEGF
 vegf_map_step_voxel: 5                  # number of voxel for VEGF gradient computation, should be the order of the tumor size
@@ -43,7 +43,7 @@ radius_killing_threshold: 0.02          #threshold radius of vessels getting kil
 length_killing_threshold: 0.0           #threshold length of vessels killed because they are too small
 radius_decrease_exponent: 4             #exponent for the decrease of radius of vessels depending on pressure
 o2_per_volume: 1.0                      #oxygen per volume of tissue
-diffusion_number: 3                     #number of diffusion steps per time step
+capillary_length: 2.0                   #length of capillaries in mm, will give a number of diffusion averagings steps
 splitting_rate_vasculature: 0.01        #probability of splitting a vessel when growing
 macro_steps: 1.0                        #number of macro steps per hour for vasculature growth
 micro_steps: 1                          #number of micro steps per macro step for vasculature growth
@@ -60,7 +60,7 @@ new_vessels_per_hour: 0.0               #number of new vessels per hour
 # Graphics parameters
 show_time_steps: True                   #if True, show the time during the simulation
 show_final: False                       #if True, show the final state of the simulation
-show_slices: False                       #if True, show a slice of the tumor during the simulation
+show_slices: True                       #if True, show a slice of the tumor during the simulation
 slice: x                                #what direction to slice the tumor (x or z
 show_o2_vitality_histograms: False      #if True, show a histogram of oxygen and vitality during the simulation
 show_tumor_and_vessels_3D: False         #if True, show the vasculature in 3D during the simulation with tumor cells
