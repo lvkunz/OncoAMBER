@@ -1,7 +1,7 @@
 half_length_world: 7.5 #mm
 voxel_per_side: 25
-dt: 30 #hours
-endtime: 3000 #hours
+dt: 5 #hours
+endtime: 1500 #hours
 seed: 1                                 #seed for random number generator. -1 for random seed
 
 #Initialisation
@@ -31,7 +31,7 @@ vitality_necrosis_threshold: 0.05        #threshold in vitality for cells to sta
 probability_apoptosis: 0.03              #probability of apoptosis under the threshold. you can set it to 0
 probability_necrosis: 0.0                #probability of necrosis under the threshold
 viscosity: 1.0                          #factor for diffusion of cells from one voxel to the next (not really a viscosity, it's more a diffusion coeff)
-pressure_coefficient_central_migration: 0.5 #coefficient accounting for the number of cells moving from one voxel towards the center in n_cells/mm*hours
+pressure_coefficient_central_migration: 2.0 #coefficient accounting for the number of cells moving from one voxel towards the center in n_cells/mm*hours
 VEGF_production_per_cell: 0.001          #VEGF production per cell per hour?
 o2_threshold_for_VEGF_production: 0.6   #threshold in vitality for cells to start producing VEGF
 vegf_map_step_voxel: 5                  # number of voxel for VEGF gradient computation, should be the order of the tumor size
