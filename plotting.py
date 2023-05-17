@@ -8,7 +8,7 @@ import pandas as pd
 def func(x, a, b, c):
     return a * (np.exp(b * x)) + c
 
-repo = 'output/20230517_lk001_Linux/CONFIG_smaller_voxels_example.py_142404'
+repo = 'output/20230517_lk001_Linux/CONFIG_avascular_example.py_154333'
 
 csv_file = ''
 #all repositories in repo:
@@ -29,7 +29,8 @@ param = np.array(param_space[parameter])
 number_of_iterations = len(param_space['Iteration'])
 
 paths = [f'{repo}/iter{i}/DataOutput/' for i in range(0, number_of_iterations)]
-
+#remove paths 4
+paths = [paths[i] for i in range(0, number_of_iterations) if i != 5]
 print(paths)
 
 tmin = 0  # Minimum time
