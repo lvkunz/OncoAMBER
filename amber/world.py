@@ -223,6 +223,7 @@ class World:
 
     def compute_exchange_matrix(self, dt, pressure_threshold):
         V = self.voxel_list[0].volume
+        side = self.voxel_list[0].half_length * 2
         total_voxels = self.total_number_of_voxels
         # Extract pressure and viscosity values for all voxels
         pressures = np.array([voxel.pressure() for voxel in self.voxel_list])
@@ -252,7 +253,7 @@ class World:
 
             # pressure pushing cells to move towards the center of the tumor
             voxel_distance = np.linalg.norm(voxel_i.position)
-            neighbor_towards_center = self.find_voxel_number(voxel_i.position / voxel_distance)
+            neighbor_towards_center = self.find_voxel_number(side*(voxel_i.position / voxel_distance))
             migration_matrix[i, neighbor_towards_center] += self.config.pressure_coefficient_central_migration * dt * voxel_distance
         # Convert the lil_matrix to a csr_matrix for faster arithmetic operations
         migration_matrix = migration_matrix.tocsr()
