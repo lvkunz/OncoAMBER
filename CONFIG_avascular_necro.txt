@@ -29,11 +29,11 @@ vitality_cycling_threshold: 0.9         #threshold in vitality for cells to star
 vitality_apoptosis_threshold: 0.9       #threshold in vitality for cells to start apoptosis. DO NOT SET TO 0
 vitality_necrosis_threshold: 0.05        #threshold in vitality for cells to start necrosis
 probability_apoptosis: 0.03              #probability of apoptosis under the threshold. you can set it to 0
-probability_necrosis: 0.0                #probability of necrosis under the threshold
+probability_necrosis: 0.03                #probability of necrosis under the threshold
 viscosity: 1.0                          #factor for diffusion of cells from one voxel to the next (not really a viscosity, it's more a diffusion coeff)
 pressure_coefficient_central_migration: 0.2 #coefficient accounting for the number of cells moving from one voxel towards the center in n_cells/mm*hours
 VEGF_production_per_cell: 0.001          #VEGF production per cell per hour?
-o2_threshold_for_VEGF_production: 0.6   #threshold in vitality for cells to start producing VEGF
+o2_threshold_for_VEGF_production: 0.8   #threshold in vitality for cells to start producing VEGF
 vegf_map_step_voxel: 5                  # number of voxel for VEGF gradient computation, should be the order of the tumor size
 reference_vegf_gradient: 0.9            #reference value at which step size for vasculature remains the same, under, the step size is decreased linearly
 reference_pressure: 0.3                 #reference value at which step size for vasculature remains the same, above, the step size is decreased linearly
@@ -53,7 +53,7 @@ radius_pressure_sensitive: True         #if True, radius of vessels is pressure 
 o2_to_vitality_factor: 1.0              #factor for the conversion of oxygen to vitality
 vessel_step_size: 0.1                   #step size for vasculature growth
 growth_step_stop_threshold: 0.01        #threshold for step size for vasculature growth, under which growth stops
-new_vessels_per_hour: 0.0               #number of new vessels per hour
+new_vessels_per_hour: 1.0               #number of new vessels per hour
 
 # Graphics parameters
 show_time_steps: True                   #if True, show the time during the simulation
