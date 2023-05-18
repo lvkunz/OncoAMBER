@@ -32,6 +32,7 @@ random.seed(seed)
 
 print('python version', sys.version)
 print('Config file', config_file)
+print('Seed', seed)
 print('#'*80)
 for key, value in config_dict.items():
     print(key, value)

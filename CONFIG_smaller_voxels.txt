@@ -1,4 +1,4 @@
-half_length_world: 10 #mm
+half_length_world: 5 #mm
 voxel_per_side: 50
 dt: 5 #hours
 endtime: 3000 #hours
@@ -61,9 +61,9 @@ show_final: False                       #if True, show the final state of the si
 show_slices: True                       #if True, show a slice of the tumor during the simulation
 slice: x                                #what direction to slice the tumor (x or z
 show_o2_vitality_histograms: False      #if True, show a histogram of oxygen and vitality during the simulation
-show_tumor_and_vessels_3D: True         #if True, show the vasculature in 3D during the simulation with tumor cells
+show_tumor_and_vessels_3D: False         #if True, show the vasculature in 3D during the simulation with tumor cells
 visible_original_vessels: True         #if True, show the original vasculature in 3D during the simulation
-show_alpha_beta_maps: True             #if True, show the distribution of the parameters beta and gamma
+show_alpha_beta_maps: False             #if True, show the distribution of the parameters beta and gamma
 show_cell_and_tumor_volume: True        #if True, show the volume of tumor cells and healthy cells during the simulation
 verbose: False
 show_angiogenesis_metrics: False

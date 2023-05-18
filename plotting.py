@@ -8,7 +8,7 @@ import pandas as pd
 def func(x, a, b, c):
     return a * (np.exp(b * x)) + c
 
-repo = 'output/20230517_lk001_Linux/CONFIG_diffusion_only_example.py_165338'
+repo = 'output/20230517_lk001_Linux/CONFIG_avascular_necro_example.py_222744'
 
 csv_file = ''
 #all repositories in repo:
@@ -37,7 +37,7 @@ tmin = 0  # Minimum time
 tmax = 3000  # Maximum time
 show_fits = False  # Show the exponential fits
 show_necro = False
-show_quiet_cycling = False
+show_quiet_cycling = True
 local = False
 param_to_plot = []
 
