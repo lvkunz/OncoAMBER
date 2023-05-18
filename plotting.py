@@ -8,7 +8,7 @@ import pandas as pd
 def func(x, a, b, c):
     return a * (np.exp(b * x)) + c
 
-repo = 'output/20230517_lk001_Linux/CONFIG_collapse_example.py_181047'
+repo = 'output/20230518_lk001_Linux/CONFIG_avascular_example.py_113418'
 
 csv_file = ''
 #all repositories in repo:
@@ -34,11 +34,11 @@ paths = [paths[i] for i in range(0, number_of_iterations) if i != 5]
 print(paths)
 
 tmin = 0  # Minimum time
-tmax = 300  # Maximum time
+tmax = 3000  # Maximum time
 show_fits = False  # Show the exponential fits
 show_necro = False
 show_quiet_cycling = False
-local = True
+local = False
 param_to_plot = []
 
 if local: paths = ['DataOutput/']
