@@ -8,7 +8,7 @@ import pandas as pd
 def func(x, a, b, c):
     return a * (np.exp(b * x)) + c
 
-repo = 'output/20230517_lk001_Linux/CONFIG_avascular_necro_example.py_222744'
+repo = 'output/20230517_lk001_Linux/CONFIG_collapse_example.py_181047'
 
 csv_file = ''
 #all repositories in repo:
@@ -34,11 +34,11 @@ paths = [paths[i] for i in range(0, number_of_iterations) if i != 5]
 print(paths)
 
 tmin = 0  # Minimum time
-tmax = 3000  # Maximum time
+tmax = 300  # Maximum time
 show_fits = False  # Show the exponential fits
 show_necro = False
-show_quiet_cycling = True
-local = False
+show_quiet_cycling = False
+local = True
 param_to_plot = []
 
 if local: paths = ['DataOutput/']
@@ -114,8 +114,8 @@ for i in range(len(paths)):
     if show_fits:
         popt, pcov = curve_fit(func, times_list[i], tumor_size_list[i], p0=(1, 0.003, 0), maxfev=100000)
         print(popt)
-    axes[1].plot(times_list[i], tumor_size_list[i], 'o', color = color, markersize = 3, alpha=0.5, label=parameter+': '+str(param[i]))
-    axes[1].plot(times_list[i], tumor_size_free_list[i], '+', color = color, markersize = 3, alpha=0.5)
+    axes[1].plot(times_list[i], tumor_size_list[i], 'o', color = color, markersize = 5, alpha=0.5, label=parameter+': '+str(param[i]))
+    axes[1].plot(times_list[i], tumor_size_free_list[i], '+', color = color, markersize = 5, alpha=0.5)
     if show_fits:
         axes[1].plot(times_list[i], func(times_list[i], *popt), '-', color=color, label='fit '+parameter+': '+str(param[i]))
         doubling_time = np.log(2)/popt[1]
