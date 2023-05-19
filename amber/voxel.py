@@ -4,14 +4,14 @@ def sigmoid(L, x, x0, k):
     return L/(1 + np.exp(-k*(x-x0)))
 
 class Voxel(object): #extra parameters are max_occupancy, viscosity
-        def __init__(self, position, half_length, viscosity, list_of_cells_in=None, oxygen = 0, voxel_number = 0):
+        def __init__(self, position, half_length, viscosity, list_of_cells_in=None, n_capillaries = 0, voxel_number = 0):
                 if list_of_cells_in is None:
                         list_of_cells_in = []
                 self.position = position
                 self.half_length = half_length
                 self.list_of_cells = list_of_cells_in
                 self.list_of_necrotic_cells = []
-                self.oxygen = oxygen
+                self.n_capillaries = n_capillaries
                 self.volume = 8*half_length**3
                 self.voxel_number = voxel_number
                 self.dose = 0
@@ -45,10 +45,17 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                 for cell in self.list_of_necrotic_cells:
                         volume = volume + cell.volume
                 return volume
+
         def vessel_volume_density(self):
-                return self.vessel_volume/self.volume * 100
+                side = 2*self.half_length
+                capillary_volume = side * np.pi * 0.002 ** 2
+                vessel_volume_density = ((self.vessel_volume + self.oxygen * capillary_volume) / self.volume)*100
+                return vessel_volume_density
         def vessel_length_density(self):
-                return self.vessel_length/self.volume
+                side = 2*self.half_length
+                vessel_length_density = (self.vessel_length + self.oxygen * side) / self.volume
+                return vessel_length_density
+
         def pressure(self):
                 packing_density = (self.occupied_volume() /self.volume)
                 # NkT = 1 #use somethig sensitive to make sense of this

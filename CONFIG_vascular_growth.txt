@@ -1,14 +1,14 @@
 half_length_world: 7.5 #mm
 voxel_per_side: 25
-dt: 5 #hours
+dt: 30 #hours
 endtime: 1500 #hours
 seed: 715234                                 #seed for random number generator. -1 for random seed
 
 #Initialisation
 vessel_number: 1.0                      #initial number of vessels for healthy tissue per mm^2
 initial_number_healthy_cells: 0        #initial number of healthy cells per voxel
-initial_number_tumor_cells: 100000         #initial total number of tumor cells
-tumor_initial_radius: 3 #mm
+initial_number_tumor_cells: 1         #initial total number of tumor cells
+tumor_initial_radius: 2 #mm
 doubling_time_healthy: 1 #hours
 doubling_time_tumor: 27  #hours
 doubling_time_sd: 5
@@ -67,4 +67,5 @@ show_alpha_beta_maps: False             #if True, show the distribution of the p
 show_cell_and_tumor_volume: True        #if True, show the volume of tumor cells and healthy cells during the simulation
 verbose: False
 show_angiogenesis_metrics: True
+true_vasculature: False
 

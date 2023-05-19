@@ -369,7 +369,7 @@ class World:
         return vegf_map
 
     def show_tumor_slice(self, ax, fig, voxel_attribute, factor=None, cmap='viridis', vmin=None, vmax=None, norm=None,
-                         levels=None, refinement_level=0):
+                         levels=None, refinement_level=0, extend = 'both'):
         print('-- Plotting Tumor Slice')
 
         middle_slice = self.number_of_voxels // 2
@@ -416,9 +416,9 @@ class World:
         triangulation, z = refiner.refine_field(z, subdiv=refinement_level)
 
         if levels is None:
-            contour = ax.tricontourf(triangulation, z, cmap=cmap, alpha=0.7, vmin=vmin, vmax=vmax, norm=norm)
+            contour = ax.tricontourf(triangulation, z, cmap=cmap, alpha=0.7, vmin=vmin, vmax=vmax, norm=norm, extend = extend)
         else:
-            contour = ax.tricontourf(triangulation, z, cmap=cmap, alpha=0.7, levels=levels, norm=norm)
+            contour = ax.tricontourf(triangulation, z, cmap=cmap, alpha=0.7, levels=levels, norm=norm, extend = extend)
 
         fig.colorbar(contour, ax=ax, shrink=0.5)
 
@@ -515,25 +515,27 @@ class World:
                 volume_total += voxel.volume
         return volume_total, volume_necrotic_free
 
-    def show_angiogenesis_metrics(self, real=True, first=True):
+    def show_angiogenesis_metrics(self, t, real=True):
         # Extract the voxel values for each parameter
         volume = self.voxel_list[0].volume
         side = self.voxel_list[0].half_length * 2
-        if real:
-            volume_values = [voxel.vessel_volume / volume for voxel in self.voxel_list]
-            length_values = [voxel.vessel_length / volume for voxel in self.voxel_list]
+        length_values = []
+        volume_values = []
+        for voxel in self.voxel_list:
+            if real:
+                vessel_volume_density = (voxel.vessel_volume) * 100 / volume
+                vessel_length_density = (voxel.vessel_length) / volume
+            else:
+                vessel_volume_density = voxel.vessel_volume_density()
+                vessel_length_density = voxel.vessel_length_density()
+            volume_values.append(vessel_volume_density)
+            length_values.append(vessel_length_density)
 
-        else:
-            capillary_volume = side * np.pi * 0.002 ** 2
-            volume_values = [voxel.oxygen * capillary_volume / volume for voxel in self.voxel_list]
-            length_values = [voxel.oxygen * side / volume for voxel in self.voxel_list]
-
-        volume_values = [voxel.vessel_volume / volume for voxel in self.voxel_list]
         VSL_values = self.vasculature.compute_VSL()
-        diameters_values = self.vasculature.compute_diameters()
+        diameters_values = self.vasculature.compute_diameters() * 1000
 
         # save values
-        if first:
+        if t == 0:
             self.o_diameters = diameters_values
             self.o_length_values = length_values
             self.o_bifurcation_values = volume_values
@@ -565,16 +567,16 @@ class World:
         axes[1, 1].hist(VSL_values, bins=20, color='purple', alpha=0.5, label='Current')
 
         # Add titles and legend to the histograms
-        axes[0, 0].set_title(f'Vessel diameters\nMean: {diameter_mean:.2f}, Median: {diameter_median:.2f}')
+        axes[0, 0].set_title(f'Vessel diameters [um]\nMean: {diameter_mean:.2f}, Median: {diameter_median:.2f}')
         axes[0, 0].legend()
-        axes[0, 1].set_title(f'Vessel length density\nMean: {length_mean:.2f}, Median: {length_median:.2f}')
+        axes[0, 1].set_title(f'Vessel length density [mm/mm^3]\nMean: {length_mean:.2f}, Median: {length_median:.2f}')
         axes[1, 0].legend()
-        axes[1, 0].set_title(f'Vessel Volume density\nMean: {bifurcation_mean:.2f}, Median: {bifurcation_median:.2f}')
+        axes[1, 0].set_title(f'Vessel Volume density [%] \nMean: {bifurcation_mean:.2f}, Median: {bifurcation_median:.2f}')
         axes[0, 1].legend()
-        axes[1, 1].set_title(f'Vessel segment length\nMean: {VSL_mean:.2f}, Median: {VSL_median:.2f}')
+        axes[1, 1].set_title(f'Vessel segment length [mm] \nMean: {VSL_mean:.2f}, Median: {VSL_median:.2f}')
         axes[1, 1].legend()
 
-        fig.suptitle('Angiogenesis Metrics')
+        fig.suptitle('Angiogenesis Metrics at time ' + str(t) + ' hours')
         fig.tight_layout()
         # Show the plot
         plt.show()
@@ -589,7 +591,6 @@ class World:
         print(f'Mean: {bifurcation_mean:.2f}, Median: {bifurcation_median:.2f}, Std: {np.std(volume_values):.2f}, Min: {np.min(volume_values):.2f}, Max: {np.max(volume_values):.2f}')
         print('Vessel segment length')
         print(f'Mean: {VSL_mean:.2f}, Median: {VSL_median:.2f}, Std: {np.std(VSL_values):.2f}, Min: {np.min(VSL_values):.2f}, Max: {np.max(VSL_values):.2f}')
-
 
 
 

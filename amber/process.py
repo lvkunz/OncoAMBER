@@ -51,11 +51,9 @@ class Simulator: #this class is used to run the whole simulation
         size = world.half_length
 
         if self.config.show_angiogenesis_metrics:
-            first = (t == 0)
-            world.show_angiogenesis_metrics(True, first)
+            world.show_angiogenesis_metrics(t, self.config.true_vasculature)
 
             fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(40, 20), dpi=DPI)
-            fig.suptitle('Angiogenesis metrics at time t = ' + str(t) + ' hours', fontsize=16)
 
             axes[0].set_xlim(-size, size)
             axes[0].set_ylim(-size, size)
@@ -74,6 +72,7 @@ class Simulator: #this class is used to run the whole simulation
             plt.tight_layout()
             plt.savefig('Plots/CurrentPlotting/t' + str(t) + '_VesselMetricsMaps.png')
             plt.show()
+
 
         #plot vasculature
         if self.config.show_tumor_and_vessels_3D:
@@ -95,7 +94,7 @@ class Simulator: #this class is used to run the whole simulation
 
             axes[0, 0].set_xlim(-size, size)
             axes[0, 0].set_ylim(-size, size)
-            world.show_tumor_slice(axes[0, 0], fig, 'number_of_tumor_cells', levels= np.linspace(1, 1001, 11))
+            world.show_tumor_slice(axes[0, 0], fig, 'number_of_tumor_cells', levels= np.linspace(1, 1001, 11), extend = 'neither')
             axes[0,0].grid(True)
             axes[0,0].set_facecolor('whitesmoke')
             axes[0, 0].set_title('Cells in voxels')
@@ -118,7 +117,7 @@ class Simulator: #this class is used to run the whole simulation
 
             axes[1, 1].set_xlim(-size, size)
             axes[1, 1].set_ylim(-size, size)
-            world.show_tumor_slice(axes[1, 1], fig, 'number_of_necrotic_cells', levels= np.linspace(1, 1001, 11))
+            world.show_tumor_slice(axes[1, 1], fig, 'number_of_necrotic_cells', levels= np.linspace(1, 1001, 11), extend = 'neither')
             axes[1, 1].grid(True)
             axes[1, 1].set_facecolor('whitesmoke')
             axes[1, 1].set_title('Necrosis in voxels')
