@@ -8,7 +8,7 @@ from .voxel import *
 from .vessel import *
 from .world import *
 from .process import *
-from .Terminal import *
+from .terminal import *
 from .ScalarField import *
 from .BetaDistributionCalibration import *
 

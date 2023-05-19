@@ -1,7 +1,7 @@
 from amber.world import *
 from amber.voxel import *
 from amber.ScalarField import *
-import amber.Terminal as term
+import amber.terminal as term
 import amber.ReadAndWrite as rw
 import pandas as pd
 from matplotlib.colors import TwoSlopeNorm
@@ -52,7 +52,29 @@ class Simulator: #this class is used to run the whole simulation
 
         if self.config.show_angiogenesis_metrics:
             first = (t == 0)
-            world.show_angiogenesis_metrics(False, first)
+            world.show_angiogenesis_metrics(True, first)
+
+            fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(40, 20), dpi=DPI)
+            fig.suptitle('Angiogenesis metrics at time t = ' + str(t) + ' hours', fontsize=16)
+
+            axes[0].set_xlim(-size, size)
+            axes[0].set_ylim(-size, size)
+            world.show_tumor_slice(axes[0], fig, 'vessel_length_density')
+            axes[0].grid(True)
+            axes[0].set_facecolor('whitesmoke')
+            axes[0].set_title('Vessel length density [mm/mm^3]')
+
+            axes[1].set_xlim(-size, size)
+            axes[1].set_ylim(-size, size)
+            world.show_tumor_slice(axes[1], fig, 'vessel_volume_density')
+            axes[1].grid(True)
+            axes[1].set_facecolor('whitesmoke')
+            axes[1].set_title('Vessel volume density [%]')
+
+            plt.tight_layout()
+            plt.savefig('Plots/CurrentPlotting/t' + str(t) + '_VesselMetricsMaps.png')
+            plt.show()
+
         #plot vasculature
         if self.config.show_tumor_and_vessels_3D:
             fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(25, 25), dpi=150, subplot_kw={'projection': '3d'})
@@ -254,10 +276,8 @@ class CellDeath(Process): #cell necrosis process, cells die in a voxel if they h
             vitality = cell.vitality()
             if vitality < self.apoptosis_threshold:
                 sample = np.random.uniform(0, 1)
-                print('apoptosis:', self.apoptosis_curve(vitality))
                 p_necro = (1 - ((1-self.necrosis_curve(vitality))**self.dt))
                 p_apopt = (1 - ((1-self.apoptosis_curve(vitality))**self.dt))
-                print(p_apopt)
                 if self.config.verbose: print('probability necro:', p_necro, 'probability apopto:', p_apopt)
                 n = p_necro
                 a = p_necro + p_apopt
@@ -265,7 +285,6 @@ class CellDeath(Process): #cell necrosis process, cells die in a voxel if they h
                     #necrosis
                     voxel.cell_becomes_necrotic(cell)
                 elif sample < a:
-                    print('apoptosis!!')
                     #apoptosis
                     voxel.remove_cell(cell)
 
@@ -400,12 +419,12 @@ class UpdateVoxelMolecules(Process): #update the molecules in the voxel (VEGF), 
         voxel.molecular_factors['VEGF'] = VEGF
         return
 class UpdateVasculature(Process): #update the vasculature
-    def __init__(self, config, name, dt, killing_radius_threshold, killing_length_threshold, o2_per_volume, capillary_length, splitting_rate, macro_steps, micro_steps, weight_direction, weight_vegf, weight_pressure, radius_pressure_sensitive):
+    def __init__(self, config, name, dt, killing_radius_threshold, killing_length_threshold, n_capillaries_per_VVD, capillary_length, splitting_rate, macro_steps, micro_steps, weight_direction, weight_vegf, weight_pressure, radius_pressure_sensitive):
         super().__init__(config, 'UpdateVasculature', dt)
         self.is_global = True
         self.killing_radius_threshold = killing_radius_threshold
         self.killing_length_threshold = killing_length_threshold
-        self.o2_per_volume = o2_per_volume
+        self.n_capillaries_per_VVD = n_capillaries_per_VVD
         self.capillary_length = capillary_length
         self.dt = dt
         self.splitting_rate = splitting_rate
@@ -450,7 +469,7 @@ class UpdateVasculature(Process): #update the vasculature
         world.vasculature_growth(self.dt, self.splitting_rate, self.macro_steps, self.micro_steps, self.weight_direction, self.weight_vegf, self.weight_pressure, self.radius_pressure_sensitive)
         world.update_volume_occupied_by_vessels()
         # world.vasculature.print_vessel_tree()
-        world.update_oxygen(o2_per_volume = self.o2_per_volume, capillary_length = self.capillary_length)
+        world.update_oxygen(n_capillaries_per_VVD= self.n_capillaries_per_VVD, capillary_length = self.capillary_length)
 
 class Irradiation(Process): #irradiation
     def __init__(self, config, name, dt, topas_file, irradiation_time, irradiation_intensity, world: World):

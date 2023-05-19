@@ -119,7 +119,7 @@ world.update_volume_occupied_by_vessels()
 print('Relative volume occupied by vessels, ratio: ', 100*(world.measure_vasculature_volume()/(world.half_length*2)**3), '%')
 print('Length of vasculature: ', 100*(world.measure_vasculature_length()/(world.half_length*2)**3), 'mm/mm^3')
 print('Area of vasculature: ', 10*(world.measure_vasculature_area()/(world.half_length*2)**3), 'mm^2/mm^3')
-world.update_oxygen(o2_per_volume=config.o2_per_volume, diffusion_number=config.diffusion_number)
+world.update_oxygen(n_capillaries_per_VVD=config.o2_per_volume, diffusion_number=config.diffusion_number)
 
 ##########################################################################################
 

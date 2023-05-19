@@ -61,10 +61,10 @@ for i in range(config.initial_number_tumor_cells):
 
 #generate vasculature and print related information
 world.generate_healthy_vasculature(config.vessel_number,
-            splitting_rate=0.5,
+            splitting_rate=0.6,
             mult_macro_steps=2.0,
-            micro_steps=20,
-            weight_direction=2.0,
+            micro_steps=30,
+            weight_direction=1.5,
             weight_vegf=0.9,
             weight_pressure=0.0,
             )
@@ -72,7 +72,7 @@ world.update_volume_occupied_by_vessels()
 print('Relative volume occupied by vessels, ratio: ', 100*(world.measure_vasculature_volume()/(world.half_length*2)**3), '%')
 print('Length of vasculature: ', 100*(world.measure_vasculature_length()/(world.half_length*2)**3), 'mm/mm^3')
 print('Area of vasculature: ', 10*(world.measure_vasculature_area()/(world.half_length*2)**3), 'mm^2/mm^3')
-world.update_oxygen(o2_per_volume=config.o2_per_volume, capillary_length=config.capillary_length)
+world.update_oxygen(n_capillaries_per_VVD=config.n_capillaries_per_VVD, capillary_length=config.capillary_length)
 
 ##########################################################################################
 
@@ -104,7 +104,7 @@ update_molecules = amber.UpdateVoxelMolecules(config, 'update_molecules', dt,
 update_vessels = amber.UpdateVasculature(config, 'update_vessels', dt,
                                         killing_radius_threshold=config.radius_killing_threshold,
                                         killing_length_threshold=config.length_killing_threshold,
-                                        o2_per_volume=config.o2_per_volume,
+                                        n_capillaries_per_VVD=config.n_capillaries_per_VVD,
                                         capillary_length=config.capillary_length,
                                         splitting_rate=config.splitting_rate_vasculature,
                                         macro_steps=config.macro_steps,

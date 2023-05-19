@@ -45,7 +45,10 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                 for cell in self.list_of_necrotic_cells:
                         volume = volume + cell.volume
                 return volume
-
+        def vessel_volume_density(self):
+                return self.vessel_volume/self.volume * 100
+        def vessel_length_density(self):
+                return self.vessel_length/self.volume
         def pressure(self):
                 packing_density = (self.occupied_volume() /self.volume)
                 # NkT = 1 #use somethig sensitive to make sense of this

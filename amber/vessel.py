@@ -90,6 +90,7 @@ class Vessel:
         # Calculate the new point and add it
         step_size = self.step_size
         if weight_vegf > 0 and vegf_grad_norm_scalar < ref_vegf:
+            print("vegf_grad_norm_scalar", vegf_grad_norm_scalar, "ref_vegf", ref_vegf)
             step_size = step_size * (vegf_grad_norm_scalar / ref_vegf)
         if weight_pressure > 0 and local_pressure > ref_pressure:
             step_size = step_size * (ref_pressure / local_pressure)
@@ -104,9 +105,9 @@ class Vessel:
     def plot(self,fig, ax, color='crimson'):
         if self.visible:
             if self.in_growth:
-                ax.plot(self.path[:, 0], self.path[:, 1], self.path[:, 2], color=color, alpha=0.7, linewidth= self.radius*30)
+                ax.plot(self.path[:, 0], self.path[:, 1], self.path[:, 2], color=color, alpha=0.7, linewidth= self.radius*300)
             else:
-                ax.plot(self.path[:, 0], self.path[:, 1], self.path[:, 2], color='mediumblue', alpha=0.1, linewidth= self.radius*30)
+                ax.plot(self.path[:, 0], self.path[:, 1], self.path[:, 2], color='mediumblue', alpha=0.1, linewidth= self.radius*300)
         return fig, ax
 
     def choose_random_point(self, seed):

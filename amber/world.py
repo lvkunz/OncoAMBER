@@ -261,12 +261,10 @@ class World:
             neighbors = self.find_moor_neighbors(voxel_i)
             for neighbor in neighbors:
                 j = neighbor.voxel_number
-
                 pressure_diff = voxel_pressure - pressures[j]
                 distance = np.linalg.norm(voxel_i.position - neighbor.position)
                 coeff = (side/distance) * dt
                 if pressure_diff > 0:
-
                     t_res = (V / pressure_diff) * viscosity
                     if self.config.verbose:
                         print('V, pressure diff, viscosity ', V, pressure_diff, viscosity)
@@ -317,12 +315,12 @@ class World:
             voxel.dose = doses[voxel.voxel_number]
         return
 
-    def update_oxygen(self, o2_per_volume=1, capillary_length=5):
+    def update_oxygen(self, n_capillaries_per_VVD=1, capillary_length=5):
         print('-- Computing oxygen map')
         side = self.voxel_list[0].half_length * 2
         for voxel in self.voxel_list:
-            voxel.oxygen = int((voxel.vessel_volume * o2_per_volume) / side)
-            voxel.bifurcation_density += voxel.oxygen
+            voxel.oxygen = int((voxel.vessel_volume / side**3) * n_capillaries_per_VVD)
+            # voxel.bifurcation_density += voxel.oxygen
         diffusion_number = int(capillary_length / side)
         for i in range(diffusion_number):
             new_oxygen_map = np.zeros(self.total_number_of_voxels)
@@ -530,7 +528,7 @@ class World:
             volume_values = [voxel.oxygen * capillary_volume / volume for voxel in self.voxel_list]
             length_values = [voxel.oxygen * side / volume for voxel in self.voxel_list]
 
-        bifurcation_values = [voxel.bifurcation_density / volume for voxel in self.voxel_list]
+        volume_values = [voxel.vessel_volume / volume for voxel in self.voxel_list]
         VSL_values = self.vasculature.compute_VSL()
         diameters_values = self.vasculature.compute_diameters()
 
@@ -538,7 +536,7 @@ class World:
         if first:
             self.o_diameters = diameters_values
             self.o_length_values = length_values
-            self.o_bifurcation_values = bifurcation_values
+            self.o_bifurcation_values = volume_values
             self.o_VSL_values = VSL_values
 
         # Compute statistics for current distribution
@@ -546,8 +544,8 @@ class World:
         diameter_median = np.median(diameters_values)
         length_mean = np.mean(length_values)
         length_median = np.median(length_values)
-        bifurcation_mean = np.mean(bifurcation_values)
-        bifurcation_median = np.median(bifurcation_values)
+        bifurcation_mean = np.mean(volume_values)
+        bifurcation_median = np.median(volume_values)
         VSL_mean = np.mean(VSL_values)
         VSL_median = np.median(VSL_values)
 
@@ -563,7 +561,7 @@ class World:
         # Plot histogram for current distribution
         axes[0, 0].hist(diameters_values, bins=20, color='blue', alpha=0.5, label='Current')
         axes[0, 1].hist(length_values, bins=20, color='green', alpha=0.5, label='Current')
-        axes[1, 0].hist(bifurcation_values, bins=20, color='red', alpha=0.5, label='Current')
+        axes[1, 0].hist(volume_values, bins=20, color='red', alpha=0.5, label='Current')
         axes[1, 1].hist(VSL_values, bins=20, color='purple', alpha=0.5, label='Current')
 
         # Add titles and legend to the histograms
@@ -571,7 +569,7 @@ class World:
         axes[0, 0].legend()
         axes[0, 1].set_title(f'Vessel length density\nMean: {length_mean:.2f}, Median: {length_median:.2f}')
         axes[1, 0].legend()
-        axes[1, 0].set_title(f'Vessel bifurcation density\nMean: {bifurcation_mean:.2f}, Median: {bifurcation_median:.2f}')
+        axes[1, 0].set_title(f'Vessel Volume density\nMean: {bifurcation_mean:.2f}, Median: {bifurcation_median:.2f}')
         axes[0, 1].legend()
         axes[1, 1].set_title(f'Vessel segment length\nMean: {VSL_mean:.2f}, Median: {VSL_median:.2f}')
         axes[1, 1].legend()
@@ -587,8 +585,8 @@ class World:
         print(f'Mean: {diameter_mean:.2f}, Median: {diameter_median:.2f}, Std: {np.std(diameters_values):.2f}, Min: {np.min(diameters_values):.2f}, Max: {np.max(volume_values):.2f}')
         print('Length density')
         print(f'Mean: {length_mean:.2f}, Median: {length_median:.2f}, Std: {np.std(length_values):.2f}, Min: {np.min(length_values):.2f}, Max: {np.max(length_values):.2f}')
-        print('Bifurcation density')
-        print(f'Mean: {bifurcation_mean:.2f}, Median: {bifurcation_median:.2f}, Std: {np.std(bifurcation_values):.2f}, Min: {np.min(bifurcation_values):.2f}, Max: {np.max(bifurcation_values):.2f}')
+        print('Volume density')
+        print(f'Mean: {bifurcation_mean:.2f}, Median: {bifurcation_median:.2f}, Std: {np.std(volume_values):.2f}, Min: {np.min(volume_values):.2f}, Max: {np.max(volume_values):.2f}')
         print('Vessel segment length')
         print(f'Mean: {VSL_mean:.2f}, Median: {VSL_median:.2f}, Std: {np.std(VSL_values):.2f}, Min: {np.min(VSL_values):.2f}, Max: {np.max(VSL_values):.2f}')
 
