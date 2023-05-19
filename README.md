@@ -1,3 +1,5 @@
+![Title](AMBER_title.png)
+
 # AMBER (Agent-based Modeling of Biophysics Evolution for Radiotherapy)
 ## Introduction
 

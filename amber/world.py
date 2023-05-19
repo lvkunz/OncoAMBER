@@ -526,7 +526,7 @@ class World:
             length_values = [voxel.vessel_length / volume for voxel in self.voxel_list]
 
         else:
-            capillary_volume = side * np.pi * self.config.effective_vessel_radius ** 2
+            capillary_volume = side * np.pi * 0.002 ** 2
             volume_values = [voxel.oxygen * capillary_volume / volume for voxel in self.voxel_list]
             length_values = [voxel.oxygen * side / volume for voxel in self.voxel_list]
 

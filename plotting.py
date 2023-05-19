@@ -8,7 +8,7 @@ import pandas as pd
 def func(x, a, b, c):
     return a * (np.exp(b * x)) + c
 
-repo = 'output/20230518_lk001_Linux/CONFIG_avascular_example.py_113418'
+repo = 'output/20230518_lk001_Linux/CONFIG_vascular_growth_example.py_142526'
 
 csv_file = ''
 #all repositories in repo:
@@ -30,11 +30,10 @@ number_of_iterations = len(param_space['Iteration'])
 
 paths = [f'{repo}/iter{i}/DataOutput/' for i in range(0, number_of_iterations)]
 #remove paths 4
-paths = [paths[i] for i in range(0, number_of_iterations) if i != 5]
 print(paths)
 
 tmin = 0  # Minimum time
-tmax = 3000  # Maximum time
+tmax = 300  # Maximum time
 show_fits = False  # Show the exponential fits
 show_necro = False
 show_quiet_cycling = False
@@ -91,6 +90,7 @@ fig, axes = plt.subplots(2, 1, figsize=(8, 10), dpi=dpi)
 
 
 for i in range(len(paths)):
+    print(param[i])
     if len(param_to_plot) > 0:
         if param[i] not in param_to_plot:
             continue
@@ -137,11 +137,15 @@ axes[1].set_ylabel('Tumor Volume [mm^3]')
 axes[1].grid(True)
 axes[1].legend()
 
+#add a tiny text box in the corner with the repo name
+plt.figtext(0.01, 0.01, repo, wrap=True, horizontalalignment='left', fontsize=6)
 plt.tight_layout()
-plt.savefig(repo+'/tumor_evolution.png', dpi=dpi)
+plt.savefig(repo+'/tumor_evolution_'+str(tmax)+'.png', dpi=dpi)
 plt.show()
 
 if show_fits:
+    if len(param_to_plot) > 0:
+        param = param_to_plot
     print('Doubling times (Number of Cells):', doubling_times_number_cells)
     print('Doubling times (Tumor Size):', doubling_times_tumor_size)
 
