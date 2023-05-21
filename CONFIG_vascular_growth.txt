@@ -1,8 +1,8 @@
-half_length_world: 7.5 #mm
-voxel_per_side: 25
-dt: 30 #hours
-endtime: 1500 #hours
-seed: 715234                                 #seed for random number generator. -1 for random seed
+half_length_world: 9 #mm
+voxel_per_side: 30
+dt: 5 #hours
+endtime: 1000 #hours
+seed: 0                                 #seed for random number generator. -1 for random seed
 
 #Initialisation
 vessel_number: 1.0                      #initial number of vessels for healthy tissue per mm^2
