@@ -47,7 +47,6 @@ class Simulator: #this class is used to run the whole simulation
 
         print('Graphics : ', self.config.show_tumor_and_vessels_3D, self.config.show_slices)
 
-        DPI = 100
         size = world.half_length
 
         if self.config.show_angiogenesis_metrics:
@@ -76,7 +75,7 @@ class Simulator: #this class is used to run the whole simulation
 
         #plot vasculature
         if self.config.show_tumor_and_vessels_3D:
-            fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(25, 25), dpi=150, subplot_kw={'projection': '3d'})
+            fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(25, 25), subplot_kw={'projection': '3d'})
             fig.suptitle('Visualization at time t = ' + str(t) + ' hours', fontsize=16)
             axes.set_xlim(-size, size)
             axes.set_ylim(-size, size)
@@ -89,7 +88,7 @@ class Simulator: #this class is used to run the whole simulation
             plt.show()
 
         if self.config.show_slices:
-            fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(25, 20), dpi=DPI)
+            fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(25, 20))
             fig.suptitle('Visualization at time t = ' + str(t) + ' hours', fontsize=16)
 
             axes[0, 0].set_xlim(-size, size)
