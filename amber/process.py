@@ -447,23 +447,15 @@ class UpdateVasculature(Process): #update the vasculature
         vessels = world.vasculature.list_of_vessels
         n_new_vessels = int(self.config.new_vessels_per_hour * self.dt)
         n_new_vessels = min(n_new_vessels, len(vessels))
-        chosen_vessels = random.sample(vessels, n_new_vessels)
+        vegf = world.vegf_map(step_voxel= self.config.vegf_map_step_voxel)
+        def vegf_gradient(point): return vegf.gradient(point)
 
-        for vessel in chosen_vessels:
-            if len(vessel.path) > 2:
-                point = vessel.choose_random_point(self.config.seed)
-                world.vasculature.branching(vessel.id, point)
-
-        # for i in range(n_new_vessels):
-        #     #order by vessels radius, so that the largest vessels are more likely to branch
-        #     if i >= len(vessels):
-        #         i = i - len(vessels)
-        #     vessel = vessels[i]
-        #     #choose random point on vessel
-        #     if len(vessel.path) > 2:
-        #         point = vessel.choose_random_point()
-        #         #branch from this point
-        #         world.vasculature.branching(vessel.id, point)
+        for _ in range(n_new_vessels):
+            random_vessel = random.choice(vessels)
+            if len(random_vessel.path) > 2:
+                point = random_vessel.choose_random_point(self.config.seed)
+                if np.linalg.norm(vegf_gradient(point)) > self.config.vegf_gradient_threshold:
+                    world.vasculature.branching(random_vessel.id, point)
 
         world.vasculature_growth(self.dt, self.splitting_rate, self.macro_steps, self.micro_steps, self.weight_direction, self.weight_vegf, self.weight_pressure, self.radius_pressure_sensitive)
         world.update_volume_occupied_by_vessels()

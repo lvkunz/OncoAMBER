@@ -89,9 +89,9 @@ class Vessel:
 
         # Calculate the new point and add it
         step_size = self.step_size
-        if weight_vegf > 0 and vegf_grad_norm_scalar < ref_vegf:
-            print("vegf_grad_norm_scalar", vegf_grad_norm_scalar, "ref_vegf", ref_vegf)
-            step_size = step_size * (vegf_grad_norm_scalar / ref_vegf)
+        # if weight_vegf > 0 and vegf_grad_norm_scalar < ref_vegf:
+        #     print("vegf_grad_norm_scalar", vegf_grad_norm_scalar, "ref_vegf", ref_vegf)
+        #     step_size = step_size * (vegf_grad_norm_scalar / ref_vegf)
         if weight_pressure > 0 and local_pressure > ref_pressure:
             step_size = step_size * (ref_pressure / local_pressure)
 

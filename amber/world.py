@@ -546,8 +546,8 @@ class World:
         diameter_median = np.median(diameters_values)
         length_mean = np.mean(length_values)
         length_median = np.median(length_values)
-        bifurcation_mean = np.mean(volume_values)
-        bifurcation_median = np.median(volume_values)
+        volume_mean = np.mean(volume_values)
+        volume_median = np.median(volume_values)
         VSL_mean = np.mean(VSL_values)
         VSL_median = np.median(VSL_values)
 
@@ -555,28 +555,28 @@ class World:
         fig, axes = plt.subplots(2, 2, figsize=(10, 8))
 
         # Plot histogram for original distribution
-        axes[0, 0].hist(self.o_diameters, bins=20, color='gray', alpha=0.5, label='Original')
-        axes[0, 1].hist(self.o_length_values, bins=20, color='gray', alpha=0.5, label='Original')
-        axes[1, 0].hist(self.o_bifurcation_values, bins=20, color='gray', alpha=0.5, label='Original')
-        axes[1, 1].hist(self.o_VSL_values, bins=20, color='gray', alpha=0.5, label='Original')
+        axes[0, 0].hist(self.o_diameters, bins=20, color='gray', alpha=0.5, label='Original',density = True)
+        axes[0, 1].hist(self.o_length_values, bins=20, color='gray', alpha=0.5, label='Original',density = True)
+        axes[1, 0].hist(self.o_bifurcation_values, bins=20, color='gray', alpha=0.5, label='Original',density = True)
+        axes[1, 1].hist(self.o_VSL_values, bins=20, color='gray', alpha=0.5, label='Original',density = True)
 
         # Plot histogram for current distribution
-        axes[0, 0].hist(diameters_values, bins=20, color='blue', alpha=0.5, label='Current')
-        axes[0, 1].hist(length_values, bins=20, color='green', alpha=0.5, label='Current')
-        axes[1, 0].hist(volume_values, bins=20, color='red', alpha=0.5, label='Current')
-        axes[1, 1].hist(VSL_values, bins=20, color='purple', alpha=0.5, label='Current')
+        axes[0, 0].hist(diameters_values, bins=20, color='blue', alpha=0.5, label='Current',density = True)
+        axes[0, 1].hist(length_values, bins=20, color='green', alpha=0.5, label='Current',density = True)
+        axes[1, 0].hist(volume_values, bins=20, color='red', alpha=0.5, label='Current',density = True)
+        axes[1, 1].hist(VSL_values, bins=20, color='purple', alpha=0.5, label='Current',density = True)
 
         # Add titles and legend to the histograms
         axes[0, 0].set_title(f'Vessel diameters [um]\nMean: {diameter_mean:.2f}, Median: {diameter_median:.2f}')
         axes[0, 0].legend()
         axes[0, 1].set_title(f'Vessel length density [mm/mm^3]\nMean: {length_mean:.2f}, Median: {length_median:.2f}')
         axes[1, 0].legend()
-        axes[1, 0].set_title(f'Vessel Volume density [%] \nMean: {bifurcation_mean:.2f}, Median: {bifurcation_median:.2f}')
+        axes[1, 0].set_title(f'Vessel Volume density [%] \nMean: {volume_mean:.2f}, Median: {volume_median:.2f}')
         axes[0, 1].legend()
         axes[1, 1].set_title(f'Vessel segment length [mm] \nMean: {VSL_mean:.2f}, Median: {VSL_median:.2f}')
         axes[1, 1].legend()
 
-        fig.suptitle('Angiogenesis Metrics at time ' + str(t) + ' hours')
+        fig.suptitle('Angiogenesis Metrics at time ' + str(t) + ' hours, number of vessels = ' + str(len(self.vasculature.list_of_vessels)))
         fig.tight_layout()
         # Show the plot
         plt.show()
@@ -588,7 +588,7 @@ class World:
         print('Length density')
         print(f'Mean: {length_mean:.2f}, Median: {length_median:.2f}, Std: {np.std(length_values):.2f}, Min: {np.min(length_values):.2f}, Max: {np.max(length_values):.2f}')
         print('Volume density')
-        print(f'Mean: {bifurcation_mean:.2f}, Median: {bifurcation_median:.2f}, Std: {np.std(volume_values):.2f}, Min: {np.min(volume_values):.2f}, Max: {np.max(volume_values):.2f}')
+        print(f'Mean: {volume_mean:.2f}, Median: {volume_median:.2f}, Std: {np.std(volume_values):.2f}, Min: {np.min(volume_values):.2f}, Max: {np.max(volume_values):.2f}')
         print('Vessel segment length')
         print(f'Mean: {VSL_mean:.2f}, Median: {VSL_median:.2f}, Std: {np.std(VSL_values):.2f}, Min: {np.min(VSL_values):.2f}, Max: {np.max(VSL_values):.2f}')
 
