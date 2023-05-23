@@ -47,7 +47,7 @@ world = amber.World(config)
 for i in range(world.total_number_of_voxels):
     if i %10000 == 0: print('Adding healthy cells to voxel number: ', i, ' out of ', world.total_number_of_voxels)
     for j in range(config.initial_number_healthy_cells):
-        cell = amber.Cell(config.radius_healthy_cells, cycle_hours=config.doubling_time_healthy, cycle_std=config.doubling_time_sd, radiosensitivity=config.radiosensitivity, o2_to_vitality_factor=config.o2_to_vitality_factor, type='NormalCell')
+        cell = amber.Cell(config.radius_healthy_cells, cycle_hours=config.doubling_time_healthy, cycle_std=config.doubling_time_sd, intra_radiosensitivity=config.intra_radiosensitivity, o2_to_vitality_factor=config.o2_to_vitality_factor, type='NormalCell')
         cell.time_spent_cycling = 0
         world.voxel_list[i].add_cell(cell, config.max_occupancy)
 
@@ -56,7 +56,7 @@ for i in range(config.initial_number_tumor_cells):
     if i % 10000 == 0: print('Adding tumor cells ', i, ' out of ', config.initial_number_tumor_cells)
     voxel = world.find_voxel(points[i])
     voxel.add_cell(
-        amber.Cell(config.radius_tumor_cells, cycle_hours=config.doubling_time_tumor, cycle_std=config.doubling_time_sd, radiosensitivity=config.radiosensitivity, o2_to_vitality_factor=config.o2_to_vitality_factor, type='TumorCell'), config.max_occupancy)
+        amber.Cell(config.radius_tumor_cells, cycle_hours=config.doubling_time_tumor, cycle_std=config.doubling_time_sd, intra_radiosensitivity=config.intra_radiosensitivity, o2_to_vitality_factor=config.o2_to_vitality_factor, type='TumorCell'), config.max_occupancy)
 
 
 #generate vasculature and print related information

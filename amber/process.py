@@ -151,7 +151,7 @@ class Simulator: #this class is used to run the whole simulation
         applied_fractions = 0
 
         number_cycling_cells = []; number_quiescent_cells = []; number_necrotic_cells = [];
-        tumor_size = []; tumor_size_free = []; times = []; number_tumor_cells = []
+        tumor_size = []; tumor_size_free = []; times = []; number_tumor_cells = []; number_vessels = [];
 
         while self.time < self.finish_time:
             print(f'\033[1;31;47mTime: {self.time} hours / {self.finish_time} hours\033[0m')
@@ -159,7 +159,7 @@ class Simulator: #this class is used to run the whole simulation
                 self.show(world, self.time)
 
             if applied_fractions < self.config.number_fractions and self.time >= irradiations_times[applied_fractions]:
-                irrad = Irradiation('irrad', self.dt, self.config.topas_file, self.config.first_irradiation_time,
+                irrad = Irradiation(self.config, 'irrad', self.dt, self.config.topas_file, self.config.first_irradiation_time,
                                     self.config.irradiation_intensity, world)
                 irrad(world)
                 applied_fractions += 1
@@ -296,6 +296,7 @@ class CellAging(Process): #cell aging process, cells age in a voxel
                 cell.time_before_death -= self.dt
                 if cell.time_before_death < 0:
                     voxel.remove_cell(cell)
+
             if cell.type == 'TumorCell' and cell.vitality() > self.config.vitality_cycling_threshold:
                 cell.time_spent_cycling += self.dt
 
@@ -468,13 +469,16 @@ class Irradiation(Process): #irradiation
         self.irradiation_intensity = irradiation_intensity
 
         #check if the file exists
-        if not os.path.isfile('TopasSimulation/' + topas_file + '.csv'):
-            world.topas_param_file(topas_file)
-            term.RunTopasSimulation(topas_file)
+        if not os.path.isfile(topas_file + '.csv'):
+            print('Running Topas simulation')
+            print('Topas file: ', topas_file)
+            file_with_geom = world.topas_param_file(topas_file)
+            print('Topas param file: ', file_with_geom)
+            term.RunTopasSimulation(file_with_geom, cluster=self.config.running_on_cluster)
             # rename the file
 
-            os.rename('TopasSimulation/MyScorer.csv', 'TopasSimulation/' + topas_file + '.csv')
-        _, self.doses = rw.DoseOnWorld('TopasSimulation/' + topas_file + '.csv')
+            os.rename('MyScorer.csv', topas_file + '.csv')
+        _, self.doses = rw.DoseOnWorld(topas_file + '.csv')
         world.update_dose(self.doses)
 
         # plot the simulation
@@ -483,13 +487,16 @@ class Irradiation(Process): #irradiation
         plt.show()
     def __call__(self, world: World):
         for voxel in world.voxel_list:
-            count = 0
-            probability = self.doses[voxel.voxel_number]*self.irradiation_intensity*self.config.radiosensitivity
+            probability = self.doses[voxel.voxel_number]*self.irradiation_intensity
             for cell in voxel.list_of_cells:
-                if random.random() < probability:
+                cell_probability = probability * cell.radiosensitivity()
+                if random.random() < cell_probability:
                     if cell.time_before_death is None:
                         cell.time_before_death = random.lognormvariate(1, 1)
+
             for n_cell in voxel.list_of_necrotic_cells:
-                if random.random() < probability:
-                    n_cell.time_before_death = random.lognormvariate(1, 1)
+                cell_probability_n = probability * n_cell.radiosensitivity()
+                if random.random() < cell_probability_n:
+                    if n_cell.time_before_death is None:
+                        n_cell.time_before_death = random.lognormvariate(1, 1)
         return

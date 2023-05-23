@@ -40,6 +40,7 @@ cp $INFILE $OUTPUT_DIR
 cp ${CONFIG_NAME}.txt $OUTPUT_DIR
 
 
+
 param_names=()
 
 # Loop until the user enters "none"
@@ -109,6 +110,10 @@ for (( COUNT=0; COUNT<$ITER; COUNT++ )); do
     # If the file was changed, remove the backup
     rm ${DIR}/${CONFIG_NAME}.txt.bak
   done
+
+  #change the parameter running_on_cluster to True
+  sed -i "s/running_on_cluster: .*/running_on_cluster: True/" "${DIR}/${CONFIG_NAME}.txt"
+
   # Generate the script for the current iteration
   SCRIPT=${DIR}/run_${INFILE}-${CONFIG_NAME}-${COUNT}.csh
 

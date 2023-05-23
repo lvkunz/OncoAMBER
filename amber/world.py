@@ -7,6 +7,7 @@ from amber.BasicGeometries import *
 import matplotlib.tri as mtri
 import matplotlib.pyplot as plt
 import scipy.sparse as sparse
+import os
 
 
 class World:
@@ -285,14 +286,17 @@ class World:
 
     def topas_param_file(self, name : str):
         print('-- Creating parameter file for topas simulation, file :', name)
+
         #returns a txt file that can be used as a parameter file for topas
-        name = name + '.txt'
         #the file is saved in the TopasSimulation folder
-        file = open('TopasSimulation/' + name, 'w')
-        file.write('IncludeFile = BasicParameters.txt \n' +
-                                                'd:Ge/MyBox/HLX      = ' + str(self.half_length*2) +' cm \n' +
-                                                'd:Ge/MyBox/HLY      = ' + str(self.half_length*2) +' cm \n' +
-                                                'd:Ge/MyBox/HLZ      = ' + str(self.half_length*2) +' cm \n' +
+        repo_path = self.config.working_directory
+        print('repo_path = ', repo_path)
+        file = open(repo_path + '/' + name + '_geom.txt', 'w')
+        print('file = ', file)
+        file.write('IncludeFile = '+ repo_path + '/' + name + '.txt \n' +
+                                                'd:Ge/MyBox/HLX      = ' + str(self.half_length*2) +' mm \n' +
+                                                'd:Ge/MyBox/HLY      = ' + str(self.half_length*2) +' mm \n' +
+                                                'd:Ge/MyBox/HLZ      = ' + str(self.half_length*2) +' mm \n' +
                                                 'd:Ge/MyBox/TransX   = 0. m \n' +
                                                 'd:Ge/MyBox/TransY   = 0. m \n' +
                                                 'd:Ge/MyBox/TransZ   = 0. m \n' +
@@ -303,14 +307,13 @@ class World:
                                                 'i:Ge/MyBox/XBins = ' + str(self.number_of_voxels) +' \n' +
                                                 'i:Ge/MyBox/YBins = ' + str(self.number_of_voxels))
         file.close()
-        print('-- File saved as ' + name)
-        return
+        print('-- File saved as ' + name + '_geom')
+        return name + '_geom'
 
     def update_dose(self, doses):
         #updates the dose in each voxel
         if len(doses) != self.total_number_of_voxels:
-            print('Error: the number of doses is not equal to the number of voxels, Probably due to a unmatching Topas simulation')
-            return
+            raise ValueError('Error: the number of doses is not equal to the number of voxels, Probably due to a unmatching Topas simulation')
         for voxel in self.voxel_list:
             voxel.dose = doses[voxel.voxel_number]
         return

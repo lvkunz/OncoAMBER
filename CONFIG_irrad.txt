@@ -8,8 +8,8 @@ running_on_cluster: False               #if True, will not show graphics
 #Initialisation
 vessel_number: 1.0                      #initial number of vessels for healthy tissue per mm^2
 initial_number_healthy_cells: 0        #initial number of healthy cells per voxel
-initial_number_tumor_cells: 100        #initial total number of tumor cells
-tumor_initial_radius: 0.01 #mm
+initial_number_tumor_cells: 100000        #initial total number of tumor cells
+tumor_initial_radius: 2 #mm
 doubling_time_healthy: 1 #hours
 doubling_time_tumor: 27  #hours
 doubling_time_sd: 5
@@ -19,7 +19,7 @@ radius_healthy_cells: 0.033 #mm
 #Radiation parameters
 topas_file: TOPAS_gamma6MeV
 first_irradiation_time: 50               #time at which radiation is applied
-number_fractions: 0                     #number of fractions of radiation
+number_fractions: 1                     #number of fractions of radiation
 time_between_fractions: 24              #time between fractions of radiation
 irradiation_intensity: 10               #duration of radiation
 intra_radiosensitivity: 0.1                   #death rate of cells due to 1Gy of radiation
