@@ -4,10 +4,11 @@ import os
 def RunTopasSimulation(file: str, cluster = True):
     print('Running Topas Simulation')
     file = file + '.txt'
-    if cluster: run = 'topas ' + file
-    else: run = '/Applications/topas/bin/topas /Users/louiskunz/PycharmProjects/OncoAMBER/' + file
-
     working_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    working_dir = working_dir + '/'
+    if cluster: run = 'topas ' + working_dir + file
+    else: run = '/Applications/topas/bin/topas '+ working_dir + file
+
     #open current folder
     sequence_of_commands = ['export TOPAS_G4_DATA_DIR=/Applications/G4Data',
                             'export QT_QPA_PLATFORM_PLUGIN_PATH=/Applications/topas/Frameworks',
