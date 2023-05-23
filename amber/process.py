@@ -52,7 +52,7 @@ class Simulator: #this class is used to run the whole simulation
         if self.config.show_angiogenesis_metrics:
             world.show_angiogenesis_metrics(t, self.config.true_vasculature)
 
-            fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(40, 20), dpi=DPI)
+            fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(40, 20))
 
             axes[0].set_xlim(-size, size)
             axes[0].set_ylim(-size, size)
