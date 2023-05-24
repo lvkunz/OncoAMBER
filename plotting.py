@@ -8,7 +8,7 @@ import pandas as pd
 def func(x, a, b, c):
     return a * (np.exp(b * x)) + c
 
-repo = '20230523_lk001_Linux/CONFIG_vascular_growth_example.py_092523'
+repo = '20230523_lk001_Linux/CONFIG_vascular_growth_example.py_092842'
 
 csv_file = ''
 #all repositories in repo:
@@ -35,7 +35,7 @@ print(paths)
 tmin = 0  # Minimum time
 tmax = 1500  # Maximum time
 show_fits = False  # Show the exponential fits
-show_necro = True
+show_necro = False
 show_quiet_cycling = False
 local = False
 param_to_plot = []
