@@ -18,7 +18,7 @@ radius_healthy_cells: 0.033 #mm
 
 #Radiation parameters
 topas_file: TOPAS_gamma6MeV
-first_irradiation_time: 50               #time at which radiation is applied
+first_irradiation_time: 0               #time at which radiation is applied
 number_fractions: 0                     #number of fractions of radiation
 time_between_fractions: 24              #time between fractions of radiation
 irradiation_intensity: 10               #duration of radiation
