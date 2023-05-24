@@ -13,7 +13,7 @@ from setuptools import find_packages, Command
 # Package meta-data
 NAME = 'OncoAMBER'
 DESCRIPTION = 'Agent-based model of tumor growth and response to radiation therapy'
-URL = 'https://github.com/lvkunz/AMBER'
+URL = 'https://github.com/lvkunz/OncoAMBER'
 EMAIL = 'lvkunz@mgh.harvard.edu'
 AUTHOR = 'Louis Kunz'
 REQUIRES_PYTHON = '>=3.8.2'
@@ -43,9 +43,6 @@ with open(init_file, 'r') as f:
 
 # Assign the version to the VERSION variable
 VERSION = version
-
-# Rest of your setup.py code...
-
 
 # Support setup.py upload
 class UploadCommand(Command):
