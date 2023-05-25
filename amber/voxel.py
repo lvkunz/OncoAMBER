@@ -49,11 +49,11 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
         def vessel_volume_density(self):
                 side = 2*self.half_length
                 capillary_volume = side * np.pi * 0.002 ** 2
-                vessel_volume_density = ((self.vessel_volume + self.oxygen * capillary_volume) / self.volume)*100
+                vessel_volume_density = ((self.vessel_volume + self.n_capillaries * capillary_volume) / self.volume)*100
                 return vessel_volume_density
         def vessel_length_density(self):
                 side = 2*self.half_length
-                vessel_length_density = (self.vessel_length + self.oxygen * side) / self.volume
+                vessel_length_density = (self.vessel_length + self.n_capillaries * side) / self.volume
                 return vessel_length_density
 
         def pressure(self):
@@ -97,7 +97,7 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
         def oxygen_histogram(self, ax, fig):
                 oxygen = []
                 for cell in self.list_of_cells:
-                        oxygen = np.append(oxygen, cell.oxygen)
+                        oxygen = np.append(oxygen, cell.capillaries)
                 ax.hist(oxygen, bins = 50, color = 'blue', alpha = 0.5, range = (0,1))
                 ax.set_xlim(0, 1)
                 ax.set_ylabel('Number of cells')
@@ -111,7 +111,7 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                 ax.hist(vitality, bins=50, color='orange', alpha=0.5, range=(0, 1))
                 ax.set_xlim(0, 1)
                 ax.set_xlabel(
-                        f'Vitality, Oxygen in voxel was = {self.oxygen} and number of cells = {self.number_of_alive_cells()}')
+                        f'Vitality, Number of capillaries in voxel was = {self.n_capillaries} and number of cells = {self.number_of_alive_cells()}')
                 ax.set_ylabel('Number of cells')
                 ax.set_title('Vitality histogram')
                 return ax, fig

@@ -7,7 +7,21 @@ import time
 import os
 import pyvista as pv
 
-def show_tumor_3D_solid(world):
+print('Current working directory:', os.getcwd())
+#print the directory of amber
+print('Amber directory:', amber.__file__)
+print('Amber version:', amber.__version__)
+
+if len(sys.argv) > 1:
+    config_file = sys.argv[1]
+else:
+    raise ValueError('No config file specified')
+
+config = amber.Config(config_file)
+print('Config file')
+print(config)
+
+def show_tumor_3D_solid(world, t):
 
     grid_shape = (world.number_of_voxels, world.number_of_voxels, world.number_of_voxels)
     cell_counts = np.empty(grid_shape)
@@ -23,20 +37,17 @@ def show_tumor_3D_solid(world):
     # Create a vtkImageData object and assign the cell counts to it
     grid = pv.UniformGrid()
     grid.dimensions = grid_shape
-    grid.origin = (0, 0, 0)  # The bottom left corner of the data set
-    grid.spacing = (1, 1, 1)  # These are the cell sizes along each axis
+    hl = world.half_length
+    voxel_side = 2*hl/world.number_of_voxels
+    grid.origin = (-hl, -hl, -hl)  # The bottom left corner of the data set
+    grid.spacing = (voxel_side, voxel_side, voxel_side)  # These are the cell sizes along each axis
     grid.point_data['tumor'] = cell_counts.flatten(order="F")  # Flatten the array!
-    grid.point_data['necro'] = necro_counts.flatten(order='F')
 
 
     contour_values = [1, 100, 300, 500, 800, 1000]
     max = np.max(cell_counts)
     #remove values below max from contour_values
     contour_values = [x for x in contour_values if x < max]
-
-    contour_necro = [5]
-    max_necro = np.max(necro_counts)
-    contour_necro = [x for x in contour_necro if x < max_necro]
 
     # Create a Plotter object
     plotter = pv.Plotter()
@@ -47,42 +58,36 @@ def show_tumor_3D_solid(world):
         contour = grid.contour([value])
         plotter.add_mesh(contour, cmap='Blues', opacity= opacity, scalars='tumor')
 
-    # for value in contour_necro:
-    #     contour_necro_mesh = grid.contour([value])
-    #     plotter.add_mesh(contour_necro_mesh, color='red', opacity=0.5, scalars='necro')
-    # Show the plot
-    plotter.show(auto_close=True, interactive=True)
+    for vessel in world.vasculature.list_of_vessels:
+        if vessel.visible:
+            path = vessel.path
+            if len(path) > 1:
+                origin = path[0]
+                end = path[-1]
+                line = pv.Line(origin, end)
+                plotter.add_mesh(line, color='crimson', line_width=1)
 
+    #plotter.export_html('3D_plot_'+str(t)+'.html', 'panel')
+    plotter.show(screenshot='3D_plot_'+str(t)+'.png', window_size=(1000, 1000), auto_close=True)
 
-print('Current working directory:', os.getcwd())
-#print the directory of amber
-print('Amber directory:', amber.__file__)
-
-
-if len(sys.argv) > 1:
-    config_file = sys.argv[1]
-else:
-    raise ValueError('No config file specified')
-
-config_dict = amber.read_config_file(config_file)
-config = amber.Config(config_dict)
-print('Config file')
-print(config)
-print(config.half_length_world)
 
 #set seed for reproducibility
 start_time = time.time()
 DPI = 100
 
 seed = config.seed
-print('python version', sys.version)
-print('Config file', config_file)
-print('seed', seed)
-
 np.random.seed(seed)
 random.seed(seed)
 
-print(config_dict)
+print('python version', sys.version)
+print('Config file', config_file)
+print('Seed', seed)
+print('#'*80)
+for key, value in config.__dict__.items():
+    print(key, value)
+print('#'*80)
+
+
 world = amber.World(config)
 
 #########################################################################################
@@ -91,27 +96,24 @@ world = amber.World(config)
 for i in range(world.total_number_of_voxels):
     if i %10000 == 0: print('Adding healthy cells to voxel number: ', i, ' out of ', world.total_number_of_voxels)
     for j in range(config.initial_number_healthy_cells):
-        cell = amber.Cell(config.radius_healthy_cells, cycle_hours=config.doubling_time_healthy, cycle_std=config.doubling_time_sd, radiosensitivity=config.radiosensitivity, o2_to_vitality_factor=config.o2_to_vitality_factor, type='NormalCell')
+        cell = amber.Cell(config.radius_healthy_cells, cycle_hours=config.doubling_time_healthy, cycle_std=config.doubling_time_sd, intra_radiosensitivity=config.intra_radiosensitivity, o2_to_vitality_factor=config.o2_to_vitality_factor, type='NormalCell')
         cell.time_spent_cycling = 0
-        world.voxel_list[i].add_cell(cell)
+        world.voxel_list[i].add_cell(cell, config.max_occupancy)
 
 points = amber.Sphere(config.tumor_initial_radius, [0, 0, 0]).generate_random_points(config.initial_number_tumor_cells)
 for i in range(config.initial_number_tumor_cells):
     if i % 10000 == 0: print('Adding tumor cells ', i, ' out of ', config.initial_number_tumor_cells)
     voxel = world.find_voxel(points[i])
     voxel.add_cell(
-        amber.Cell(config.radius_tumor_cells, cycle_hours=config.doubling_time_tumor, cycle_std=config.doubling_time_sd, radiosensitivity=config.radiosensitivity, o2_to_vitality_factor=config.o2_to_vitality_factor, type='TumorCell'))
+        amber.Cell(config.radius_tumor_cells, cycle_hours=config.doubling_time_tumor, cycle_std=config.doubling_time_sd, intra_radiosensitivity=config.intra_radiosensitivity, o2_to_vitality_factor=config.o2_to_vitality_factor, type='TumorCell'), config.max_occupancy)
 
-
-
-show_tumor_3D_solid(world)
 
 #generate vasculature and print related information
 world.generate_healthy_vasculature(config.vessel_number,
-            splitting_rate=0.5,
+            splitting_rate=0.6,
             mult_macro_steps=2.0,
-            micro_steps=20,
-            weight_direction=2.0,
+            micro_steps=30,
+            weight_direction=1.5,
             weight_vegf=0.9,
             weight_pressure=0.0,
             )
@@ -119,7 +121,9 @@ world.update_volume_occupied_by_vessels()
 print('Relative volume occupied by vessels, ratio: ', 100*(world.measure_vasculature_volume()/(world.half_length*2)**3), '%')
 print('Length of vasculature: ', 100*(world.measure_vasculature_length()/(world.half_length*2)**3), 'mm/mm^3')
 print('Area of vasculature: ', 10*(world.measure_vasculature_area()/(world.half_length*2)**3), 'mm^2/mm^3')
-world.update_oxygen(n_capillaries_per_VVD=config.o2_per_volume, diffusion_number=config.diffusion_number)
+world.update_capillaries(n_capillaries_per_VVD=config.n_capillaries_per_VVD, capillary_length=config.capillary_length)
+
+show_tumor_3D_solid(world, 0)
 
 ##########################################################################################
 
@@ -129,7 +133,7 @@ dt = config.dt
 
 celldivision = amber.CellDivision( config, 'cell_division', dt,
                                         cycling_threshold=config.vitality_cycling_threshold,
-                                        pressure_threshold=config.pressure_threshold_division)
+                                        pressure_threshold=config.max_occupancy)
 
 celldeath = amber.CellDeath(config, 'cell_death', dt,
                                         apoptosis_threshold=config.vitality_apoptosis_threshold,
@@ -139,12 +143,10 @@ celldeath = amber.CellDeath(config, 'cell_death', dt,
 
 cellaging = amber.CellAging(config, 'cell_aging', dt)
 
-cellmigration = amber.CellMigration(config, 'cell_migration', dt,
-                                        pressure_threshold=config.pressure_threshold_migration)
+cellmigration = amber.CellMigration(config, 'cell_migration', dt)
 
 update_cell_state = amber.UpdateCellOxygen(config, 'update_cell_state', dt,
-                                        voxel_half_length=(config.half_length_world/config.voxel_per_side),
-                                        effective_vessel_radius=config.effective_vessel_radius)
+                                        voxel_half_length=(config.half_length_world/config.voxel_per_side))
 
 update_molecules = amber.UpdateVoxelMolecules(config, 'update_molecules', dt,
                                         VEGF_production_per_cell=config.VEGF_production_per_cell,
@@ -153,8 +155,8 @@ update_molecules = amber.UpdateVoxelMolecules(config, 'update_molecules', dt,
 update_vessels = amber.UpdateVasculature(config, 'update_vessels', dt,
                                         killing_radius_threshold=config.radius_killing_threshold,
                                         killing_length_threshold=config.length_killing_threshold,
-                                        o2_per_volume=config.o2_per_volume,
-                                        diffusion_number=config.diffusion_number,
+                                        n_capillaries_per_VVD=config.n_capillaries_per_VVD,
+                                        capillary_length=config.capillary_length,
                                         splitting_rate=config.splitting_rate_vasculature,
                                         macro_steps=config.macro_steps,
                                         micro_steps=config.micro_steps,
@@ -180,4 +182,4 @@ simulation_end = time.time()
 print('simulation time: ', simulation_end - simulation_start, ' seconds')
 print('total time: ', time.time() - start_time, ' seconds')
 
-show_tumor_3D_solid(world)
+show_tumor_3D_solid(world,config.endtime)

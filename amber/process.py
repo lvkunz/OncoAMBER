@@ -102,10 +102,10 @@ class Simulator: #this class is used to run the whole simulation
 
             axes[0, 1].set_xlim(-size, size)
             axes[0, 1].set_ylim(-size, size)
-            world.show_tumor_slice(axes[0, 1], fig, 'oxygen', cmap = 'RdBu', norm = norm, levels= np.linspace(0, 110, 16))
+            world.show_tumor_slice(axes[0, 1], fig, 'n_capillaries', cmap = 'RdBu', norm = norm, levels= np.linspace(0, 110, 16))
             axes[0, 1].grid(True)
             axes[0, 1].set_facecolor('whitesmoke')
-            axes[0, 1].set_title('Oxygen in voxels')
+            axes[0, 1].set_title('Capillaries in voxels')
 
             axes[1, 0].set_xlim(-size, size)
             axes[1, 0].set_ylim(-size, size)
@@ -382,10 +382,9 @@ class UpdateCellOxygen(Process):
 
     def __call__(self, voxel: Voxel):
 
-        n_vessels = voxel.oxygen
+        n_vessels = voxel.n_capillaries
         n_cells = voxel.number_of_alive_cells()
         pressure = voxel.pressure()
-
         if n_vessels == 0:
             o2_values = np.zeros(n_cells)
 
@@ -401,7 +400,6 @@ class UpdateCellOxygen(Process):
                 print('alpha_', alpha_, 'beta_', beta_)
 
             o2_values = np.random.beta(alpha_, beta_, size=n_cells)
-
         for i in range(n_cells):
             voxel.list_of_cells[i].oxygen = o2_values[i]
 class UpdateVoxelMolecules(Process): #update the molecules in the voxel (VEGF), other not implemented yet
@@ -460,7 +458,7 @@ class UpdateVasculature(Process): #update the vasculature
         world.vasculature_growth(self.dt, self.splitting_rate, self.macro_steps, self.micro_steps, self.weight_direction, self.weight_vegf, self.weight_pressure, self.radius_pressure_sensitive)
         world.update_volume_occupied_by_vessels()
         # world.vasculature.print_vessel_tree()
-        world.update_oxygen(n_capillaries_per_VVD= self.n_capillaries_per_VVD, capillary_length = self.capillary_length)
+        world.update_capillaries(n_capillaries_per_VVD= self.n_capillaries_per_VVD, capillary_length = self.capillary_length)
 
 class Irradiation(Process): #irradiation
     def __init__(self, config, name, dt, topas_file, irradiation_time, irradiation_intensity, world: World):

@@ -167,7 +167,7 @@ class World:
         for voxel in self.voxel_list:
             voxel.update_cells_afterRT()
         #self.vessels_killed_by_dose()
-        #self.update_oxygen()
+        #self.update_capillaries()
     def vessels_killed(self, radius_threshold = 1e-3, length_threshold = 0):
         for vessel in self.vasculature.list_of_vessels:
             if vessel.radius < radius_threshold:
@@ -318,31 +318,31 @@ class World:
             voxel.dose = doses[voxel.voxel_number]
         return
 
-    def update_oxygen(self, n_capillaries_per_VVD=1, capillary_length=5):
-        print('-- Computing oxygen map')
+    def update_capillaries(self, n_capillaries_per_VVD=1, capillary_length=5):
+        print('-- Computing capillaries map')
         side = self.voxel_list[0].half_length * 2
         for voxel in self.voxel_list:
-            voxel.oxygen = int((voxel.vessel_volume / side**3) * n_capillaries_per_VVD)
-            # voxel.bifurcation_density += voxel.oxygen
+            voxel.n_capillaries = int((voxel.vessel_volume / side ** 3) * n_capillaries_per_VVD)
+            # voxel.bifurcation_density += voxel.capillaries
         diffusion_number = int(capillary_length / side)
         for i in range(diffusion_number):
             new_oxygen_map = np.zeros(self.total_number_of_voxels)
             print('--- o2 map computing', i, 'out of', diffusion_number)
             for voxel in self.voxel_list:
-                sum = voxel.oxygen
+                sum = voxel.n_capillaries
                 list_neighbors = self.find_moor_neighbors(voxel)
                 for neighbor in list_neighbors:
-                    sum += neighbor.oxygen
+                    sum += neighbor.n_capillaries
                 new_oxygen_map[voxel.voxel_number] = sum / (1 + len(list_neighbors))
             for voxel in self.voxel_list:
-                voxel.oxygen = int(new_oxygen_map[voxel.voxel_number])
+                voxel.n_capillaries = int(new_oxygen_map[voxel.voxel_number])
         return
 
     def oxygen_map(self):
         values = []
         positions = []
         for voxel in self.voxel_list:
-            values.append(voxel.oxygen)
+            values.append(voxel.n_capillaries)
             positions.append(voxel.position)
 
         step = self.half_length*2/self.number_of_voxels

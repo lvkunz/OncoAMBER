@@ -16,8 +16,8 @@ if len(sys.argv) > 1:
 else:
     raise ValueError('No config file specified')
 
-config_dict = amber.read_config_file(config_file)
-config = amber.Config(config_dict)
+config = amber.Config(config_file)
+
 print('Config file')
 print(config)
 print(config.half_length_world)
@@ -33,9 +33,12 @@ random.seed(seed)
 print('python version', sys.version)
 print('Config file', config_file)
 print('Seed', seed)
+
 print('#'*80)
-for key, value in config_dict.items():
+
+for key, value in config.__dict__.items():
     print(key, value)
+
 print('#'*80)
 
 
@@ -72,7 +75,7 @@ world.update_volume_occupied_by_vessels()
 print('Relative volume occupied by vessels, ratio: ', 100*(world.measure_vasculature_volume()/(world.half_length*2)**3), '%')
 print('Length of vasculature: ', 100*(world.measure_vasculature_length()/(world.half_length*2)**3), 'mm/mm^3')
 print('Area of vasculature: ', 10*(world.measure_vasculature_area()/(world.half_length*2)**3), 'mm^2/mm^3')
-world.update_oxygen(n_capillaries_per_VVD=config.n_capillaries_per_VVD, capillary_length=config.capillary_length)
+world.update_capillaries(n_capillaries_per_VVD=config.n_capillaries_per_VVD, capillary_length=config.capillary_length)
 
 ##########################################################################################
 
