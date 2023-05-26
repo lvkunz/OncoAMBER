@@ -416,11 +416,10 @@ class UpdateVoxelMolecules(Process): #update the molecules in the voxel (VEGF), 
         voxel.molecular_factors['VEGF'] = VEGF
         return
 class UpdateVasculature(Process): #update the vasculature
-    def __init__(self, config, name, dt, killing_radius_threshold, killing_length_threshold, n_capillaries_per_VVD, capillary_length, splitting_rate, macro_steps, micro_steps, weight_direction, weight_vegf, weight_pressure, radius_pressure_sensitive):
+    def __init__(self, config, name, dt, killing_radius_threshold, n_capillaries_per_VVD, capillary_length, splitting_rate, macro_steps, micro_steps, weight_direction, weight_vegf, weight_pressure, radius_pressure_sensitive):
         super().__init__(config, 'UpdateVasculature', dt)
         self.is_global = True
         self.killing_radius_threshold = killing_radius_threshold
-        self.killing_length_threshold = killing_length_threshold
         self.n_capillaries_per_VVD = n_capillaries_per_VVD
         self.capillary_length = capillary_length
         self.dt = dt
@@ -435,7 +434,7 @@ class UpdateVasculature(Process): #update the vasculature
 
     def __call__(self, world: World):
         #print in separate thread
-        n_killed = world.vessels_killed(self.killing_radius_threshold, self.killing_length_threshold)
+        n_killed = world.vessels_killed(self.killing_radius_threshold)
         print('Killed vessels: ', n_killed)
         print('Growing vessels')
         total_VEGF = 0
@@ -443,7 +442,8 @@ class UpdateVasculature(Process): #update the vasculature
             total_VEGF += voxel.molecular_factors['VEGF']
         print('Total VEGF: ', total_VEGF)
         vessels = world.vasculature.list_of_vessels
-        n_new_vessels = int(self.config.new_vessels_per_hour * self.dt)
+        volume_world = 8*world.half_length**3
+        n_new_vessels = int(self.config.new_vessels_per_hour * self.dt * volume_world)
         n_new_vessels = min(n_new_vessels, len(vessels))
         vegf = world.vegf_map(step_voxel= self.config.vegf_map_step_voxel)
         def vegf_gradient(point): return vegf.gradient(point)

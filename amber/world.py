@@ -168,15 +168,11 @@ class World:
             voxel.update_cells_afterRT()
         #self.vessels_killed_by_dose()
         #self.update_capillaries()
-    def vessels_killed(self, radius_threshold = 1e-3, length_threshold = 0):
+    def vessels_killed(self, radius_threshold):
         for vessel in self.vasculature.list_of_vessels:
             if vessel.radius < radius_threshold:
                 self.vasculature.kill_vessel(vessel.id)
                 print('vessel ' + str(vessel.id) + ' killed by radius')
-            #
-            # elif vessel.length() < length_threshold:
-            #     self.vasculature.kill_vessel(vessel.id)
-            #     print('vessel ' + str(vessel.id) + ' killed by length')
         return
 
     def find_voxel_number(self, position):

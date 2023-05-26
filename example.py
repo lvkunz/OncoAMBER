@@ -64,7 +64,7 @@ for i in range(config.initial_number_tumor_cells):
 
 #generate vasculature and print related information
 world.generate_healthy_vasculature(config.vessel_number,
-            splitting_rate=0.6,
+            splitting_rate=0.5,
             mult_macro_steps=2.0,
             micro_steps=30,
             weight_direction=1.5,
@@ -106,7 +106,6 @@ update_molecules = amber.UpdateVoxelMolecules(config, 'update_molecules', dt,
 
 update_vessels = amber.UpdateVasculature(config, 'update_vessels', dt,
                                         killing_radius_threshold=config.radius_killing_threshold,
-                                        killing_length_threshold=config.length_killing_threshold,
                                         n_capillaries_per_VVD=config.n_capillaries_per_VVD,
                                         capillary_length=config.capillary_length,
                                         splitting_rate=config.splitting_rate_vasculature,
