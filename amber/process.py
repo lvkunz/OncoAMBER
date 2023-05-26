@@ -16,7 +16,7 @@ class Simulator: #this class is used to run the whole simulation
         self.dt = dt
         self.time = 0
         self.config = config
-    def show_cell_and_tumor_volume(self, number_tumor_cells, number_necrotic_cells, number_quiescent_cells, number_cycling_cells, tumor_size, tumor_size_free, times):
+    def show_cell_and_tumor_volume(self, number_tumor_cells, number_necrotic_cells, number_quiescent_cells, number_cycling_cells, tumor_size, tumor_size_free, number_vessels, times):
         # plot number of cells evolution
         plt.plot(times, number_tumor_cells, 'blue', label='All cells')
         plt.plot(times, number_cycling_cells, 'red', label='Cycling cells')
@@ -39,6 +39,15 @@ class Simulator: #this class is used to run the whole simulation
         plt.ylabel('Tumor volume [mm^3]')
         plt.grid(True)
         plt.savefig('Plots/Tumor_size_evolution.png')
+        plt.show()
+
+        fig = plt.figure()
+        plt.plot(times, number_vessels, 'black')
+        plt.title('Number of vessels evolution')
+        plt.xlabel('Time')
+        plt.ylabel('Number of vessels [mm^3]')
+        plt.grid(True)
+        plt.savefig('Plots/Number_vessels.png')
         plt.show()
     def show(self, world: World, t = 0): #this function is used to show the world at a certain time
 
@@ -190,6 +199,7 @@ class Simulator: #this class is used to run the whole simulation
             tumor_size_, tumor_size_free_ = world.measure_tumor_volume()
             tumor_size.append(tumor_size_)
             tumor_size_free.append(tumor_size_free_)
+            number_vessels.append(len(world.vasculature.list_of_vessels))
             times.append(self.time)
 
             if not os.path.exists('DataOutput/'):
@@ -201,18 +211,17 @@ class Simulator: #this class is used to run the whole simulation
             np.save('DataOutput/number_quiescent_cells.npy', number_quiescent_cells)
             np.save('DataOutput/tumor_size.npy', tumor_size)
             np.save('DataOutput/tumor_size_free.npy', tumor_size_free)
+            np.save('DataOutput/number_vessels.npy', number_vessels)
             np.save('DataOutput/times.npy', times)
 
             if self.config.show_cell_and_tumor_volume:
-                self.show_cell_and_tumor_volume(number_tumor_cells, number_necrotic_cells, number_quiescent_cells, number_cycling_cells, tumor_size, tumor_size_free, times)
-
+                self.show_cell_and_tumor_volume(number_tumor_cells, number_necrotic_cells, number_quiescent_cells, number_cycling_cells, tumor_size, tumor_size_free, number_vessels, times)
             self.time += self.dt
 
         print('Simulation finished')
 
         if self.config.show_final:
             self.show(world, self.time)
-
         return
 
 class Process: #abstract class, represents all the processes that can happen in the simulation
