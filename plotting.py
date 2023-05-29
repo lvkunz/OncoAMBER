@@ -4,11 +4,38 @@ from scipy.optimize import curve_fit
 import glob
 import os
 import pandas as pd
-
+from PIL import Image
 def func(x, a, b, c):
     return a * (np.exp(b * x)) + c
 
-repo = '20230524_lk001_Linux/CONFIG_vascular_growth_example.py_111618'
+def create_gif(image_dir, output_path, image_sufix, image_step=1):
+    image_files = sorted([f for f in os.listdir(image_dir) if f.endswith((image_sufix+'.png'))])
+
+    images = []
+    count = 0
+    for i, image_file in enumerate(image_files):
+        if i % image_step != 0:
+            continue
+        print(count)
+        image_path = os.path.join(image_dir, image_file)
+        img = Image.open(image_path)
+        images.append(img)
+        count += 1
+
+    # Save the first image as the GIF background
+    images[0].save(output_path, save_all=True, append_images=images[1:], loop=0, duration=200)
+
+    print(f"GIF created successfully at {output_path}")
+
+
+repo = '__'
+
+image_directory = repo+'/iter0/Plots/CurrentPlotting'
+output_path = 'animated.gif'
+image_sufix = 'Vasculature'
+image_step = 10
+
+# create_gif(image_directory, output_path, image_sufix, image_step)
 
 csv_file = ''
 #all repositories in repo:
@@ -171,6 +198,13 @@ if show_fits:
     plt.grid(True)
     plt.savefig(repo+'/doubling_time_tumor_size.png', dpi=300)
     plt.show()
+
+
+
+
+
+
+# Provide the directory containing the images and the output path for the GIF
 
 # #plot the data and the fitted curve
 # fig, axs = plt.subplots(2, 1, figsize=(14, 10))
