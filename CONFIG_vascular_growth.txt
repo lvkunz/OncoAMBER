@@ -1,14 +1,14 @@
 half_length_world: 7.5 #mm
 voxel_per_side: 25
 dt: 5 #hours
-endtime: 1500 #hours
-seed: -1                                 #seed for random number generator. -1 for random seed
+endtime: 1200 #hours
+seed: 42                                 #seed for random number generator. -1 for random seed
 running_on_cluster: False               #if True, will not show graphics
 
 #Initialisation
 vessel_number: 1.0                      #initial number of vessels for healthy tissue per mm^2
 initial_number_healthy_cells: 0        #initial number of healthy cells per voxel
-initial_number_tumor_cells: 50         #initial total number of tumor cells
+initial_number_tumor_cells: 100         #initial total number of tumor cells
 tumor_initial_radius: 0.001 #mm
 doubling_time_healthy: 1 #hours
 doubling_time_tumor: 27  #hours
@@ -26,16 +26,16 @@ intra_radiosensitivity: 0.1             #death rate of cells due to 1Gy of radia
 
 # Parameters for the simulation
 max_occupancy: 0.68                     #max pressure at which cells can't enter a voxel through migration or other means
-vitality_cycling_threshold: 0.9         #threshold in vitality for cells to start cycling
-vitality_apoptosis_threshold: 0.9       #threshold in vitality for cells to start apoptosis. DO NOT SET TO 0
-vitality_necrosis_threshold: 0.05       #threshold in vitality for cells to start necrosis
+vitality_cycling_threshold: 0.8         #threshold in vitality for cells to start cycling
+vitality_apoptosis_threshold: 0.8       #threshold in vitality for cells to start apoptosis. DO NOT SET TO 0
+vitality_necrosis_threshold: 0.1       #threshold in vitality for cells to start necrosis
 probability_apoptosis: 0.03             #probability of apoptosis under the threshold. you can set it to 0
 probability_necrosis: 0.03              #probability of necrosis under the threshold
 viscosity: 1.0                          #factor for diffusion of cells from one voxel to the next (not really a viscosity, it's more a diffusion coeff)
 pressure_coefficient_central_migration: 0.9 #coefficient accounting for the number of cells moving from one voxel towards the center in n_cells/mm*hours
 VEGF_production_per_cell: 0.03          #VEGF production per cell per hour?
-o2_threshold_for_VEGF_production: 0.9   #threshold in vitality for cells to start producing VEGF
-vegf_map_step_voxel: 3                  # number of voxel for VEGF gradient computation, should be the order of the tumor size TODO: change this to a size in mm not voxel dependent
+o2_threshold_for_VEGF_production: 0.8   #threshold in vitality for cells to start producing VEGF
+vegf_map_step_voxel: 5                  # number of voxel for VEGF gradient computation, should be the order of the tumor size TODO: change this to a size in mm not voxel dependent
 lower_pressure_threshold_step: 0.1      #reference value at which step size for vasculature remains the same, above, the step size decreases
 higher_pressure_threshold_step: 0.7     #value for which the stepsize for vasculature growth is 0
 radius_root_vessels: 0.01               #radius of the endvessels of the tree

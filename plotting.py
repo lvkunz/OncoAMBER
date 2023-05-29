@@ -28,14 +28,14 @@ def create_gif(image_dir, output_path, image_sufix, image_step=1):
     print(f"GIF created successfully at {output_path}")
 
 
-repo = '__'
+repo = '20230526_lk001_Linux/CONFIG_vascular_growth_example.py_143333'
 
-image_directory = repo+'/iter0/Plots/CurrentPlotting'
+image_directory = repo+'/iter2/Plots/CurrentPlotting'
 output_path = 'animated.gif'
 image_sufix = 'Vasculature'
-image_step = 10
+image_step = 1
 
-# create_gif(image_directory, output_path, image_sufix, image_step)
+create_gif(image_directory, output_path, image_sufix, image_step)
 
 csv_file = ''
 #all repositories in repo:
@@ -60,7 +60,7 @@ paths = [f'{repo}/iter{i}/DataOutput/' for i in range(0, number_of_iterations)]
 print(paths)
 
 tmin = 0  # Minimum time
-tmax = 300  # Maximum time
+tmax = 1400  # Maximum time
 show_fits = False  # Show the exponential fits
 show_necro = False
 show_quiet_cycling = False
