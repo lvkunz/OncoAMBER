@@ -3,18 +3,15 @@ voxel_per_side: 25
 dt: 5 #hours
 endtime: 1200 #hours
 seed: 42                                 #seed for random number generator. -1 for random seed
-running_on_cluster: False               #if True, will not show graphics
+running_on_cluster: False               #don't touch, the bash script changes it automatically
 
 #Initialisation
 vessel_number: 1.0                      #initial number of vessels for healthy tissue per mm^2
-initial_number_healthy_cells: 0        #initial number of healthy cells per voxel
 initial_number_tumor_cells: 100         #initial total number of tumor cells
 tumor_initial_radius: 0.001 #mm
-doubling_time_healthy: 1 #hours
 doubling_time_tumor: 27  #hours
 doubling_time_sd: 5
 radius_tumor_cells: 0.033 #mm
-radius_healthy_cells: 0.033 #mm
 
 #Radiation parameters
 topas_file: TOPAS_gamma6MeV
@@ -40,14 +37,14 @@ vegf_map_step_gradient: 1                  # number of voxel for VEGF gradient c
 lower_pressure_threshold_step: 0.1      #reference value at which step size for vasculature remains the same, above, the step size decreases
 higher_pressure_threshold_step: 0.7     #value for which the stepsize for vasculature growth is 0
 radius_root_vessels: 0.01               #radius of the endvessels of the tree
-radius_killing_threshold: 0.001         #threshold radius of vessels getting killed by pressure or because they are too small
+radius_killing_threshold: 0.0025         #threshold radius of vessels getting killed by pressure or because they are too small
 radius_decrease_exponent: 5             #exponent for the decrease of radius of vessels depending on pressure
 n_capillaries_per_VVD: 25000.0          #n capillaries [1/mm3]
 capillary_length: 2.0                   #length of capillaries in mm, will give a number of diffusion averagings steps
 vegf_gradient_threshold: 0.0            #threshold in VEGF gradient for vessels to grow
 splitting_rate_vasculature: 0.1         #probability of splitting a vessel when growing
 macro_steps: 1.0                        #number of macro steps per hour for vasculature growth
-micro_steps: 10                         #number of micro steps per macro step for vasculature growth
+micro_steps: 5                         #number of micro steps per macro step for vasculature growth
 weight_direction: 0.5                   #weight of direction for vasculature growth
 weight_vegf: 0.7                        #weight of VEGF gradient for vasculature growth
 weight_pressure: 4.0                    #weight of pressure for vasculature growth

@@ -8,19 +8,16 @@ from PIL import Image
 def func(x, a, b, c):
     return a * (np.exp(b * x)) + c
 
-def create_gif(image_dir, output_path, image_sufix, image_step=1):
-    image_files = sorted([f for f in os.listdir(image_dir) if f.endswith((image_sufix+'.png'))])
+def create_gif(image_dir, output_path, image_suffix, image_step=1):
+    image_files = sorted(glob.glob(os.path.join(image_dir, f't*_{image_suffix}.png')))
 
     images = []
-    count = 0
     for i, image_file in enumerate(image_files):
         if i % image_step != 0:
             continue
-        print(count)
-        image_path = os.path.join(image_dir, image_file)
-        img = Image.open(image_path)
+
+        img = Image.open(image_file)
         images.append(img)
-        count += 1
 
     # Save the first image as the GIF background
     images[0].save(output_path, save_all=True, append_images=images[1:], loop=0, duration=200)
@@ -28,7 +25,7 @@ def create_gif(image_dir, output_path, image_sufix, image_step=1):
     print(f"GIF created successfully at {output_path}")
 
 
-repo = '20230526_lk001_Linux/CONFIG_vascular_growth_example.py_143204'
+repo = '20230526_lk001_Linux/CONFIG_vascular_growth_example.py_143333'
 
 image_directory = repo+'/iter2/Plots/CurrentPlotting'
 output_path = 'animated.gif'
@@ -62,7 +59,7 @@ print(paths)
 tmin = 0  # Minimum time
 tmax = 1400  # Maximum time
 show_fits = False  # Show the exponential fits
-show_necro = False
+show_necro = True
 show_quiet_cycling = False
 show_vessels = True
 local = False

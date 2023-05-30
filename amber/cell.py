@@ -1,7 +1,7 @@
 import numpy as np
 import scipy.stats as stats
 from scipy.stats import gamma
-class Cell (object):
+class Cell:
     def __init__(self, radius, cycle_hours, cycle_std, intra_radiosensitivity, o2_to_vitality_factor, type = 'NormalCell'):
         self.radius = radius
         self.necrotic = False
@@ -20,9 +20,12 @@ class Cell (object):
         self.type = type
         self.time_before_death = None
         self.time_spent_cycling = self.random_time_spent_cycling() #new cells have already been cycling for a random amount of time
-    def duplicate(self): #returns a new cell with the same properties
-        cell = Cell(self.radius, self.usual_cycle_length, self.cycle_length_std, self.intra_radiosensitivity, self.o2_to_vitality_factor, self.type)
-        cell.time_spent_cycling = 0 #the new cell has not been cycling yet
+
+    def duplicate(self):
+        cell_class = type(self)  # Get the class of the current instance dynamically
+        cell = cell_class(self.radius, self.usual_cycle_length, self.cycle_length_std, self.intra_radiosensitivity,
+                          self.o2_to_vitality_factor, self.type)
+        cell.time_spent_cycling = 0  # The new cell has not been cycling yet
         return cell
 
     def vitality(self):
@@ -43,3 +46,9 @@ class Cell (object):
     def random_time_spent_cycling(self):
         longest_possible_time = self.doubling_time
         return np.random.uniform(0, longest_possible_time)
+
+class TumorCell(Cell):
+    def __init__(self, radius, cycle_hours, cycle_std, intra_radiosensitivity, o2_to_vitality_factor, type = 'TumorCell'):
+        super().__init__(radius, cycle_hours, cycle_std, intra_radiosensitivity, o2_to_vitality_factor, type)
+
+

@@ -306,7 +306,7 @@ class CellAging(Process): #cell aging process, cells age in a voxel
                 if cell.time_before_death < 0:
                     voxel.remove_cell(cell)
 
-            if cell.type == 'TumorCell' and cell.vitality() > self.config.vitality_cycling_threshold:
+            if cell.vitality() > self.config.vitality_cycling_threshold:
                 cell.time_spent_cycling += self.dt
 
         for n_cell in voxel.list_of_necrotic_cells:
@@ -419,7 +419,7 @@ class UpdateVoxelMolecules(Process): #update the molecules in the voxel (VEGF), 
     def __call__(self, voxel: Voxel):
         VEGF = 0
         for cell in voxel.list_of_cells:
-            if cell.vitality() < self.threshold_for_VEGF_production and cell.type == 'TumorCell':
+            if cell.vitality() < self.threshold_for_VEGF_production:
                 VEGF = VEGF + self.VEGF_production_per_cell*(1-cell.vitality())
         VEGF = min(VEGF, 1.0)
         voxel.molecular_factors['VEGF'] = VEGF
