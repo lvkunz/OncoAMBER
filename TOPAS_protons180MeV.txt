@@ -1,0 +1,28 @@
+
+I:Ts/NumberOfThreads = 0
+
+sv:Ph/Default/Modules = 1 "g4em-standard_opt0"
+
+s:Ge/MyBox/Type     = "TsBox"
+s:Ge/MyBox/Material = "G4_WATER"
+s:Ge/MyBox/Parent   = "World"
+
+s:Sc/MyScorer/Quantity = "DoseToMedium"
+s:Sc/MyScorer/Component = "MyBox"
+s:Sc/MyScorer/IfOutputFileAlreadyExists = "Overwrite"
+
+i:So/Demo/NumberOfHistoriesInRun = 1000000
+S:So/Demo/BeamParticle = "proton"
+D:So/Demo/BeamEnergy = 180 MeV
+d:Ge/MyBox/HLX      = 10. mm  #the parameters of the box will be overriden by world size etc
+d:Ge/MyBox/HLY      = 10. mm
+d:Ge/MyBox/HLZ      = 10. mm
+d:Ge/MyBox/TransX   = 0. m
+d:Ge/MyBox/TransY   = 0. m
+d:Ge/MyBox/TransZ   = 0. m
+d:Ge/MyBox/RotX     = 0. deg
+d:Ge/MyBox/RotY     = 0. deg
+d:Ge/MyBox/RotZ     = 0. deg
+i:Ge/MyBox/ZBins = 10
+i:Ge/MyBox/XBins = 10
+i:Ge/MyBox/YBins = 10

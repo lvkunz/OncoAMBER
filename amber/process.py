@@ -93,6 +93,7 @@ class Simulator: #this class is used to run the whole simulation
             world.show_tumor_3D(axes, fig, 'number_of_tumor_cells', cmap='viridis', vmin=0, vmax=1000)
             world.vasculature.plot(fig, axes)
             axes.set_title('Vasculature')
+            plt.tight_layout()
             plt.savefig('Plots/CurrentPlotting/t' + str(t) + '_Vasculature.png')
             plt.show()
 
@@ -489,8 +490,8 @@ class Irradiation(Process): #irradiation
         world.update_dose(self.doses)
 
         # plot the simulation
-        fig = plt.figure(figsize=(10, 10))
-        ax = fig.add_subplot(111, projection='3d')
+        fig, ax = plt.subplots()
+        world.show_tumor_slice(ax, fig, 'dose', cmap='Purples')
         plt.show()
     def __call__(self, world: World):
         for voxel in world.voxel_list:
@@ -507,21 +508,25 @@ class Irradiation(Process): #irradiation
                     if n_cell.time_before_death is None:
                         n_cell.time_before_death = random.lognormvariate(1, 1)
 
-            for vessel in world.vasculature.list_of_vessels:
-                path = vessel.path
-                list_voxels = []
-                list_doses = [0]
-                for point in path:
-                    current_voxel = world.find_voxel_number(point)
-                    if current_voxel not in list_voxels:
-                        list_voxels.append(current_voxel)
-                        list_doses.append(voxel.dose)
+            count = 0
+        for vessel in world.vasculature.list_of_vessels:
+            if count % 300 == 0:
+                print('Vessel: ', count)
+            path = vessel.path
+            list_voxels = []
+            list_doses = [0]
+            for point in path:
+                current_voxel = world.find_voxel_number(point)
+                if current_voxel not in list_voxels:
+                    list_voxels.append(current_voxel)
+                    list_doses.append(voxel.dose)
 
-                max_dose = max(list_doses)
-                print('Vessel dose: ', max_dose)
-                probability_vessel = max_dose * self.irradiation_intensity * vessel.radiosensitivity()
+            max_dose = max(list_doses)
+            probability_vessel = max_dose * self.irradiation_intensity * vessel.radiosensitivity()
+            if random.random() < probability_vessel:
+                print('Killing vessel: ', vessel.id)
+                print(max_dose)
                 print(probability_vessel)
-                if random.random() < probability_vessel:
-                    world.vasculature.kill_vessel(vessel.id)
-
+                world.vasculature.kill_vessel(vessel.id)
+            count += 1
         return

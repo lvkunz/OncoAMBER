@@ -15,9 +15,7 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                 self.volume = 8*half_length**3
                 self.voxel_number = voxel_number
                 self.dose = 0
-                self.molecular_factors = {'EGF': 0, 'FGF': 0, 'HGF': 0, 'IGF': 0, 'TGF': 0, 'VEGF': 0, 'WNT': 0}
-                # if np.linalg.norm(self.position) < 5:
-                #         self.molecular_factors['VEGF'] = 1.0
+                self.molecular_factors = {'VEGF': 0}
                 self.viscosity = viscosity
                 self.vessel_volume = 0
                 self.vessel_length = 0

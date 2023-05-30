@@ -131,7 +131,7 @@ class Vessel:
                 max_dose = dose_map.evaluate(point)
         return max_dose
     def radiosensitivity(self):
-        return 0.001
+        return 0.005
 class VasculatureNetwork:
     def __init__(self, config, list_of_vessels=None):
         if list_of_vessels is None:
