@@ -39,6 +39,8 @@ mkdir -p $OUTPUT_DIR
 cp $INFILE $OUTPUT_DIR
 cp ${CONFIG_NAME}.txt $OUTPUT_DIR
 
+cp TOPAS* $DIR
+
 
 
 param_names=()

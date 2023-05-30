@@ -73,6 +73,8 @@ for (( COUNT=0; COUNT<$ITER; COUNT++ )); do
   cp $INFILE $DIR
   cp ${CONFIG_NAME}.txt $DIR
 
+  cp TOPAS* $DIR
+
   # Loop through each parameter name and prompt the user for a value
   declare -A param_values=()
   for param_name in "${param_names[@]}"; do
