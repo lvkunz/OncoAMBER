@@ -5,34 +5,56 @@ import glob
 import os
 import pandas as pd
 from PIL import Image
+import re
+
 def func(x, a, b, c):
     return a * (np.exp(b * x)) + c
 
 def create_gif(image_dir, output_path, image_suffix, image_step=1):
-    image_files = sorted(glob.glob(os.path.join(image_dir, f't*_{image_suffix}.png')))
-
     images = []
-    for i, image_file in enumerate(image_files):
-        if i % image_step != 0:
-            continue
+    t = 0
+    while True:
+        image_file = os.path.join(image_dir, f"t{t}_{image_suffix}.png")
+        if not os.path.exists(image_file):
+            break
 
+        print(f"Adding image {image_file}")
         img = Image.open(image_file)
         images.append(img)
 
-    # Save the first image as the GIF background
-    images[0].save(output_path, save_all=True, append_images=images[1:], loop=0, duration=200)
+        t += image_step
 
-    print(f"GIF created successfully at {output_path}")
+    if images:
+        # Save the first image as the GIF background
+        images[0].save(output_path, save_all=True, append_images=images[1:], loop=0, duration=image_step*10)
+        print(f"GIF created successfully at {output_path}")
+    else:
+        print("No images found to create the GIF.")
+
+tmin = 0  # Minimum time
+tmax = 1400  # Maximum time
+show_fits = False  # Show the exponential fits
+show_necro = True
+show_quiet_cycling = False
+show_vessels = True
+local = False
+gif = True
+param_to_plot = []
 
 
-repo = '20230526_lk001_Linux/CONFIG_vascular_growth_example.py_143333'
+repo = '20230529_lk001_Linux/CONFIG_vascular_growth_example.py_163252'
 
-image_directory = repo+'/iter2/Plots/CurrentPlotting'
-output_path = 'animated.gif'
-image_sufix = 'Vasculature'
-image_step = 1
+iter = 3
+image_directory = repo+'/iter'+str(iter)+'/Plots/CurrentPlotting'
+image_sufix1 = 'AllPlots'
+output_path1 = repo + '/'+image_sufix1+str(iter)+'.gif'
+image_sufix2 = 'Vasculature'
+output_path2 = repo + '/'+image_sufix2+str(iter)+'.gif'
+image_step = 20
 
-# create_gif(image_directory, output_path, image_sufix, image_step)
+if gif:
+    # create_gif(image_directory, output_path1, image_sufix1, image_step)
+    create_gif(image_directory, output_path2, image_sufix2, image_step)
 
 csv_file = ''
 #all repositories in repo:
@@ -56,14 +78,7 @@ paths = [f'{repo}/iter{i}/DataOutput/' for i in range(0, number_of_iterations)]
 #remove paths 4
 print(paths)
 
-tmin = 0  # Minimum time
-tmax = 1400  # Maximum time
-show_fits = False  # Show the exponential fits
-show_necro = True
-show_quiet_cycling = False
-show_vessels = True
-local = False
-param_to_plot = []
+
 
 if local: paths = ['DataOutput/']
 
@@ -84,7 +99,7 @@ for path in paths:
     quiescent_cells = np.load(f'{path}number_quiescent_cells.npy', allow_pickle=True)
     tumor_size = np.load(f'{path}tumor_size.npy', allow_pickle=True)
     tumor_size_free = np.load(f'{path}tumor_size_free.npy', allow_pickle=True)
-    number_vessels = np.load(f'{path}tumor_size_free.npy', allow_pickle=True)
+    number_vessels = np.load(f'{path}number_vessels.npy', allow_pickle=True)
     times = np.load(f'{path}times.npy', allow_pickle=True)
 
     # Find the indices of the times that are within the time range
