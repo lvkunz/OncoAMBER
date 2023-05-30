@@ -123,6 +123,15 @@ class Vessel:
 
     def max_pressure(self, pressure):
         return np.max([pressure(point) for point in self.path])
+
+    def max_dose(self, dose_map):
+        max_dose = 0
+        for point in self.path:
+            if dose_map.evaluate(point) > max_dose:
+                max_dose = dose_map.evaluate(point)
+        return max_dose
+    def radiosensitivity(self):
+        return 0.001
 class VasculatureNetwork:
     def __init__(self, config, list_of_vessels=None):
         if list_of_vessels is None:

@@ -42,9 +42,9 @@ class World:
 
     def vasculature_growth(self, dt, splitting_rate, macro_steps=1, micro_steps=10, weight_direction=0.5, weight_vegf=0.5, weight_pressure=0.5, radius_pressure_sensitive = False):
         print('Vasculature growth')
-        pressure_map = self.pressure_map(step_voxel=5)
+        pressure_map = self.pressure_map(step_gradient=5)
         def pressure(point): return pressure_map.evaluate(point)
-        vegf = self.vegf_map(step_voxel= self.config.vegf_map_step_voxel)
+        vegf = self.vegf_map(step_gradient= self.config.vegf_map_step_gradient)
 
         def vegf_gradient(point): return vegf.gradient(point)
 
@@ -345,27 +345,39 @@ class World:
         o2_map = ScalarField3D(positions, values, step)
         return o2_map
 
-    def pressure_map(self, step_voxel = 3):
+    def pressure_map(self, step_gradient = 3):
         values = []
         positions = []
         for voxel in self.voxel_list:
             values.append(voxel.pressure())
             positions.append(voxel.position)
 
-        step = (self.half_length*2/self.number_of_voxels)*step_voxel
+        step = step_gradient
         pressure_map = ScalarField3D(positions, values, step)
         return pressure_map
 
-    def vegf_map(self, step_voxel = 3):
+    def vegf_map(self, step_gradient = 3):
         values = []
         positions = []
         for voxel in self.voxel_list:
             values.append(voxel.molecular_factors['VEGF'])
             positions.append(voxel.position)
 
-        step = (self.half_length*2/self.number_of_voxels)*step_voxel
+        step = step_gradient
         vegf_map = ScalarField3D(positions, values, step)
         return vegf_map
+
+    def dose_map(self):
+        values = []
+        positions = []
+        for voxel in self.voxel_list:
+            values.append(voxel.dose)
+            positions.append(voxel.position)
+
+        step = 1
+        dose_map = ScalarField3D(positions, values, step)
+        return dose_map
+
 
     def show_tumor_slice(self, ax, fig, voxel_attribute, factor=None, cmap='viridis', vmin=None, vmax=None, norm=None,
                          levels=None, refinement_level=0, extend = 'both'):

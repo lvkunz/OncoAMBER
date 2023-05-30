@@ -454,7 +454,7 @@ class UpdateVasculature(Process): #update the vasculature
         volume_world = 8*world.half_length**3
         n_new_vessels = int(self.config.new_vessels_per_hour * self.dt * volume_world)
         n_new_vessels = min(n_new_vessels, len(vessels))
-        vegf = world.vegf_map(step_voxel= self.config.vegf_map_step_voxel)
+        vegf = world.vegf_map(step_gradient= self.config.vegf_map_step_gradient)
         def vegf_gradient(point): return vegf.gradient(point)
 
         for _ in range(n_new_vessels):
@@ -506,4 +506,22 @@ class Irradiation(Process): #irradiation
                 if random.random() < cell_probability_n:
                     if n_cell.time_before_death is None:
                         n_cell.time_before_death = random.lognormvariate(1, 1)
+
+            for vessel in world.vasculature.list_of_vessels:
+                path = vessel.path
+                list_voxels = []
+                list_doses = [0]
+                for point in path:
+                    current_voxel = world.find_voxel_number(point)
+                    if current_voxel not in list_voxels:
+                        list_voxels.append(current_voxel)
+                        list_doses.append(voxel.dose)
+
+                max_dose = max(list_doses)
+                print('Vessel dose: ', max_dose)
+                probability_vessel = max_dose * self.irradiation_intensity * vessel.radiosensitivity()
+                print(probability_vessel)
+                if random.random() < probability_vessel:
+                    world.vasculature.kill_vessel(vessel.id)
+
         return

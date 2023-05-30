@@ -18,11 +18,12 @@ radius_healthy_cells: 0.033 #mm
 
 #Radiation parameters
 topas_file: TOPAS_gamma6MeV
-first_irradiation_time: 0               #time at which radiation is applied
+first_irradiation_time: 0                #time at which radiation is applied
 number_fractions: 0                     #number of fractions of radiation
 time_between_fractions: 24              #time between fractions of radiation
 irradiation_intensity: 10               #duration of radiation
 intra_radiosensitivity: 0.1             #death rate of cells due to 1Gy of radiation
+vessel_radiosensitivity: 0.1            #death rate of vessels due to 1Gy of radiation
 
 # Parameters for the simulation
 max_occupancy: 0.68                     #max pressure at which cells can't enter a voxel through migration or other means
@@ -35,7 +36,7 @@ viscosity: 1.0                          #factor for diffusion of cells from one 
 pressure_coefficient_central_migration: 0.9 #coefficient accounting for the number of cells moving from one voxel towards the center in n_cells/mm*hours
 VEGF_production_per_cell: 0.03          #VEGF production per cell per hour?
 o2_threshold_for_VEGF_production: 0.8   #threshold in vitality for cells to start producing VEGF
-vegf_map_step_voxel: 5                  # number of voxel for VEGF gradient computation, should be the order of the tumor size TODO: change this to a size in mm not voxel dependent
+vegf_map_step_gradient: 1                  # number of voxel for VEGF gradient computation, should be the order of the tumor size TODO: change this to a size in mm not voxel dependent
 lower_pressure_threshold_step: 0.1      #reference value at which step size for vasculature remains the same, above, the step size decreases
 higher_pressure_threshold_step: 0.7     #value for which the stepsize for vasculature growth is 0
 radius_root_vessels: 0.01               #radius of the endvessels of the tree

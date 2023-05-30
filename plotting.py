@@ -28,14 +28,14 @@ def create_gif(image_dir, output_path, image_sufix, image_step=1):
     print(f"GIF created successfully at {output_path}")
 
 
-repo = '20230526_lk001_Linux/CONFIG_vascular_growth_example.py_143333'
+repo = '20230526_lk001_Linux/CONFIG_vascular_growth_example.py_143204'
 
 image_directory = repo+'/iter2/Plots/CurrentPlotting'
 output_path = 'animated.gif'
 image_sufix = 'Vasculature'
 image_step = 1
 
-create_gif(image_directory, output_path, image_sufix, image_step)
+# create_gif(image_directory, output_path, image_sufix, image_step)
 
 csv_file = ''
 #all repositories in repo:
@@ -64,6 +64,7 @@ tmax = 1400  # Maximum time
 show_fits = False  # Show the exponential fits
 show_necro = False
 show_quiet_cycling = False
+show_vessels = True
 local = False
 param_to_plot = []
 
@@ -76,6 +77,7 @@ cycling_cells_list = []
 quiescent_cells_list = []
 tumor_size_list = []
 tumor_size_free_list = []
+number_vessels_list = []
 times_list = []
 
 for path in paths:
@@ -85,6 +87,7 @@ for path in paths:
     quiescent_cells = np.load(f'{path}number_quiescent_cells.npy', allow_pickle=True)
     tumor_size = np.load(f'{path}tumor_size.npy', allow_pickle=True)
     tumor_size_free = np.load(f'{path}tumor_size_free.npy', allow_pickle=True)
+    number_vessels = np.load(f'{path}tumor_size_free.npy', allow_pickle=True)
     times = np.load(f'{path}times.npy', allow_pickle=True)
 
     # Find the indices of the times that are within the time range
@@ -96,6 +99,7 @@ for path in paths:
     necrotic_cells = necrotic_cells[idx]
     cycling_cells = cycling_cells[idx]
     quiescent_cells = quiescent_cells[idx]
+    number_vessels = number_vessels[idx]
     times = times[idx]
 
     # Append the filtered arrays to the lists
@@ -105,6 +109,7 @@ for path in paths:
     necrotic_cells_list.append(necrotic_cells)
     cycling_cells_list.append(cycling_cells)
     quiescent_cells_list.append(quiescent_cells)
+    number_vessels_list.append(number_vessels)
     times_list.append(times)
 
 
@@ -169,6 +174,19 @@ plt.figtext(0.01, 0.01, repo, wrap=True, horizontalalignment='left', fontsize=6)
 plt.tight_layout()
 plt.savefig(repo+'/tumor_evolution_'+str(tmax)+'.png', dpi=dpi)
 plt.show()
+
+if show_vessels:
+    fig, axes = plt.subplots(1, 1, figsize=(8, 5), dpi=dpi)
+    for i in range(len(paths)):
+        axes.plot(times_list[i], number_vessels_list[i], 'o', markersize=5, alpha=0.5, label=parameter+': '+str(param[i]))
+    axes.set_title('Number of Vessels Evolution')
+    axes.set_xlabel('Time')
+    axes.set_ylabel('Number of Vessels')
+    axes.grid(True)
+    axes.legend()
+    plt.tight_layout()
+    plt.savefig(repo+'/vessels_evolution_'+str(tmax)+'.png', dpi=dpi)
+    plt.show()
 
 if show_fits:
     if len(param_to_plot) > 0:

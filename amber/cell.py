@@ -32,8 +32,6 @@ class Cell (object):
         return vitality #needs to be normalized between 0 and 1
 
     def radiosensitivity(self):
-        print('#'*80)
-        print(self.intra_radiosensitivity, self.oxygen)
         value = self.intra_radiosensitivity * self.oxygen
         if self.necrotic:
             value = 0
