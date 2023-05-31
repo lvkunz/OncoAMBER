@@ -1,23 +1,23 @@
 half_length_world: 7.5 #mm
 voxel_per_side: 25
-dt: 5 #hours
-endtime: 1200 #hours
-seed: 42                                 #seed for random number generator. -1 for random seed
+dt: 10 #hours
+endtime: 5000 #hours
+seed: 42                                #seed for random number generator. -1 for random seed
 running_on_cluster: False               #don't touch, the bash script changes it automatically
 
 #Initialisation
 vessel_number: 1.0                      #initial number of vessels for healthy tissue per mm^2
 initial_number_tumor_cells: 100         #initial total number of tumor cells
-tumor_initial_radius: 0.01 #mm
+tumor_initial_radius: 0.001 #mm
 doubling_time_tumor: 27  #hours
 doubling_time_sd: 5
 radius_tumor_cells: 0.033 #mm
 
 #Radiation parameters
-topas_file: TOPAS_protons180MeV
-first_irradiation_time: 600                #time at which radiation is applied
-number_fractions: 1                     #number of fractions of radiation
-time_between_fractions: 25              #time between fractions of radiation
+topas_file: TOPAS_gamma6MeV
+first_irradiation_time: 0               #time at which radiation is applied
+number_fractions: 0                     #number of fractions of radiation
+time_between_fractions: 24              #time between fractions of radiation
 irradiation_intensity: 10               #duration of radiation
 intra_radiosensitivity: 0.1             #death rate of cells due to 1Gy of radiation
 vessel_radiosensitivity: 0.1            #death rate of vessels due to 1Gy of radiation
@@ -26,45 +26,45 @@ vessel_radiosensitivity: 0.1            #death rate of vessels due to 1Gy of rad
 max_occupancy: 0.68                     #max pressure at which cells can't enter a voxel through migration or other means
 vitality_cycling_threshold: 0.8         #threshold in vitality for cells to start cycling
 vitality_apoptosis_threshold: 0.8       #threshold in vitality for cells to start apoptosis. DO NOT SET TO 0
-vitality_necrosis_threshold: 0.1       #threshold in vitality for cells to start necrosis
+vitality_necrosis_threshold: 0.1        #threshold in vitality for cells to start necrosis
 probability_apoptosis: 0.03             #probability of apoptosis under the threshold. you can set it to 0
 probability_necrosis: 0.03              #probability of necrosis under the threshold
 viscosity: 1.0                          #factor for diffusion of cells from one voxel to the next (not really a viscosity, it's more a diffusion coeff)
 pressure_coefficient_central_migration: 0.9 #coefficient accounting for the number of cells moving from one voxel towards the center in n_cells/mm*hours
 VEGF_production_per_cell: 0.03          #VEGF production per cell per hour?
 o2_threshold_for_VEGF_production: 0.8   #threshold in vitality for cells to start producing VEGF
-vegf_map_step_gradient: 1               #vegf map step size, should be the order of the tumor size
+vegf_map_step_gradient: 2 #mm           #vegf map step size, should be the order of the tumor size
 lower_pressure_threshold_step: 0.1      #reference value at which step size for vasculature remains the same, above, the step size decreases
 higher_pressure_threshold_step: 0.7     #value for which the stepsize for vasculature growth is 0
-radius_root_vessels: 0.01               #radius of the endvessels of the tree
-radius_killing_threshold: 0.0025         #threshold radius of vessels getting killed by pressure or because they are too small
+radius_root_vessels: 0.01  #mm          #radius of the endvessels of the tree
+radius_killing_threshold: 0.0025 #mm    #threshold radius of vessels getting killed by pressure or because they are too small
 radius_decrease_exponent: 5             #exponent for the decrease of radius of vessels depending on pressure
 n_capillaries_per_VVD: 25000.0          #n capillaries [1/mm3]
-capillary_length: 2.0                   #length of capillaries in mm, will give a number of diffusion averagings steps
+capillary_length: 2.0 #mm               #length of capillaries in mm, will give a number of diffusion averagings steps
 vegf_gradient_threshold: 0.0            #threshold in VEGF gradient for vessels to grow
 splitting_rate_vasculature: 0.1         #probability of splitting a vessel when growing
 macro_steps: 1.0                        #number of macro steps per hour for vasculature growth
-micro_steps: 5                         #number of micro steps per macro step for vasculature growth
+micro_steps: 5                          #number of micro steps per macro step for vasculature growth
 weight_direction: 0.5                   #weight of direction for vasculature growth
 weight_vegf: 0.7                        #weight of VEGF gradient for vasculature growth
-weight_pressure: 2.0                    #weight of pressure for vasculature growth
+weight_pressure: 2.5                    #weight of pressure for vasculature growth
 radius_pressure_sensitive: True         #if True, radius of vessels is pressure sensitive and decreases with pressure
 o2_to_vitality_factor: 1.0              #factor for the conversion of capillaries to vitality
-vessel_step_size: 0.05                  #step size for vasculature growth
-growth_step_stop_threshold: 0.03        #threshold for step size for vasculature growth, under which growth stops
+vessel_step_size: 0.05 #mm              #step size for vasculature growth
+growth_step_stop_threshold: 0.03 #mm    #threshold for step size for vasculature growth, under which growth stops
 new_vessels_per_hour: 0.0002            #number of new vessels per hour*mm3
 
 # Graphics parameters
-show_time_steps: True                   #if True, show the time during the simulation
-show_final: False                       #if True, show the final state of the simulation
+show_time_steps: False                  #if True, show the time during the simulation
+show_final: True                        #if True, show the final state of the simulation
 show_slices: True                       #if True, show a slice of the tumor during the simulation
 slice: x                                #what direction to slice the tumor (x or z
-show_o2_vitality_histograms: True      #if True, show a histogram of capillaries and vitality during the simulation
+show_o2_vitality_histograms: True       #if True, show a histogram of capillaries and vitality during the simulation
 show_tumor_and_vessels_3D: True         #if True, show the vasculature in 3D during the simulation with tumor cells
 visible_original_vessels: False         #if True, show the original vasculature in 3D during the simulation
 show_alpha_beta_maps: False             #if True, show the distribution of the parameters beta and gamma
 show_cell_and_tumor_volume: True        #if True, show the volume of tumor cells and healthy cells during the simulation
 verbose: False
-show_angiogenesis_metrics: True
+show_angiogenesis_metrics: True         #if True, show the metrics for angiogenesis
 true_vasculature: False
-show_3D_mesh: False                    #if True, show the 3D mesh of the tumor
+show_3D_mesh: False                     #if True, show the 3D mesh of the tumor

@@ -7,8 +7,7 @@ import pandas as pd
 from PIL import Image
 import re
 
-def func(x, a, b, c):
-    return a * (np.exp(b * x)) + c
+
 
 def create_gif(image_dir, output_path, image_suffix, image_step=1):
     images = []
@@ -32,29 +31,32 @@ def create_gif(image_dir, output_path, image_suffix, image_step=1):
         print("No images found to create the GIF.")
 
 tmin = 0  # Minimum time
-tmax = 1400  # Maximum time
-show_fits = False  # Show the exponential fits
-show_necro = True
+tmax = 1500  # Maximum time
+show_fits = True  # Show the exponential fits
+fit = 'gompertz' #gompertz or exp
+show_necro = False
 show_quiet_cycling = False
 show_vessels = True
 local = False
-gif = True
-param_to_plot = []
+gif = False
+param_to_plot = [0.0022, 0.0025, 0.0027, 0.003]
 
+repo = '20230530_lk001_Linux/CONFIG_vascular_growth_example3.py_171153'
 
-repo = '20230530_lk001_Linux/CONFIG_vascular_growth_example3.py_171349'
+iter = [0, 2 ,4, 6, 9]
 
-iter = 7
-image_directory = repo+'/iter'+str(iter)+'/Plots/CurrentPlotting'
-image_sufix1 = 'AllPlots'
-output_path1 = repo + '/'+image_sufix1+str(iter)+'.gif'
-image_sufix2 = 'Vasculature'
-output_path2 = repo + '/'+image_sufix2+str(iter)+'.gif'
-image_step = 20
+for i in iter:
+    print('iter', i, 'of', iter, 'is being processed')
+    image_directory = repo+'/iter'+str(i)+'/Plots/CurrentPlotting'
+    image_sufix1 = 'AllPlots'
+    output_path1 = repo + '/'+image_sufix1+str(i)+'.gif'
+    image_sufix2 = 'Vasculature'
+    output_path2 = repo + '/'+image_sufix2+str(i)+'.gif'
+    image_step = 20
 
-if gif:
-    # create_gif(image_directory, output_path1, image_sufix1, image_step)
-    create_gif(image_directory, output_path2, image_sufix2, image_step)
+    if gif:
+        # create_gif(image_directory, output_path1, image_sufix1, image_step)
+        create_gif(image_directory, output_path2, image_sufix2, image_step)
 
 csv_file = ''
 #all repositories in repo:
@@ -140,28 +142,56 @@ for i in range(len(paths)):
             continue
     print(paths[i])
     # Fit number of cells
+    if fit == 'exp':
+        def func_cell(x, a, b):
+            return a * (np.exp(b * x)) + number_cells_list[i][0] - a
+
+        def func_volume(x, a, b):
+            return a * (np.exp(b * x)) + tumor_size_list[i][0] - a
+
+        p1 = (3000, 3e-3)
+        p2 = (1, 0.003)
+
+    elif fit == 'gompertz':
+
+        def func_cell(x, a, b):
+            return a * np.exp(np.log(number_cells_list[i][0]/a)*np.exp(-b * x))
+
+        def func_volume(x, a, b):
+            return a * np.exp(np.log(tumor_size_list[i][0]/a)*np.exp(-b * x))
+
+        p1 = ( 30000, 0.1)
+        p2 = ( 300 , 0.1)
+
     if show_fits:
-        popt, pcov = curve_fit(func, times_list[i], number_cells_list[i], p0=(3000, 3e-3, 0), maxfev=100000)
-        print(popt)
+        popt, pcov = curve_fit(func_cell, times_list[i], number_cells_list[i], p0=p1, maxfev=100000)
     color = axes[0].plot(times_list[i], number_cells_list[i], '.', markersize=3, alpha=0.8, label=parameter+': '+str(param[i]))[0].get_color()
     if show_necro: axes[0].plot(times_list[i], necrotic_cells_list[i], 's', markersize=5, alpha=0.5, color=color)
     if show_quiet_cycling:
         axes[0].plot(times_list[i], cycling_cells_list[i], '+', markersize=3, alpha=0.5, color=color)
         axes[0].plot(times_list[i], quiescent_cells_list[i], 'D', markersize=3, alpha=0.5, color=color)
     if show_fits:
-        axes[0].plot(times_list[i], func(times_list[i], *popt), '-', color=color, label='fit '+parameter+': '+str(param[i]))
-        doubling_time = np.log(2)/popt[1]
-        print('Doubling time (Number of Cells):', doubling_time)
+        axes[0].plot(times_list[i], func_cell(times_list[i], *popt), '-', color=color, label='fit '+parameter+': '+str(param[i]))
+
+
+
+        doubling_time = np.log(2) / popt[1]
+        if fit == 'gompertz':
+            print('Doubling time (Number of Cells):', doubling_time)
+            print('Max Carrying capacity:', popt[0])
+        elif fit == 'exp':
+            print('Doubling time (Number of Cells):', doubling_time)
+
+        print(popt)
         doubling_times_number_cells.append(doubling_time)
 
     # Fit tumor size
     if show_fits:
-        popt, pcov = curve_fit(func, times_list[i], tumor_size_list[i], p0=(1, 0.003, 0), maxfev=100000)
-        print(popt)
+        popt, pcov = curve_fit(func_volume, times_list[i], tumor_size_list[i], p0=p2, maxfev=100000)
     axes[1].plot(times_list[i], tumor_size_list[i], 'o', color = color, markersize = 5, alpha=0.5, label=parameter+': '+str(param[i]))
     axes[1].plot(times_list[i], tumor_size_free_list[i], '+', color = color, markersize = 5, alpha=0.5)
     if show_fits:
-        axes[1].plot(times_list[i], func(times_list[i], *popt), '-', color=color, label='fit '+parameter+': '+str(param[i]))
+        axes[1].plot(times_list[i], func_volume(times_list[i], *popt), '-', color=color, label='fit '+parameter+': '+str(param[i]))
         doubling_time = np.log(2)/popt[1]
         doubling_times_tumor_size.append(doubling_time)
 
@@ -190,6 +220,9 @@ plt.show()
 if show_vessels:
     fig, axes = plt.subplots(1, 1, figsize=(8, 5), dpi=dpi)
     for i in range(len(paths)):
+        if len(param_to_plot) > 0:
+            if param[i] not in param_to_plot:
+                continue
         axes.plot(times_list[i], number_vessels_list[i], 'o', markersize=5, alpha=0.5, label=parameter+': '+str(param[i]))
     axes.set_title('Number of Vessels Evolution')
     axes.set_xlabel('Time')
@@ -205,9 +238,6 @@ if show_fits:
         param = param_to_plot
     print('Doubling times (Number of Cells):', doubling_times_number_cells)
     print('Doubling times (Tumor Size):', doubling_times_tumor_size)
-
-    print(param)
-    print(doubling_times_number_cells)
 
     plt.plot(param, doubling_times_number_cells, 'bo', label='Cells doubling time')
     plt.xlabel(parameter)

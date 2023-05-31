@@ -67,4 +67,4 @@ show_cell_and_tumor_volume: True        #if True, show the volume of tumor cells
 verbose: False
 show_angiogenesis_metrics: True
 true_vasculature: False
-
+show_3D_mesh: False                    #if True, show the 3D mesh of the tumor
