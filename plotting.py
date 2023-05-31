@@ -42,9 +42,9 @@ gif = True
 param_to_plot = []
 
 
-repo = '20230529_lk001_Linux/CONFIG_vascular_growth_example.py_163252'
+repo = '20230530_lk001_Linux/CONFIG_vascular_growth_example3.py_171349'
 
-iter = 3
+iter = 7
 image_directory = repo+'/iter'+str(iter)+'/Plots/CurrentPlotting'
 image_sufix1 = 'AllPlots'
 output_path1 = repo + '/'+image_sufix1+str(iter)+'.gif'

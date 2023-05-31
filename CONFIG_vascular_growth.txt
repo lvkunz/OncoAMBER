@@ -33,7 +33,7 @@ viscosity: 1.0                          #factor for diffusion of cells from one 
 pressure_coefficient_central_migration: 0.9 #coefficient accounting for the number of cells moving from one voxel towards the center in n_cells/mm*hours
 VEGF_production_per_cell: 0.03          #VEGF production per cell per hour?
 o2_threshold_for_VEGF_production: 0.8   #threshold in vitality for cells to start producing VEGF
-vegf_map_step_gradient: 1               #vegf map step size, should be the order of the tumor size
+vegf_map_step_gradient: 2               #vegf map step size, should be the order of the tumor size
 lower_pressure_threshold_step: 0.1      #reference value at which step size for vasculature remains the same, above, the step size decreases
 higher_pressure_threshold_step: 0.7     #value for which the stepsize for vasculature growth is 0
 radius_root_vessels: 0.01               #radius of the endvessels of the tree
@@ -47,7 +47,7 @@ macro_steps: 1.0                        #number of macro steps per hour for vasc
 micro_steps: 5                         #number of micro steps per macro step for vasculature growth
 weight_direction: 0.5                   #weight of direction for vasculature growth
 weight_vegf: 0.7                        #weight of VEGF gradient for vasculature growth
-weight_pressure: 4.0                    #weight of pressure for vasculature growth
+weight_pressure: 2.5                    #weight of pressure for vasculature growth
 radius_pressure_sensitive: True         #if True, radius of vessels is pressure sensitive and decreases with pressure
 o2_to_vitality_factor: 1.0              #factor for the conversion of capillaries to vitality
 vessel_step_size: 0.05                  #step size for vasculature growth
