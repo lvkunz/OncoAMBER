@@ -7,15 +7,15 @@ running_on_cluster: False               #don't touch, the bash script changes it
 
 #Initialisation
 vessel_number: 1.0                      #initial number of vessels for healthy tissue per mm^2
-initial_number_tumor_cells: 100000         #initial total number of tumor cells
-tumor_initial_radius: 1 #mm
+initial_number_tumor_cells: 100         #initial total number of tumor cells
+tumor_initial_radius: 0.01 #mm
 doubling_time_tumor: 27  #hours
 doubling_time_sd: 5
 radius_tumor_cells: 0.033 #mm
 
 #Radiation parameters
 topas_file: TOPAS_gamma6MeV
-first_irradiation_time: 300                #time at which radiation is applied
+first_irradiation_time: 600                #time at which radiation is applied
 number_fractions: 1                     #number of fractions of radiation
 time_between_fractions: 25              #time between fractions of radiation
 irradiation_intensity: 10               #duration of radiation
