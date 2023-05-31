@@ -2,6 +2,7 @@
 
 module purge
 module load anaconda/4.12.0
+module load topas/3.8.0
 #show the version of oncoamber installed on amberenv
 
 INFILE=$1
