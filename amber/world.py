@@ -7,6 +7,7 @@ from amber.BasicGeometries import *
 import matplotlib.tri as mtri
 import matplotlib.pyplot as plt
 import scipy.sparse as sparse
+import pickle
 import os
 
 
@@ -603,6 +604,17 @@ class World:
         print('Vessel segment length')
         print(f'Mean: {VSL_mean:.2f}, Median: {VSL_median:.2f}, Std: {np.std(VSL_values):.2f}, Min: {np.min(VSL_values):.2f}, Max: {np.max(VSL_values):.2f}')
 
+    def save(self, path):
+        print('Saving world object to file: ' + path)
+        # Save the tumor object to a file
+        with open(path, 'wb') as f:
+            pickle.dump(self, f)
+
+def load(path):
+    # Load the tumor object from a file
+    with open(path, 'rb') as f:
+        world = pickle.load(f)
+    return world
 
 
 

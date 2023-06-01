@@ -41,35 +41,42 @@ for key, value in config.__dict__.items():
 
 print('#'*80)
 
+if config.new_world:
 
-world = amber.World(config)
+    world = amber.World(config)
 
-#########################################################################################
+    #########################################################################################
 
-#add cells to the voxels (tumor cells)
+    #add cells to the voxels (tumor cells)
 
-points = amber.Sphere(config.tumor_initial_radius, [0, 0, 0]).generate_random_points(config.initial_number_tumor_cells)
-for i in range(config.initial_number_tumor_cells):
-    if i % 10000 == 0: print('Adding tumor cells ', i, ' out of ', config.initial_number_tumor_cells)
-    voxel = world.find_voxel(points[i])
-    voxel.add_cell(
-        amber.TumorCell(config.radius_tumor_cells, cycle_hours=config.doubling_time_tumor, cycle_std=config.doubling_time_sd, intra_radiosensitivity=config.intra_radiosensitivity, o2_to_vitality_factor=config.o2_to_vitality_factor, type='TumorCell'), config.max_occupancy)
+    points = amber.Sphere(config.tumor_initial_radius, [0, 0, 0]).generate_random_points(config.initial_number_tumor_cells)
+    for i in range(config.initial_number_tumor_cells):
+        if i % 10000 == 0: print('Adding tumor cells ', i, ' out of ', config.initial_number_tumor_cells)
+        voxel = world.find_voxel(points[i])
+        voxel.add_cell(
+            amber.TumorCell(config.radius_tumor_cells, cycle_hours=config.doubling_time_tumor, cycle_std=config.doubling_time_sd, intra_radiosensitivity=config.intra_radiosensitivity, o2_to_vitality_factor=config.o2_to_vitality_factor, type='TumorCell'), config.max_occupancy)
 
 
-#generate vasculature and print related information
-world.generate_healthy_vasculature(config.vessel_number,
-            splitting_rate=0.5,
-            mult_macro_steps=2.0,
-            micro_steps=30,
-            weight_direction=1.5,
-            weight_vegf=0.9,
-            weight_pressure=0.0,
-            )
-world.update_volume_occupied_by_vessels()
-print('Relative volume occupied by vessels, ratio: ', 100*(world.measure_vasculature_volume()/(world.half_length*2)**3), '%')
-print('Length of vasculature: ', 100*(world.measure_vasculature_length()/(world.half_length*2)**3), 'mm/mm^3')
-print('Area of vasculature: ', 10*(world.measure_vasculature_area()/(world.half_length*2)**3), 'mm^2/mm^3')
-world.update_capillaries(n_capillaries_per_VVD=config.n_capillaries_per_VVD, capillary_length=config.capillary_length)
+    #generate vasculature and print related information
+    world.generate_healthy_vasculature(config.vessel_number,
+                splitting_rate=0.5,
+                mult_macro_steps=2.0,
+                micro_steps=30,
+                weight_direction=1.5,
+                weight_vegf=0.9,
+                weight_pressure=0.0,
+                )
+    world.update_volume_occupied_by_vessels()
+    print('Relative volume occupied by vessels, ratio: ', 100*(world.measure_vasculature_volume()/(world.half_length*2)**3), '%')
+    print('Length of vasculature: ', 100*(world.measure_vasculature_length()/(world.half_length*2)**3), 'mm/mm^3')
+    print('Area of vasculature: ', 10*(world.measure_vasculature_area()/(world.half_length*2)**3), 'mm^2/mm^3')
+    world.update_capillaries(n_capillaries_per_VVD=config.n_capillaries_per_VVD, capillary_length=config.capillary_length)
+
+    world.save(str(config.world_file) + str(config.seed) + '.pkl')
+
+else:
+    world = amber.load(str(config.world_file) + str(config.seed) + '.pkl')
+
 
 # if config.show_3D_mesh:
 #     amber.show_tumor_3D_solid(world, 0)
@@ -130,5 +137,7 @@ simulation_end = time.time()
 print('simulation time: ', simulation_end - simulation_start, ' seconds')
 print('total time: ', time.time() - start_time, ' seconds')
 
+
+world.save('final' + str(config.world_file) + str(config.seed) + '.pkl')
 # if config.show_3D_mesh:
 #     amber.show_tumor_3D_solid(world, 0)
