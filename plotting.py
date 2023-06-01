@@ -31,19 +31,19 @@ def create_gif(image_dir, output_path, image_suffix, image_step=1):
         print("No images found to create the GIF.")
 
 tmin = 0  # Minimum time
-tmax = 1500  # Maximum time
-show_fits = True  # Show the exponential fits
+tmax = 10000  # Maximum time
+show_fits = False  # Show the exponential fits
 fit = 'gompertz' #gompertz or exp
-show_necro = False
+show_necro = True
 show_quiet_cycling = False
 show_vessels = True
 local = False
-gif = False
-param_to_plot = [0.0022, 0.0025, 0.0027, 0.003]
+gif = True
+param_to_plot = [3.0, 5.0, 7.0]
 
-repo = '20230530_lk001_Linux/CONFIG_vascular_growth_example3.py_171153'
+repo = '20230531_lk001_Linux/CONFIG_vascular_growth_example.py_124028'
 
-iter = [0, 2 ,4, 6, 9]
+iter = [6]
 
 for i in iter:
     print('iter', i, 'of', iter, 'is being processed')
@@ -52,10 +52,10 @@ for i in iter:
     output_path1 = repo + '/'+image_sufix1+str(i)+'.gif'
     image_sufix2 = 'Vasculature'
     output_path2 = repo + '/'+image_sufix2+str(i)+'.gif'
-    image_step = 20
+    image_step = 10
 
     if gif:
-        # create_gif(image_directory, output_path1, image_sufix1, image_step)
+        create_gif(image_directory, output_path1, image_sufix1, image_step)
         create_gif(image_directory, output_path2, image_sufix2, image_step)
 
 csv_file = ''

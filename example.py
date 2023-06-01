@@ -71,8 +71,8 @@ print('Length of vasculature: ', 100*(world.measure_vasculature_length()/(world.
 print('Area of vasculature: ', 10*(world.measure_vasculature_area()/(world.half_length*2)**3), 'mm^2/mm^3')
 world.update_capillaries(n_capillaries_per_VVD=config.n_capillaries_per_VVD, capillary_length=config.capillary_length)
 
-if config.show_3D_mesh:
-    amber.show_tumor_3D_solid(world, 0)
+# if config.show_3D_mesh:
+#     amber.show_tumor_3D_solid(world, 0)
 
 ##########################################################################################
 
@@ -130,5 +130,5 @@ simulation_end = time.time()
 print('simulation time: ', simulation_end - simulation_start, ' seconds')
 print('total time: ', time.time() - start_time, ' seconds')
 
-if config.show_3D_mesh:
-    amber.show_tumor_3D_solid(world, 0)
+# if config.show_3D_mesh:
+#     amber.show_tumor_3D_solid(world, 0)
