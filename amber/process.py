@@ -219,6 +219,9 @@ class Simulator: #this class is used to run the whole simulation
             np.save('DataOutput/number_vessels.npy', number_vessels)
             np.save('DataOutput/times.npy', times)
 
+            if self.time % self.config.save_world_every == 0:
+                world.save('t'+str(self.time)+str(self.config.world_file) + str(self.config.seed) + '.pkl')
+
             if self.config.show_cell_and_tumor_volume:
                 self.show_cell_and_tumor_volume(number_tumor_cells, number_necrotic_cells, number_quiescent_cells, number_cycling_cells, tumor_size, tumor_size_free, number_vessels, times)
             self.time += self.dt

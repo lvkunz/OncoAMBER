@@ -39,9 +39,9 @@ show_quiet_cycling = False
 show_vessels = True
 local = False
 gif = True
-param_to_plot = [3.0, 5.0, 7.0]
+param_to_plot = []
 
-repo = '20230531_lk001_Linux/CONFIG_vascular_growth_example.py_124028'
+repo = 'CONFIG_vascular_growth_example3.py_154014'
 
 iter = [6]
 
