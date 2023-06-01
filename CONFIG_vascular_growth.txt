@@ -65,6 +65,6 @@ visible_original_vessels: False         #if True, show the original vasculature 
 show_alpha_beta_maps: False             #if True, show the distribution of the parameters beta and gamma
 show_cell_and_tumor_volume: True        #if True, show the volume of tumor cells and healthy cells during the simulation
 verbose: False
-show_angiogenesis_metrics: True         #if True, show the metrics for angiogenesis
+show_angiogenesis_metrics: False         #if True, show the metrics for angiogenesis
 true_vasculature: False
 show_3D_mesh: False                     #if True, show the 3D mesh of the tumor
