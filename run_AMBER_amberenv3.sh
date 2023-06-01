@@ -40,8 +40,6 @@ mkdir -p $OUTPUT_DIR
 cp $INFILE $OUTPUT_DIR
 cp ${CONFIG_NAME}.txt $OUTPUT_DIR
 
-cp TOPAS* $DIR
-
 
 
 param_names=()
@@ -75,6 +73,8 @@ for (( COUNT=0; COUNT<$ITER; COUNT++ )); do
   # Copy input files to the iteration directory
   cp $INFILE $DIR
   cp ${CONFIG_NAME}.txt $DIR
+
+  cp TOPAS* $DIR
 
   # Loop through each parameter name and prompt the user for a value
   declare -A param_values=()
