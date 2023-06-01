@@ -1,4 +1,4 @@
-__version__ = '1.3.17'
+__version__ = '1.3.18'
 from .config import *
 from .ReadAndWrite import *
 from .config import Config

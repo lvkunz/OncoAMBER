@@ -16,6 +16,13 @@ class Simulator: #this class is used to run the whole simulation
         self.dt = dt
         self.time = 0
         self.config = config
+
+        if not os.path.exists('DataOutput/'):
+            os.makedirs('DataOutput/')
+
+        if not os.path.exists('Plots/'):
+            os.makedirs('Plots/')
+
     def show_cell_and_tumor_volume(self, number_tumor_cells, number_necrotic_cells, number_quiescent_cells, number_cycling_cells, tumor_size, tumor_size_free, number_vessels, times):
         # plot number of cells evolution
         plt.plot(times, number_tumor_cells, 'blue', label='All cells')
@@ -202,9 +209,6 @@ class Simulator: #this class is used to run the whole simulation
             tumor_size_free.append(tumor_size_free_)
             number_vessels.append(len(world.vasculature.list_of_vessels))
             times.append(self.time)
-
-            if not os.path.exists('DataOutput/'):
-                os.makedirs('DataOutput/')
 
             np.save('DataOutput/number_tumor_cells.npy', number_tumor_cells)
             np.save('DataOutput/number_necrotic_cells.npy', number_necrotic_cells)
