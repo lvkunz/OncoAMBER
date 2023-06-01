@@ -1,8 +1,8 @@
 half_length_world: 7.5 #mm
 voxel_per_side: 25
 dt: 5 #hours
-endtime: 30 #hours
-seed: 42                                #seed for random number generator. -1 for random seed
+endtime: 300 #hours
+seed: 421                                #seed for random number generator. -1 for random seed
 running_on_cluster: False               #don't touch, the bash script changes it automatically
 
 #Initialisation
@@ -12,8 +12,8 @@ tumor_initial_radius: 0.001 #mm
 doubling_time_tumor: 27  #hours
 doubling_time_sd: 5
 radius_tumor_cells: 0.033 #mm
-new_world: True                         #if True, create a new world, if False, load a world from a file
-world_file: world_0                     #name of the world file to create or load
+new_world: False                         #if True, create a new world, if False, load a world from a file
+world_file: finalworld_0                #name of the world file to create or load
 save_world_every: 300                   #save the world every x hours
 
 #Radiation parameters
