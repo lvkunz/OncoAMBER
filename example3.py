@@ -75,7 +75,7 @@ if config.new_world:
     world.save(str(config.world_file) + str(config.seed) + '.pkl')
 
 else:
-    world = amber.load(str(config.world_file) + str(config.seed) + '.pkl')
+    world = amber.load(str(config.world_file)+'.pkl')
 
 
 # if config.show_3D_mesh:
