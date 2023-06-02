@@ -1,20 +1,20 @@
 half_length_world: 7.5 #mm
 voxel_per_side: 25
-dt: 20 #hours
-endtime: 3000 #hours
+dt: 10 #hours
+endtime: 5000 #hours
 seed: 421                                #seed for random number generator. -1 for random seed
 running_on_cluster: False               #don't touch, the bash script changes it automatically
 
 #Initialisation
 vessel_number: 1.0                      #initial number of vessels for healthy tissue per mm^2
 initial_number_tumor_cells: 100         #initial total number of tumor cells
-tumor_initial_radius: 0.001 #mm
+tumor_initial_radius: 1.0 #mm
 doubling_time_tumor: 27  #hours
 doubling_time_sd: 5
 radius_tumor_cells: 0.033 #mm
 new_world: True                         #if True, create a new world, if False, load a world from a file
-world_file: exponent                            #name of the world file to create or load
-save_world_every: 300                   #save the world every x hours
+world_file: world                #name of the world file to create or load
+save_world_every: 500                   #save the world every x hours
 
 #Radiation parameters
 topas_file: TOPAS_gamma6MeV
@@ -44,7 +44,7 @@ radius_killing_threshold: 0.0022 #mm    #threshold radius of vessels getting kil
 radius_decrease_exponent: 2             #exponent for the decrease of radius of vessels depending on pressure
 n_capillaries_per_VVD: 25000.0          #n capillaries [1/mm3]
 capillary_length: 2.0 #mm               #length of capillaries in mm, will give a number of diffusion averagings steps
-vegf_gradient_threshold: 0.0            #threshold in VEGF gradient for vessels to grow
+vegf_gradient_threshold: 0.001            #threshold in VEGF gradient for vessels to grow
 splitting_rate_vasculature: 0.1         #probability of splitting a vessel when growing
 macro_steps: 1.0                        #number of macro steps per hour for vasculature growth
 micro_steps: 5                          #number of micro steps per macro step for vasculature growth

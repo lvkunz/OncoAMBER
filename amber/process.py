@@ -143,7 +143,10 @@ class Simulator: #this class is used to run the whole simulation
             plt.show()
 
         if self.config.show_o2_vitality_histograms:
-            voxels_positions = [[0,0,0],[0.06, 0.06, 0.0], [0.12,0.12,0.0]]
+
+            voxel_side = 2*self.config.half_length_world / self.config.voxel_per_side
+
+            voxels_positions = [[0,0,0], [3*voxel_side, 3*voxel_side, 3*voxel_side], [5*voxel_side, 5*voxel_side, 5*voxel_side]]
             fig, axes = plt.subplots(nrows=2, ncols=len(voxels_positions), figsize=(20, 10), dpi=100)
             fig.suptitle('Visualization at time t = ' + str(t) + ' hours', fontsize=16)
             for i in range(len(voxels_positions)):
@@ -469,6 +472,7 @@ class UpdateVasculature(Process): #update the vasculature
             random_vessel = random.choice(vessels)
             if len(random_vessel.path) > 2:
                 point = random_vessel.choose_random_point(self.config.seed)
+                print('VEGF: ',np.linalg.norm(vegf_gradient(point)))
                 if np.linalg.norm(vegf_gradient(point)) > self.config.vegf_gradient_threshold:
                     world.vasculature.branching(random_vessel.id, point)
 

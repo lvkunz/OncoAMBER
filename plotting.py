@@ -32,18 +32,18 @@ def create_gif(image_dir, output_path, image_suffix, image_step=1):
 
 tmin = 0  # Minimum time
 tmax = 10000  # Maximum time
-show_fits = False  # Show the exponential fits
+show_fits = 1  # Show the exponential fits
 fit = 'gompertz' #gompertz or exp
 show_necro = True
 show_quiet_cycling = False
 show_vessels = True
 local = False
-gif = True
+gif = 1
 param_to_plot = []
 
-repo = '20230601_lk001_Linux/CONFIG_longer_example.py_144101'
+repo = '20230602_lk001_Linux/CONFIG_longer_example.py_110951'
 
-iter = [0,1,2]
+iter = [0, 1, 2]
 
 for i in iter:
     print('iter', i, 'of', iter, 'is being processed')

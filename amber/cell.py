@@ -11,7 +11,7 @@ class Cell:
         self.gamma_scale = self.cycle_length_std ** 2 / self.usual_cycle_length
         self.doubling_time = self.random_doubling_time() #new cells have a random doubling time
         self.volume = 4/3 * np.pi * self.radius**3
-        self.oxygen = 1.0
+        self.oxygen = np.random.uniform(0, 1)
         self.intra_radiosensitivity = intra_radiosensitivity
         self.o2_to_vitality_factor = o2_to_vitality_factor
         if type != 'NormalCell' and type != 'TumorCell':
