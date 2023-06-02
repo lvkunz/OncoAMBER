@@ -225,7 +225,9 @@ class VasculatureNetwork:
 
         if pressure_sensitive:
             for vessel in self.list_of_vessels:
-                vessel.radius = vessel.radius / ((1 + (vessel.mean_pressure(pressure)))**self.config.radius_decrease_exponent)
+                pow = self.config.radius_decrease_exponent
+                coeff = self.config.max_occupancy**(-pow)
+                vessel.radius = vessel.radius * (1 - coeff * (vessel.mean_pressure(pressure)**pow))
 
     def update_vessels_radius_from_root(self, root_radius, pressure_sensitive=False, pressure=None):
         print("Updating vessels radius from root")

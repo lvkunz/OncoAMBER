@@ -41,9 +41,9 @@ local = False
 gif = True
 param_to_plot = []
 
-repo = 'CONFIG_vascular_growth_example3.py_154014'
+repo = '20230601_lk001_Linux/CONFIG_longer_example.py_144101'
 
-iter = [6]
+iter = [0,1,2]
 
 for i in iter:
     print('iter', i, 'of', iter, 'is being processed')
@@ -52,7 +52,7 @@ for i in iter:
     output_path1 = repo + '/'+image_sufix1+str(i)+'.gif'
     image_sufix2 = 'Vasculature'
     output_path2 = repo + '/'+image_sufix2+str(i)+'.gif'
-    image_step = 10
+    image_step = 20
 
     if gif:
         create_gif(image_directory, output_path1, image_sufix1, image_step)

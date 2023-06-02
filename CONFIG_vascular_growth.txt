@@ -40,8 +40,8 @@ vegf_map_step_gradient: 3.0 #mm           #vegf map step size, should be the ord
 lower_pressure_threshold_step: 0.1      #reference value at which step size for vasculature remains the same, above, the step size decreases
 higher_pressure_threshold_step: 0.7     #value for which the stepsize for vasculature growth is 0
 radius_root_vessels: 0.01  #mm          #radius of the endvessels of the tree
-radius_killing_threshold: 0.0025 #mm    #threshold radius of vessels getting killed by pressure or because they are too small
-radius_decrease_exponent: 5             #exponent for the decrease of radius of vessels depending on pressure
+radius_killing_threshold: 0.0022 #mm    #threshold radius of vessels getting killed by pressure or because they are too small (0.022 - 5% of volume only)
+radius_decrease_exponent: 2             #exponent for the decrease of radius of vessels depending on pressure
 n_capillaries_per_VVD: 25000.0          #n capillaries [1/mm3]
 capillary_length: 2.0 #mm               #length of capillaries in mm, will give a number of diffusion averagings steps
 vegf_gradient_threshold: 0.0            #threshold in VEGF gradient for vessels to grow
