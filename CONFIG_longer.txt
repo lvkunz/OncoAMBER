@@ -1,8 +1,8 @@
 half_length_world: 7.5 #mm
 voxel_per_side: 25
-dt: 5 #hours
-endtime: 5000 #hours
-seed: 42                                #seed for random number generator. -1 for random seed
+dt: 20 #hours
+endtime: 3000 #hours
+seed: 421                                #seed for random number generator. -1 for random seed
 running_on_cluster: False               #don't touch, the bash script changes it automatically
 
 #Initialisation
@@ -13,7 +13,7 @@ doubling_time_tumor: 27  #hours
 doubling_time_sd: 5
 radius_tumor_cells: 0.033 #mm
 new_world: True                         #if True, create a new world, if False, load a world from a file
-world_file: world                       #name of the world file to create or load
+world_file: exponent                            #name of the world file to create or load
 save_world_every: 300                   #save the world every x hours
 
 #Radiation parameters
@@ -40,8 +40,8 @@ vegf_map_step_gradient: 3.0 #mm           #vegf map step size, should be the ord
 lower_pressure_threshold_step: 0.1      #reference value at which step size for vasculature remains the same, above, the step size decreases
 higher_pressure_threshold_step: 0.7     #value for which the stepsize for vasculature growth is 0
 radius_root_vessels: 0.01  #mm          #radius of the endvessels of the tree
-radius_killing_threshold: 0.0025 #mm    #threshold radius of vessels getting killed by pressure or because they are too small
-radius_decrease_exponent: 5             #exponent for the decrease of radius of vessels depending on pressure
+radius_killing_threshold: 0.0022 #mm    #threshold radius of vessels getting killed by pressure or because they are too small (0.022 - 5% of volume only)
+radius_decrease_exponent: 2             #exponent for the decrease of radius of vessels depending on pressure
 n_capillaries_per_VVD: 25000.0          #n capillaries [1/mm3]
 capillary_length: 2.0 #mm               #length of capillaries in mm, will give a number of diffusion averagings steps
 vegf_gradient_threshold: 0.0            #threshold in VEGF gradient for vessels to grow
@@ -58,8 +58,8 @@ growth_step_stop_threshold: 0.03 #mm    #threshold for step size for vasculature
 new_vessels_per_hour: 0.0002            #number of new vessels per hour*mm3
 
 # Graphics parameters
-show_time_steps: False                  #if True, show the time during the simulation
-show_final: True                        #if True, show the final state of the simulation
+show_time_steps: True                   #if True, show the time during the simulation
+show_final: True                       #if True, show the final state of the simulation
 show_slices: True                       #if True, show a slice of the tumor during the simulation
 slice: x                                #what direction to slice the tumor (x or z
 show_o2_vitality_histograms: True       #if True, show a histogram of capillaries and vitality during the simulation
