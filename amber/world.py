@@ -39,6 +39,8 @@ class World:
 
     def initiate_vasculature(self, list_of_mother_vessels):
         self.vasculature = VasculatureNetwork(self.config, list_of_mother_vessels)
+        for vessel in self.vasculature.list_of_vessels:
+            vessel.must_be_updated = True
         return
 
     def vasculature_growth(self, dt, splitting_rate, macro_steps=1, micro_steps=10, weight_direction=0.5, weight_vegf=0.5, weight_pressure=0.5, radius_pressure_sensitive = False):

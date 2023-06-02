@@ -21,8 +21,8 @@ class Vessel:
         self.children_ids = children_ids
         self.step_size = step_size
         self.in_growth = in_growth
-        self.healthy = False
         self.visible = True
+        self.must_be_updated = False
 
     def to_dict(self):
         return {
@@ -174,6 +174,13 @@ class VasculatureNetwork:
         mother_vessel.children_ids = [vessel_end.id, vessel_new.id]
         self.list_of_vessels.append(vessel_end)
         self.list_of_vessels.append(vessel_new)
+
+        #find the root vessel:
+        root_vessel = mother_vessel
+        while root_vessel.parent_id is not None:
+            root_vessel = self.get_vessel(root_vessel.parent_id)
+
+        root_vessel.must_be_updated = True
         # update the mother vessel
 
 
@@ -202,8 +209,7 @@ class VasculatureNetwork:
         # remove from the list of vessels
         self.list_of_vessels.remove(vessel)
 
-    #THIS FUNCTION HAS NOT BEEN TESTED
-    def update_vessels_radius_from_last(self, final_radius, pressure_sensitive=False, pressure=None):
+    def update_vessels_radius_from_last(self, final_radius, pressure_sensitive, pressure):
         print("Updating vessels radius from last")
         def update_radius_recursive(vessel_id):
             vessel = self.get_vessel(vessel_id)
@@ -218,45 +224,20 @@ class VasculatureNetwork:
 
         # Find all root vessels with parent_id=None
         root_vessels = [v for v in self.list_of_vessels if v.parent_id is None]
+        root_vessels = [v for v in root_vessels if v.must_be_updated is True]
+        print("Number of root vessels to update: ", len(root_vessels))
 
         # Call update_radius_recursive for each root vessel
         for root_vessel in root_vessels:
             update_radius_recursive(root_vessel.id)
+            root_vessel.must_be_updated = False
 
         if pressure_sensitive:
+            print("Updating for pressure")
+            pow = self.config.radius_decrease_exponent
+            coeff = self.config.max_occupancy ** (-pow)
             for vessel in self.list_of_vessels:
-                pow = self.config.radius_decrease_exponent
-                coeff = self.config.max_occupancy**(-pow)
                 vessel.radius = vessel.radius * (1 - coeff * (vessel.mean_pressure(pressure)**pow))
-
-    def update_vessels_radius_from_root(self, root_radius, pressure_sensitive=False, pressure=None):
-        print("Updating vessels radius from root")
-
-        def update_radius_recursive(vessel_id):
-            vessel = self.get_vessel(vessel_id)
-
-            if vessel.children_ids:
-                # Determine the scaling factor for the children based on Murray's law
-                r_cubed_sum = sum([self.get_vessel(child_id).radius ** 3 for child_id in vessel.children_ids])
-                scaling_factor = (vessel.radius ** 3 / r_cubed_sum) ** (1 / 3)
-
-                for child_id in vessel.children_ids:
-                    child_vessel = self.get_vessel(child_id)
-                    child_vessel.radius *= scaling_factor
-                    update_radius_recursive(child_id)
-
-        # Find all root vessels with parent_id=None
-        root_vessels = [v for v in self.list_of_vessels if v.parent_id is None]
-
-        # Call update_radius_recursive for each root vessel
-        for root_vessel in root_vessels:
-            root_vessel.radius = root_radius
-            update_radius_recursive(root_vessel.id)
-
-        if pressure_sensitive:
-            for vessel in self.list_of_vessels:
-                vessel.radius = vessel.radius / (
-                            (1 + (vessel.mean_pressure(pressure))) ** self.config.radius_decrease_exponent)
 
     def volume_occupied(self):
         points = []

@@ -1,5 +1,5 @@
-half_length_world: 7.5 #mm
-voxel_per_side: 25
+half_length_world: 15 #mm
+voxel_per_side: 50
 dt: 10 #hours
 endtime: 5000 #hours
 seed: 218001                                #seed for random number generator. -1 for random seed
