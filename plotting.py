@@ -31,19 +31,19 @@ def create_gif(image_dir, output_path, image_suffix, image_step=1):
         print("No images found to create the GIF.")
 
 tmin = 0  # Minimum time
-tmax = 10000  # Maximum time
-show_fits = 1  # Show the exponential fits
+tmax = 5000  # Maximum time
+show_fits = 0  # Show the exponential fits
 fit = 'gompertz' #gompertz or exp
 show_necro = True
 show_quiet_cycling = False
 show_vessels = True
 local = False
-gif = 1
+gif = 0
 param_to_plot = []
 
-repo = '20230602_lk001_Linux/CONFIG_longer_example.py_110951'
+repo = '20230602_lk001_Linux/CONFIG_longer_example3.py_163802'
 
-iter = [0, 1, 2]
+iter = [3]
 
 for i in iter:
     print('iter', i, 'of', iter, 'is being processed')
@@ -171,7 +171,7 @@ for i in range(len(paths)):
         axes[0].plot(times_list[i], cycling_cells_list[i], '+', markersize=3, alpha=0.5, color=color)
         axes[0].plot(times_list[i], quiescent_cells_list[i], 'D', markersize=3, alpha=0.5, color=color)
     if show_fits:
-        axes[0].plot(times_list[i], func_cell(times_list[i], *popt), '-', color=color, label='fit '+parameter+': '+str(param[i]))
+        axes[0].plot(times_list[i], func_cell(times_list[i], *popt), '-', color=color)#, label='fit '+parameter+': '+str(param[i]))
 
 
 
@@ -191,7 +191,7 @@ for i in range(len(paths)):
     axes[1].plot(times_list[i], tumor_size_list[i], 'o', color = color, markersize = 5, alpha=0.5, label=parameter+': '+str(param[i]))
     axes[1].plot(times_list[i], tumor_size_free_list[i], '+', color = color, markersize = 5, alpha=0.5)
     if show_fits:
-        axes[1].plot(times_list[i], func_volume(times_list[i], *popt), '-', color=color, label='fit '+parameter+': '+str(param[i]))
+        axes[1].plot(times_list[i], func_volume(times_list[i], *popt), '-', color=color)#, label='fit '+parameter+': '+str(param[i]))
         doubling_time = np.log(2)/popt[1]
         doubling_times_tumor_size.append(doubling_time)
 

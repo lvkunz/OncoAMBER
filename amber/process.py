@@ -115,7 +115,7 @@ class Simulator: #this class is used to run the whole simulation
             axes[0,0].set_facecolor('whitesmoke')
             axes[0, 0].set_title('Cells in voxels')
 
-            norm = TwoSlopeNorm(vmin=0, vcenter=15, vmax=100)
+            norm = TwoSlopeNorm(vmin=0, vcenter=5, vmax=100)
 
             axes[0, 1].set_xlim(-size, size)
             axes[0, 1].set_ylim(-size, size)
