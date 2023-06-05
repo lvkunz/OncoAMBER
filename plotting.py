@@ -34,14 +34,14 @@ tmin = 0  # Minimum time
 tmax = 5000  # Maximum time
 show_fits = 0  # Show the exponential fits
 fit = 'gompertz' #gompertz or exp
-show_necro = True
+show_necro = 0
 show_quiet_cycling = False
 show_vessels = True
 local = False
 gif = 0
 param_to_plot = []
 
-repo = '20230602_lk001_Linux/CONFIG_longer_example3.py_163802'
+repo = '20230605_lk001_Linux/CONFIG_longer_example.py_123333'
 
 iter = [3]
 

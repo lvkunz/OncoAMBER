@@ -6,7 +6,7 @@ seed: 218001                                #seed for random number generator. -
 running_on_cluster: False               #don't touch, the bash script changes it automatically
 
 #Initialisation
-vessel_number: 0.15                      #initial number of vessels for healthy tissue per mm^2
+vessel_number: 0.2                      #initial number of vessels for healthy tissue per mm^2
 initial_number_tumor_cells: 100         #initial total number of tumor cells
 tumor_initial_radius: 1.0 #mm
 doubling_time_tumor: 27  #hours
