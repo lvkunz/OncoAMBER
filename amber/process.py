@@ -348,6 +348,8 @@ class CellMigration(Process): #cell migration process, cells migrate in the worl
                 for cell in list_of_moving_cells:
                     if neighbor.add_cell(cell, self.config.max_occupancy):
                         voxel.remove_cell(cell)
+
+
 class UpdateCellOxygen(Process):
     def __init__(self, config, name, dt, voxel_half_length):
         super().__init__(config, 'UpdateState', dt)
@@ -388,16 +390,22 @@ class UpdateCellOxygen(Process):
 
         if self.config.show_alpha_beta_maps:
             # Plot the alpha and beta maps
-            fig = plt.figure()
+            fig = plt.figure(dpi=300)
             ax = fig.add_subplot(111, projection='3d')
             ax.figure.set_dpi(100)
             self.alpha_map.show_extra(fig, ax, [min(pressure_column), max(pressure_column)], [min(n_column), max(n_column)])
+            ax.axes.set_xlabel('Pressure')
+            ax.axes.set_ylabel('Number of vessels')
+            ax.title.set_text('Alpha map')
             plt.show()
 
-            fig = plt.figure()
+            fig = plt.figure(dpi=300)
             ax = fig.add_subplot(111, projection='3d')
             ax.figure.set_dpi(100)
             self.beta_map.show_extra(fig, ax, [min(pressure_column), max(pressure_column)], [min(n_column), max(n_column)])
+            ax.axes.set_xlabel('Pressure')
+            ax.axes.set_ylabel('Number of vessels')
+            ax.title.set_text('Beta map')
             plt.show()
 
     def __call__(self, voxel: Voxel):
@@ -503,6 +511,7 @@ class Irradiation(Process): #irradiation
         # plot the simulation
         fig, ax = plt.subplots()
         world.show_tumor_slice(ax, fig, 'dose', cmap='Purples')
+        ax.title.set_text('Dose')
         plt.show()
     def __call__(self, world: World):
         for voxel in world.voxel_list:

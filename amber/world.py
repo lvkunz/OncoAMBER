@@ -279,8 +279,17 @@ class World:
         # Convert the lil_matrix to a csr_matrix for faster arithmetic operations
         migration_matrix = migration_matrix.tocsr()
         #show the matrix
-        # plt.spy(migration_matrix)
-        # plt.show()
+        plt.figure(figsize=(20, 20))
+        #only show the first 100 voxels
+        matrix = migration_matrix.toarray()
+        matrix = matrix[:500, :500]
+        plt.imshow(matrix, cmap='inferno')
+        plt.colorbar()
+        plt.title('Migration Matrix')
+        plt.xlabel('Destination Voxel')
+        plt.ylabel('Source Voxel')
+        plt.tight_layout()
+        plt.show()
         return migration_matrix
 
     def topas_param_file(self, name : str):

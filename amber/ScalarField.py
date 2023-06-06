@@ -68,5 +68,5 @@ class ScalarField2D:
         for i in range(len(x)):
             for j in range(len(x[0])):
                 z[i, j] = self.evaluate((x[i, j], y[i, j]))
-        ax.plot_surface(x, y, z, cmap='viridis', alpha=0.5, vmin=0, vmax=1)
+        ax.plot_surface(x, y, z, cmap='plasma', alpha=0.8, vmin=0, vmax=5)
         return fig, ax

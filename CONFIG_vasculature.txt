@@ -1,5 +1,5 @@
-half_length_world: 7.5 #mm
-voxel_per_side: 25
+half_length_world: 10.5 #mm
+voxel_per_side: 35
 dt: 10 #hours
 endtime: 3000 #hours
 seed: 1                                #seed for random number generator. -1 for random seed
@@ -13,11 +13,11 @@ doubling_time_tumor: 27  #hours
 doubling_time_sd: 5
 radius_tumor_cells: 0.033 #mm
 new_world: True                         #if True, create a new world, if False, load a world from a file
-world_file: world                #name of the world file to create or load
-save_world_every: 10000                   #save the world every x hours
+world_file: world                      #name of the world file to create or load
+save_world_every: 1000                   #save the world every x hours
 
 #Radiation parameters
-topas_file: TOPAS_gamma6MeV
+topas_file: TOPAS_protons180Mev
 first_irradiation_time: 0               #time at which radiation is applied
 number_fractions: 0                     #number of fractions of radiation
 time_between_fractions: 24              #time between fractions of radiation
@@ -37,14 +37,14 @@ pressure_coefficient_central_migration: 0.9 #coefficient accounting for the numb
 VEGF_production_per_cell: 0.005          #VEGF production per cell per hour?
 o2_threshold_for_VEGF_production: 0.8   #threshold in vitality for cells to start producing VEGF
 vegf_map_step_gradient: 3.0 #mm           #vegf map step size, should be the order of the tumor size
-lower_pressure_threshold_step: 0.1      #reference value at which step size for vasculature remains the same, above, the step size decreases
+lower_pressure_threshold_step: 0.2      #reference value at which step size for vasculature remains the same, above, the step size decreases
 higher_pressure_threshold_step: 0.7     #value for which the stepsize for vasculature growth is 0
 radius_root_vessels: 0.01  #mm          #radius of the endvessels of the tree
 radius_killing_threshold: 0.0022 #mm    #threshold radius of vessels getting killed by pressure or because they are too small (0.022 - 5% of volume only)
 radius_decrease_exponent: 2             #exponent for the decrease of radius of vessels depending on pressure
 n_capillaries_per_VVD: 25000.0          #n capillaries [1/mm3]
 capillary_length: 2.0 #mm               #length of capillaries in mm, will give a number of diffusion averagings steps
-vegf_gradient_threshold: 0.00            #threshold in VEGF gradient for vessels to grow
+vegf_gradient_threshold: 0.0            #threshold in VEGF gradient for vessels to grow
 splitting_rate_vasculature: 0.1         #probability of splitting a vessel when growing
 macro_steps: 1.0                        #number of macro steps per hour for vasculature growth
 micro_steps: 5                          #number of micro steps per macro step for vasculature growth
@@ -65,9 +65,9 @@ slice: x                                #what direction to slice the tumor (x or
 show_o2_vitality_histograms: True       #if True, show a histogram of capillaries and vitality during the simulation
 show_tumor_and_vessels_3D: True         #if True, show the vasculature in 3D during the simulation with tumor cells
 visible_original_vessels: True         #if True, show the original vasculature in 3D during the simulation
-show_alpha_beta_maps: False             #if True, show the distribution of the parameters beta and gamma
+show_alpha_beta_maps: True             #if True, show the distribution of the parameters beta and gamma
 show_cell_and_tumor_volume: True        #if True, show the volume of tumor cells and healthy cells during the simulation
 verbose: False
-show_angiogenesis_metrics: False         #if True, show the metrics for angiogenesis
+show_angiogenesis_metrics: True         #if True, show the metrics for angiogenesis
 true_vasculature: False
 show_3D_mesh: False                     #if True, show the 3D mesh of the tumor

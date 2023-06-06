@@ -34,29 +34,19 @@ tmin = 0  # Minimum time
 tmax = 5000  # Maximum time
 show_fits = 0  # Show the exponential fits
 fit = 'gompertz' #gompertz or exp
-show_necro = 0
+show_necro = 1
 show_quiet_cycling = False
 show_vessels = True
 local = False
-gif = 0
+gif = 1
 param_to_plot = []
 
-repo = '20230605_lk001_Linux/CONFIG_longer_example.py_123333'
+repo = '20230605_lk001_Linux/CONFIG_vasculature_example.py_143817'
 
-iter = [3]
+iter = [0,1,2,3,4,5,6]
+image_step = 20
 
-for i in iter:
-    print('iter', i, 'of', iter, 'is being processed')
-    image_directory = repo+'/iter'+str(i)+'/Plots/CurrentPlotting'
-    image_sufix1 = 'AllPlots'
-    output_path1 = repo + '/'+image_sufix1+str(i)+'.gif'
-    image_sufix2 = 'Vasculature'
-    output_path2 = repo + '/'+image_sufix2+str(i)+'.gif'
-    image_step = 20
 
-    if gif:
-        create_gif(image_directory, output_path1, image_sufix1, image_step)
-        create_gif(image_directory, output_path2, image_sufix2, image_step)
 
 csv_file = ''
 #all repositories in repo:
@@ -259,7 +249,17 @@ if show_fits:
     plt.savefig(repo+'/doubling_time_tumor_size.png', dpi=300)
     plt.show()
 
+for i in iter:
+    print('iter', i, 'of', iter, 'is being processed')
+    image_directory = repo + '/iter' + str(i) + '/Plots/CurrentPlotting'
+    image_sufix1 = 'AllPlots'
+    output_path1 = repo + '/' + image_sufix1 + str(i) + '.gif'
+    image_sufix2 = 'Vasculature'
+    output_path2 = repo + '/' + image_sufix2 + str(i) + '.gif'
 
+    if gif:
+        create_gif(image_directory, output_path1, image_sufix1, image_step)
+        create_gif(image_directory, output_path2, image_sufix2, image_step)
 
 
 
