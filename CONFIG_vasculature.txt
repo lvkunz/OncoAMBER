@@ -64,10 +64,10 @@ show_slices: True                       #if True, show a slice of the tumor duri
 slice: x                                #what direction to slice the tumor (x or z
 show_o2_vitality_histograms: True       #if True, show a histogram of capillaries and vitality during the simulation
 show_tumor_and_vessels_3D: True         #if True, show the vasculature in 3D during the simulation with tumor cells
-visible_original_vessels: True         #if True, show the original vasculature in 3D during the simulation
-show_alpha_beta_maps: True             #if True, show the distribution of the parameters beta and gamma
+visible_original_vessels: False         #if True, show the original vasculature in 3D during the simulation
+show_alpha_beta_maps: False             #if True, show the distribution of the parameters beta and gamma
 show_cell_and_tumor_volume: True        #if True, show the volume of tumor cells and healthy cells during the simulation
 verbose: False
-show_angiogenesis_metrics: True         #if True, show the metrics for angiogenesis
+show_angiogenesis_metrics: False         #if True, show the metrics for angiogenesis
 true_vasculature: False
 show_3D_mesh: False                     #if True, show the 3D mesh of the tumor
