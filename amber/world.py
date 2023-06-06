@@ -36,6 +36,7 @@ class World:
         self.o_length_values = []
         self.o_bifurcation_values = []
         self.o_VSL_values = []
+        self.center_of_mass = np.array([0.0, 0.0, 0.0])
 
     def initiate_vasculature(self, list_of_mother_vessels):
         self.vasculature = VasculatureNetwork(self.config, list_of_mother_vessels)
@@ -252,6 +253,16 @@ class World:
         # Initialize migration matrix with zeros
         migration_matrix = sparse.lil_matrix((total_voxels, total_voxels), dtype=np.float32)
 
+        #find center of mass of the tumor
+        center_of_mass = np.array([0.0,0.0,0.0])
+        total_cells = 0
+        for voxel in self.voxel_list:
+            cells = voxel.number_of_tumor_cells()
+            center_of_mass += voxel.position * cells
+            total_cells += voxel.number_of_tumor_cells()
+        center_of_mass /= total_cells
+        self.center_of_mass = center_of_mass
+
         for i in range(total_voxels):
             voxel_i = self.voxel_list[i]
             voxel_pressure = pressures[i]
@@ -273,23 +284,23 @@ class World:
                     migration_matrix[i, j] = n_events
 
             # pressure pushing cells to move towards the center of the tumor
-            voxel_distance = np.linalg.norm(voxel_i.position)
+            voxel_distance = np.linalg.norm(voxel_i.position - center_of_mass)
             neighbor_towards_center = self.find_voxel_number(voxel_i.position * (1 - side/voxel_distance))
             migration_matrix[i, neighbor_towards_center] += self.config.pressure_coefficient_central_migration * dt * (voxel_distance**2)
         # Convert the lil_matrix to a csr_matrix for faster arithmetic operations
         migration_matrix = migration_matrix.tocsr()
         #show the matrix
-        plt.figure(figsize=(20, 20))
-        #only show the first 100 voxels
-        matrix = migration_matrix.toarray()
-        matrix = matrix[:500, :500]
-        plt.imshow(matrix, cmap='inferno')
-        plt.colorbar()
-        plt.title('Migration Matrix')
-        plt.xlabel('Destination Voxel')
-        plt.ylabel('Source Voxel')
-        plt.tight_layout()
-        plt.show()
+        # plt.figure(figsize=(20, 20))
+        # #only show the first 100 voxels
+        # matrix = migration_matrix.toarray()
+        # matrix = matrix[:500, :500]
+        # plt.imshow(matrix, cmap='inferno')
+        # plt.colorbar()
+        # plt.title('Migration Matrix')
+        # plt.xlabel('Destination Voxel')
+        # plt.ylabel('Source Voxel')
+        # plt.tight_layout()
+        # plt.show()
         return migration_matrix
 
     def topas_param_file(self, name : str):
@@ -442,6 +453,11 @@ class World:
             contour = ax.tricontourf(triangulation, z, cmap=cmap, alpha=0.7, vmin=vmin, vmax=vmax, norm=norm, extend = extend)
         else:
             contour = ax.tricontourf(triangulation, z, cmap=cmap, alpha=0.7, levels=levels, norm=norm, extend = extend)
+        #add a point at the center of mass
+        if self.config.slice == 'x':
+            ax.scatter(self.center_of_mass[0], self.center_of_mass[1], color='black', s=10)
+        else:
+            ax.scatter(self.center_of_mass[1], self.center_of_mass[2], color='black', s=10)
 
         fig.colorbar(contour, ax=ax, shrink=0.5)
 
@@ -473,6 +489,7 @@ class World:
         c=values, cmap=cmap, alpha= 0.7, vmin=vmin, vmax=vmax, s=size, marker='h', edgecolors= 'none')
         # add colorbar
         fig.colorbar(ax.collections[0], ax=ax, shrink=0.5)
+        fig.tight_layout()
         return fig, ax
 
     # def show_tumor_surface(self):

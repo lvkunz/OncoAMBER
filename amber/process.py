@@ -23,6 +23,26 @@ class Simulator: #this class is used to run the whole simulation
         if not os.path.exists('Plots/'):
             os.makedirs('Plots/')
 
+    def show_center_of_mass(self, center_of_mass, times):
+        #3D plot of the center of mass
+        size = self.config.half_length_world
+        center_of_mass = np.array(center_of_mass)
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        ax.plot(center_of_mass[:, 0], center_of_mass[:, 1], center_of_mass[:, 2], 'black')
+        ax.scatter(center_of_mass[0, 0], center_of_mass[0, 1], center_of_mass[0, 2], color ='green', label='start')
+        ax.scatter(center_of_mass[-1, 0], center_of_mass[-1, 1], center_of_mass[-1, 2], color ='red', label='end')
+        ax.set_xlim(-size, size)
+        ax.set_ylim(-size, size)
+        ax.set_zlim(-size, size)
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_zlabel('Z')
+        ax.set_title('Center of mass path')
+        ax.legend()
+        plt.savefig('Plots/Center_of_mass.png')
+        plt.show()
+
     def show_cell_and_tumor_volume(self, number_tumor_cells, number_necrotic_cells, number_quiescent_cells, number_cycling_cells, tumor_size, tumor_size_free, number_vessels, times):
         # plot number of cells evolution
         plt.plot(times, number_tumor_cells, 'blue', label='All cells')
@@ -91,15 +111,19 @@ class Simulator: #this class is used to run the whole simulation
 
         #plot vasculature
         if self.config.show_tumor_and_vessels_3D:
-            fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(25, 25), subplot_kw={'projection': '3d'})
-            fig.suptitle('Visualization at time t = ' + str(t) + ' hours', fontsize=16)
+            fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(10, 10), subplot_kw={'projection': '3d'})
+            plt.rcParams.update({'font.size': 10})
+            plt.title('Visualization at time t = ' + str(t) + ' hours', fontsize=16)
             axes.set_xlim(-size, size)
             axes.set_ylim(-size, size)
             axes.set_zlim(-size, size)
-            axes.view_init(90, 0)
+            #remove z axis ticks
+            if self.config.slice == 'x':
+                axes.set_zticks([])
+            #change text size
+            axes.view_init(90, -90)
             world.show_tumor_3D(axes, fig, 'number_of_tumor_cells', cmap='viridis', vmin=0, vmax=1000)
             world.vasculature.plot(fig, axes)
-            axes.set_title('Vasculature')
             plt.tight_layout()
             plt.savefig('Plots/CurrentPlotting/t' + str(t) + '_Vasculature.png')
             plt.show()
@@ -172,6 +196,7 @@ class Simulator: #this class is used to run the whole simulation
 
         number_cycling_cells = []; number_quiescent_cells = []; number_necrotic_cells = [];
         tumor_size = []; tumor_size_free = []; times = []; number_tumor_cells = []; number_vessels = [];
+        center_of_mass = []
 
         while self.time < self.finish_time:
             print(f'\033[1;31;47mTime: {self.time} hours / {self.finish_time} hours\033[0m')
@@ -211,6 +236,7 @@ class Simulator: #this class is used to run the whole simulation
             tumor_size.append(tumor_size_)
             tumor_size_free.append(tumor_size_free_)
             number_vessels.append(len(world.vasculature.list_of_vessels))
+            center_of_mass.append(world.center_of_mass)
             times.append(self.time)
 
             np.save('DataOutput/number_tumor_cells.npy', number_tumor_cells)
@@ -220,6 +246,7 @@ class Simulator: #this class is used to run the whole simulation
             np.save('DataOutput/tumor_size.npy', tumor_size)
             np.save('DataOutput/tumor_size_free.npy', tumor_size_free)
             np.save('DataOutput/number_vessels.npy', number_vessels)
+            np.save('DataOutput/center_of_mass.npy', center_of_mass)
             np.save('DataOutput/times.npy', times)
 
             if self.time % self.config.save_world_every == 0:
@@ -228,6 +255,9 @@ class Simulator: #this class is used to run the whole simulation
             if self.config.show_cell_and_tumor_volume:
                 self.show_cell_and_tumor_volume(number_tumor_cells, number_necrotic_cells, number_quiescent_cells, number_cycling_cells, tumor_size, tumor_size_free, number_vessels, times)
             self.time += self.dt
+
+            if self.config.show_center_of_mass:
+                self.show_center_of_mass(center_of_mass, times)
 
         print('Simulation finished')
 
