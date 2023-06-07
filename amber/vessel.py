@@ -8,7 +8,7 @@ import sys
 sys.setrecursionlimit(1500)
 
 class Vessel:
-    def __init__(self, path, radius, step_size, parent_id=None, children_ids=None, in_growth=True):
+    def __init__(self, path, radius, step_size, parent_id=None, children_ids=None, in_growth=True, intra_radiosensitivity=0.00001):
         if children_ids is None:
             children_ids = []
         for point in path:
@@ -23,17 +23,8 @@ class Vessel:
         self.in_growth = in_growth
         self.visible = True
         self.must_be_updated = False
+        self.intra_radiosensitivity = intra_radiosensitivity
 
-    def to_dict(self):
-        return {
-            "path": self.path.tolist(),
-            "radius": self.radius,
-            "id": self.id,
-            "parent_id": self.parent_id,
-            "children_ids": self.children_ids,
-            "step_size": self.step_size,
-            "in_growth": self.in_growth,
-        }
     def __iter__(self):
         return self
 
@@ -131,7 +122,9 @@ class Vessel:
                 max_dose = dose_map.evaluate(point)
         return max_dose
     def radiosensitivity(self):
-        return 0.005
+        radius = self.radius
+        radiosensitivity = self.intra_radiosensitivity/radius
+        return radiosensitivity
 class VasculatureNetwork:
     def __init__(self, config, list_of_vessels=None):
         if list_of_vessels is None:
@@ -158,8 +151,11 @@ class VasculatureNetwork:
         mother_vessel.path = path_begin  # reduce the mother vessel path. It stops growing
         mother_vessel.in_growth = False
 
+        # print(mother_vessel)
+        # print('radio', mother_vessel.intra_radiosensitivity)
+
         # create two new vessels
-        vessel_end = Vessel(path_end, mother_vessel.radius, self.config.vessel_step_size, parent_id= mother_vessel.id, children_ids=mother_vessel.children_ids, in_growth= mother_vessel.in_growth)
+        vessel_end = Vessel(path_end, mother_vessel.radius, self.config.vessel_step_size, parent_id= mother_vessel.id, children_ids=mother_vessel.children_ids, in_growth= mother_vessel.in_growth, intra_radiosensitivity= mother_vessel.intra_radiosensitivity)  # the radius has to be updated later
         for child_id in vessel_end.children_ids:
             child = self.get_vessel(child_id)
             child.parent_id = vessel_end.id
@@ -169,7 +165,7 @@ class VasculatureNetwork:
         mother_vessel.visible = visible
         vessel_end.visible = visible
 
-        vessel_new = Vessel([branching_point], self.config.radius_root_vessels, self.config.vessel_step_size, parent_id= mother_vessel.id)  # the radius has to be updated later
+        vessel_new = Vessel([branching_point], self.config.radius_root_vessels, self.config.vessel_step_size, parent_id= mother_vessel.id, children_ids=None, in_growth=True, intra_radiosensitivity=mother_vessel.intra_radiosensitivity)  # the radius has to be updated later
         vessel_new.visible = True
         mother_vessel.children_ids = [vessel_end.id, vessel_new.id]
         self.list_of_vessels.append(vessel_end)

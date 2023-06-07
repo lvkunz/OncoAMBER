@@ -38,12 +38,12 @@ show_necro = 0
 show_quiet_cycling = False
 show_vessels = True
 local = False
-gif = 1
+gif = 0
 param_to_plot = []
 
-repo = '20230606_lk001_Linux/CONFIG_vasculature_example3.py_153214'
+repo = '20230607_lk001_Linux/CONFIG_vasculature_example.py_114348'
 
-iter = [1,2,4,6,9]
+iter = [0,1,2,3,4,6,9]
 image_step = 30
 
 

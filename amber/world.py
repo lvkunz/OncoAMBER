@@ -88,7 +88,7 @@ class World:
 
         list_of_vessels = []
         for j in range(len(points)):
-            list_of_vessels.append(Vessel([points[j], points2[j]], 0.5, step_size=self.config.vessel_step_size))
+            list_of_vessels.append(Vessel([points[j], points2[j]], radius = 0.01, step_size=self.config.vessel_step_size, parent_id=None, children_ids=None, in_growth=True, intra_radiosensitivity= self.config.vessel_radiosensitivity))
         self.initiate_vasculature(list_of_vessels)
         def pressure(point):
             return (self.half_length - abs(point[0]))*0.06
@@ -287,9 +287,10 @@ class World:
                     migration_matrix[i, j] = n_events
 
             # pressure pushing cells to move towards the center of the tumor
-            voxel_distance = np.linalg.norm(voxel_i.position - center_of_mass)
-            neighbor_towards_center = self.find_voxel_number(voxel_i.position * (1 - side/voxel_distance))
-            migration_matrix[i, neighbor_towards_center] += self.config.pressure_coefficient_central_migration * dt * (voxel_distance**2)
+            vector_to_center = voxel_i.position - center_of_mass
+            distance = np.linalg.norm(vector_to_center)
+            neighbor_towards_center = self.find_voxel_number(voxel_i.position - (side/distance) * vector_to_center)
+            migration_matrix[i, neighbor_towards_center] += self.config.pressure_coefficient_central_migration * dt * (distance**2)
         # Convert the lil_matrix to a csr_matrix for faster arithmetic operations
         migration_matrix = migration_matrix.tocsr()
         #show the matrix

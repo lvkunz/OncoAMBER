@@ -76,6 +76,7 @@ if config.new_world:
 
 else:
     world = amber.load(str(config.world_file)+'.pkl')
+    world.config = config
 
 
 # if config.show_3D_mesh:

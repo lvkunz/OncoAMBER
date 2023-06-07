@@ -37,7 +37,7 @@ class Cell:
     def radiosensitivity(self):
         value = self.intra_radiosensitivity * self.oxygen
         if self.necrotic:
-            value = 0
+            value = self.intra_radiosensitivity * 0.
         return value
 
     def random_doubling_time(self):
