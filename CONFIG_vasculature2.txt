@@ -1,7 +1,7 @@
 half_length_world: 10.5 #mm
 voxel_per_side: 35
-dt: 10 #hours
-endtime: 3000 #hours
+dt: 20 #hours
+endtime: 5000 #hours
 seed: -1                                #seed for random number generator. -1 for random seed
 running_on_cluster: False               #don't touch, the bash script changes it automatically
 

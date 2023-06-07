@@ -25,6 +25,7 @@ class Simulator: #this class is used to run the whole simulation
 
     def show_center_of_mass(self, center_of_mass, times):
         #3D plot of the center of mass
+        #set dpi to 300 for high quality
         size = self.config.half_length_world
         center_of_mass = np.array(center_of_mass)
         fig = plt.figure()
@@ -40,41 +41,46 @@ class Simulator: #this class is used to run the whole simulation
         ax.set_zlabel('Z')
         ax.set_title('Center of mass path')
         ax.legend()
-        plt.savefig('Plots/Center_of_mass.png')
+        plt.savefig('Plots/Center_of_mass.png', dpi=300)
         plt.show()
 
     def show_cell_and_tumor_volume(self, number_tumor_cells, number_necrotic_cells, number_quiescent_cells, number_cycling_cells, tumor_size, tumor_size_free, number_vessels, times):
         # plot number of cells evolution
-        plt.plot(times, number_tumor_cells, 'blue', label='All cells')
-        plt.plot(times, number_cycling_cells, 'red', label='Cycling cells')
-        plt.plot(times, number_quiescent_cells, 'green', label='Quiescent cells')
-        plt.plot(times, number_necrotic_cells, 'black', label='Necrotic cells')
-        plt.title('Number of cells evolution')
-        plt.xlabel('Time')
-        plt.ylabel('Number of cells')
-        plt.grid(True)
-        plt.legend()
-        plt.savefig('Plots/Number_cells_evolution.png')
-        plt.show()
+        fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(8, 12))
 
-        # plot tumor size evolution
-        fig = plt.figure()
-        plt.plot(times, tumor_size, 'red')
-        plt.plot(times, tumor_size_free, 'blue')
-        plt.title('Tumor volume evolution')
-        plt.xlabel('Time')
-        plt.ylabel('Tumor volume [mm^3]')
-        plt.grid(True)
-        plt.savefig('Plots/Tumor_size_evolution.png')
-        plt.show()
+        # Plot number of cells evolution
+        ax1.plot(times, number_tumor_cells, 'blue', label='All cells')
+        ax1.plot(times, number_cycling_cells, 'red', label='Cycling cells')
+        ax1.plot(times, number_quiescent_cells, 'green', label='Quiescent cells')
+        ax1.plot(times, number_necrotic_cells, 'black', label='Necrotic cells')
+        ax1.set_title('Number of cells evolution')
+        ax1.set_xlabel('Time')
+        ax1.set_ylabel('Number of cells')
+        ax1.grid(True)
+        ax1.legend()
 
-        fig = plt.figure()
-        plt.plot(times, number_vessels, 'black')
-        plt.title('Number of vessels evolution')
-        plt.xlabel('Time')
-        plt.ylabel('Number of vessels [mm^3]')
-        plt.grid(True)
-        plt.savefig('Plots/Number_vessels.png')
+        # Plot tumor size evolution
+        ax2.plot(times, tumor_size, 'red')
+        ax2.plot(times, tumor_size_free, 'blue')
+        ax2.set_title('Tumor volume evolution')
+        ax2.set_xlabel('Time')
+        ax2.set_ylabel('Tumor volume [mm^3]')
+        ax2.grid(True)
+
+        # Plot number of vessels evolution
+        ax3.plot(times, number_vessels, 'black')
+        ax3.set_title('Number of vessels evolution')
+        ax3.set_xlabel('Time')
+        ax3.set_ylabel('Number of vessels [mm^3]')
+        ax3.grid(True)
+
+        # Adjust the spacing between subplots
+        plt.tight_layout()
+
+        # Save the figure
+        fig.savefig('Plots/Combined_plots_tumor_evolution.png', dpi=300)
+
+        # Display the figure
         plt.show()
     def show(self, world: World, t = 0): #this function is used to show the world at a certain time
 
@@ -105,7 +111,7 @@ class Simulator: #this class is used to run the whole simulation
             axes[1].set_title('Vessel volume density [%]')
 
             plt.tight_layout()
-            plt.savefig('Plots/CurrentPlotting/t' + str(t) + '_VesselMetricsMaps.png')
+            plt.savefig('Plots/CurrentPlotting/t' + str(t) + '_VesselMetricsMaps.png', dpi=300)
             plt.show()
 
 
@@ -125,7 +131,7 @@ class Simulator: #this class is used to run the whole simulation
             world.show_tumor_3D(axes, fig, 'number_of_tumor_cells', cmap='viridis', vmin=0, vmax=1000)
             world.vasculature.plot(fig, axes)
             plt.tight_layout()
-            plt.savefig('Plots/CurrentPlotting/t' + str(t) + '_Vasculature.png')
+            plt.savefig('Plots/CurrentPlotting/t' + str(t) + '_Vasculature.png', dpi=200)
             plt.show()
 
         if self.config.show_slices:
@@ -163,7 +169,7 @@ class Simulator: #this class is used to run the whole simulation
             axes[1, 1].set_title('Necrosis in voxels')
 
             plt.tight_layout()
-            plt.savefig('Plots/CurrentPlotting/t' + str(t) + '_AllPlots.png')
+            plt.savefig('Plots/CurrentPlotting/t' + str(t) + '_AllPlots.png', dpi=300)
             plt.show()
 
         if self.config.show_o2_vitality_histograms:
