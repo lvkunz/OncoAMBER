@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import scipy.sparse as sparse
 import pickle
 import os
+from time import time as current_time
 
 
 class World:
@@ -244,6 +245,8 @@ class World:
         return neighbors_voxels
 
     def compute_exchange_matrix(self, dt):
+        print('-- Computing exchange matrix')
+        start = current_time()
         V = self.voxel_list[0].volume
         side = self.voxel_list[0].half_length * 2
         total_voxels = self.total_number_of_voxels
@@ -301,6 +304,8 @@ class World:
         # plt.ylabel('Source Voxel')
         # plt.tight_layout()
         # plt.show()
+        end = current_time()
+        print('Time to compute exchange matrix : ', end - start)
         return migration_matrix
 
     def topas_param_file(self, name : str):

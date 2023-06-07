@@ -7,6 +7,7 @@ import pandas as pd
 from matplotlib.colors import TwoSlopeNorm
 import matplotlib.pyplot as plt
 import os
+from time import time as current_time
 
 class Simulator: #this class is used to run the whole simulation
 
@@ -83,15 +84,16 @@ class Simulator: #this class is used to run the whole simulation
         # Display the figure
         plt.show()
     def show(self, world: World, t = 0): #this function is used to show the world at a certain time
+        print('Showing world at time : ', t)
+        start = current_time()
 
         if not os.path.exists('Plots/CurrentPlotting/'):
             os.makedirs('Plots/CurrentPlotting/')
 
-        print('Graphics : ', self.config.show_tumor_and_vessels_3D, self.config.show_slices)
-
         size = world.half_length
 
         if self.config.show_angiogenesis_metrics:
+            print('Showing angiogenesis metrics')
             world.show_angiogenesis_metrics(t, self.config.true_vasculature)
 
             fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(40, 20))
@@ -117,6 +119,7 @@ class Simulator: #this class is used to run the whole simulation
 
         #plot vasculature
         if self.config.show_tumor_and_vessels_3D:
+            print('Showing tumor and vessels 3D')
             fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(10, 10), subplot_kw={'projection': '3d'})
             plt.rcParams.update({'font.size': 10})
             plt.title('Visualization at time t = ' + str(t) + ' hours', fontsize=16)
@@ -135,6 +138,7 @@ class Simulator: #this class is used to run the whole simulation
             plt.show()
 
         if self.config.show_slices:
+            print('Showing slices')
             fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(25, 20))
             fig.suptitle('Visualization at time t = ' + str(t) + ' hours', fontsize=16)
 
@@ -173,7 +177,7 @@ class Simulator: #this class is used to run the whole simulation
             plt.show()
 
         if self.config.show_o2_vitality_histograms:
-
+            print('Showing histograms')
             voxel_side = 2*self.config.half_length_world / self.config.voxel_per_side
 
             voxels_positions = [[0,0,0], [3*voxel_side, 3*voxel_side, 3*voxel_side], [5*voxel_side, 5*voxel_side, 5*voxel_side]]
@@ -191,6 +195,8 @@ class Simulator: #this class is used to run the whole simulation
                 voxel.vitality_histogram(axes[1, i], fig)
             plt.show()
 
+        end = current_time()
+        print('Time elapsed for showing graphs: ' + str(end - start) + ' seconds')
     def run(self, world: World, video=False):
         print(f'Running simulation for {self.finish_time} hours with dt={self.dt}')
         process_local = [process for process in self.list_of_process if not process.is_global]
@@ -215,12 +221,19 @@ class Simulator: #this class is used to run the whole simulation
                 irrad(world)
                 applied_fractions += 1
 
+            print('Currently running local processes:')
+            start = current_time()
             for voxel in world.voxel_list:
                 for process in process_local:
                     process(voxel)
+            end = current_time()
+            print('Time for locals processes:', end - start)
             for process in process_global:
                 print('Currently running global process:', process.name)
+                start = current_time()
                 process(world)
+                end = current_time()
+                print('Time for process', process.name, ':', end - start)
 
             cycling_cells = 0
             quiescent_cells = 0
