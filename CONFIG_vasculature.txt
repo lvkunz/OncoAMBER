@@ -1,7 +1,7 @@
 half_length_world: 10.5 #mm
 voxel_per_side: 35
-dt: 10 #hours
-endtime: 3000 #hours
+dt: 5 #hours
+endtime: 500 #hours
 seed: -1                                #seed for random number generator. -1 for random seed
 running_on_cluster: False               #don't touch, the bash script changes it automatically
 
@@ -12,18 +12,18 @@ tumor_initial_radius: 1.0 #mm
 doubling_time_tumor: 27  #hours
 doubling_time_sd: 5
 radius_tumor_cells: 0.033 #mm
-new_world: True                         #if True, create a new world, if False, load a world from a file
-world_file: world                      #name of the world file to create or load
-save_world_every: 10000                   #save the world every x hours
+new_world: False                         #if True, create a new world, if False, load a world from a file
+world_file: finalworld201234             #name of the world file to create or load
+save_world_every: 1000                   #save the world every x hours
 
 #Radiation parameters
-topas_file: TOPAS_protons180Mev
-first_irradiation_time: 0               #time at which radiation is applied
-number_fractions: 0                     #number of fractions of radiation
-time_between_fractions: 24              #time between fractions of radiation
+topas_file: TOPAS_gamma6MeV_larger
+first_irradiation_time: 100               #time at which radiation is applied
+number_fractions: 5                     #number of fractions of radiation
+time_between_fractions: 25              #time between fractions of radiation
 irradiation_intensity: 10               #duration of radiation
 intra_radiosensitivity: 0.1             #death rate of cells due to 1Gy of radiation
-vessel_radiosensitivity: 0.00001            #death rate of vessels due to 1Gy of radiation
+vessel_radiosensitivity: 0.00005            #death rate of vessels due to 1Gy of radiation
 
 # Parameters for the simulation
 max_occupancy: 0.68                     #max pressure at which cells can't enter a voxel through migration or other means
@@ -63,7 +63,7 @@ show_final: False                       #if True, show the final state of the si
 show_slices: True                       #if True, show a slice of the tumor during the simulation
 slice: x                                #what direction to slice the tumor (x or z
 show_o2_vitality_histograms: False       #if True, show a histogram of capillaries and vitality during the simulation
-show_tumor_and_vessels_3D: False         #if True, show the vasculature in 3D during the simulation with tumor cells
+show_tumor_and_vessels_3D: True         #if True, show the vasculature in 3D during the simulation with tumor cells
 visible_original_vessels: False         #if True, show the original vasculature in 3D during the simulation
 show_alpha_beta_maps: False             #if True, show the distribution of the parameters beta and gamma
 show_cell_and_tumor_volume: True        #if True, show the volume of tumor cells and healthy cells during the simulation

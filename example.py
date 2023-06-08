@@ -56,6 +56,13 @@ if config.new_world:
         voxel.add_cell(
             amber.TumorCell(config.radius_tumor_cells, cycle_hours=config.doubling_time_tumor, cycle_std=config.doubling_time_sd, intra_radiosensitivity=config.intra_radiosensitivity, o2_to_vitality_factor=config.o2_to_vitality_factor, type='TumorCell'), config.max_occupancy)
 
+    points = amber.Sphere(config.tumor_initial_radius*2, [0, 0, 0]).generate_random_points(config.initial_number_tumor_cells)
+    for i in range(config.initial_number_tumor_cells):
+        if i % 10000 == 0: print('Adding tumor cells ', i, ' out of ', config.initial_number_tumor_cells)
+        voxel = world.find_voxel(points[i])
+        voxel.add_cell(amber.TumorCell(config.radius_tumor_cells, cycle_hours=config.doubling_time_tumor,
+                            cycle_std=config.doubling_time_sd, intra_radiosensitivity=config.intra_radiosensitivity,
+                            o2_to_vitality_factor=config.o2_to_vitality_factor, type='TumorCell'), config.max_occupancy)
 
     #generate vasculature and print related information
     world.generate_healthy_vasculature(config.vessel_number,
@@ -79,8 +86,8 @@ else:
     world.config = config
 
 
-# if config.show_3D_mesh:
-#     amber.show_tumor_3D_solid(world, 0)
+if config.show_3D_mesh:
+    amber.show_tumor_3D_solid(world, 0)
 
 ##########################################################################################
 
@@ -140,5 +147,5 @@ print('total time: ', time.time() - start_time, ' seconds')
 
 
 world.save('final' + str(config.world_file) + str(config.seed) + '.pkl')
-# if config.show_3D_mesh:
-#     amber.show_tumor_3D_solid(world, 0)
+if config.show_3D_mesh:
+    amber.show_tumor_3D_solid(world, 0)

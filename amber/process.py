@@ -42,7 +42,7 @@ class Simulator: #this class is used to run the whole simulation
         ax.set_zlabel('Z')
         ax.set_title('Center of mass path')
         ax.legend()
-        plt.savefig('Plots/Center_of_mass.png', dpi=300)
+        plt.savefig('Plots/Center_of_mass.png', dpi=100)
         plt.show()
 
     def show_cell_and_tumor_volume(self, number_tumor_cells, number_necrotic_cells, number_quiescent_cells, number_cycling_cells, tumor_size, tumor_size_free, number_vessels, times):
@@ -79,7 +79,7 @@ class Simulator: #this class is used to run the whole simulation
         plt.tight_layout()
 
         # Save the figure
-        fig.savefig('Plots/Combined_plots_tumor_evolution.png', dpi=300)
+        fig.savefig('Plots/Combined_plots_tumor_evolution.png', dpi=100)
 
         # Display the figure
         plt.show()
@@ -113,7 +113,7 @@ class Simulator: #this class is used to run the whole simulation
             axes[1].set_title('Vessel volume density [%]')
 
             plt.tight_layout()
-            plt.savefig('Plots/CurrentPlotting/t' + str(t) + '_VesselMetricsMaps.png', dpi=300)
+            plt.savefig('Plots/CurrentPlotting/t' + str(t) + '_VesselMetricsMaps.png', dpi=100)
             plt.show()
 
 
@@ -134,7 +134,7 @@ class Simulator: #this class is used to run the whole simulation
             world.show_tumor_3D(axes, fig, 'number_of_tumor_cells', cmap='viridis', vmin=0, vmax=1000)
             world.vasculature.plot(fig, axes)
             plt.tight_layout()
-            plt.savefig('Plots/CurrentPlotting/t' + str(t) + '_Vasculature.png', dpi=200)
+            plt.savefig('Plots/CurrentPlotting/t' + str(t) + '_Vasculature.png', dpi=100)
             plt.show()
 
         if self.config.show_slices:
@@ -173,7 +173,7 @@ class Simulator: #this class is used to run the whole simulation
             axes[1, 1].set_title('Necrosis in voxels')
 
             plt.tight_layout()
-            plt.savefig('Plots/CurrentPlotting/t' + str(t) + '_AllPlots.png', dpi=300)
+            plt.savefig('Plots/CurrentPlotting/t' + str(t) + '_AllPlots.png', dpi=100)
             plt.show()
 
         if self.config.show_o2_vitality_histograms:
