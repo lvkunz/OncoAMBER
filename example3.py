@@ -56,7 +56,6 @@ if config.new_world:
         voxel.add_cell(
             amber.TumorCell(config.radius_tumor_cells, cycle_hours=config.doubling_time_tumor, cycle_std=config.doubling_time_sd, intra_radiosensitivity=config.intra_radiosensitivity, o2_to_vitality_factor=config.o2_to_vitality_factor, type='TumorCell'), config.max_occupancy)
 
-
     #generate vasculature and print related information
     world.generate_healthy_vasculature(config.vessel_number,
                 splitting_rate=0.5,
@@ -76,10 +75,11 @@ if config.new_world:
 
 else:
     world = amber.load(str(config.world_file)+'.pkl')
+    world.config = config
 
 
-# if config.show_3D_mesh:
-#     amber.show_tumor_3D_solid(world, 0)
+if config.show_3D_mesh:
+    amber.show_tumor_3D_solid(world, 0)
 
 ##########################################################################################
 
@@ -139,5 +139,5 @@ print('total time: ', time.time() - start_time, ' seconds')
 
 
 world.save('final' + str(config.world_file) + str(config.seed) + '.pkl')
-# if config.show_3D_mesh:
-#     amber.show_tumor_3D_solid(world, 0)
+if config.show_3D_mesh:
+    amber.show_tumor_3D_solid(world, 0)

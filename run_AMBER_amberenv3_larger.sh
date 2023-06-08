@@ -135,7 +135,7 @@ cd $DIR
 
 start_time=\$(date +%s.%N)
 
-conda activate amberenv
+conda activate amberenv3
 python $INFILE $CONFIG_NAME
 
 end_time=\$(date +%s.%N)
