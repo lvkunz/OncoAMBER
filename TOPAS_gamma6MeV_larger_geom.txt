@@ -1,0 +1,13 @@
+IncludeFile = /Users/louiskunz/PycharmProjects/OncoAMBER/TOPAS_gamma6MeV_larger.txt 
+d:Ge/MyBox/HLX      = 21.0 mm 
+d:Ge/MyBox/HLY      = 21.0 mm 
+d:Ge/MyBox/HLZ      = 21.0 mm 
+d:Ge/MyBox/TransX   = 0. m 
+d:Ge/MyBox/TransY   = 0. m 
+d:Ge/MyBox/TransZ   = 0. m 
+d:Ge/MyBox/RotX     = 0. deg 
+d:Ge/MyBox/RotY     = 0. deg 
+d:Ge/MyBox/RotZ     = 0. deg 
+i:Ge/MyBox/ZBins = 35 
+i:Ge/MyBox/XBins = 35 
+i:Ge/MyBox/YBins = 35
