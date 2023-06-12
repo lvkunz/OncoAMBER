@@ -286,7 +286,10 @@ class World:
             cells = voxel.number_of_tumor_cells()
             center_of_mass += voxel.position * cells
             total_cells += voxel.number_of_tumor_cells()
-        center_of_mass /= total_cells
+        if total_cells < 1:
+            center_of_mass = np.array([0.0,0.0,0.0])
+        else:
+            center_of_mass /= total_cells
         self.center_of_mass = center_of_mass
 
         for i in range(total_voxels):

@@ -207,6 +207,11 @@ class VasculatureNetwork:
                 print("Vessel {} is not in the list of children of vessel {}".format(vessel_id, parent_vessel.id))
             parent_vessel.children_ids.remove(vessel_id)
         # remove from the list of vessels
+        #root vessel to be updated
+        root_vessel = vessel
+        while root_vessel.parent_id is not None:
+            root_vessel = self.get_vessel(root_vessel.parent_id)
+        root_vessel.must_be_updated = True
         self.list_of_vessels.remove(vessel)
 
     def update_vessels_radius_from_last(self, final_radius, pressure_sensitive, pressure):

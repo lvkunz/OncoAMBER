@@ -13,6 +13,8 @@ class Sphere(Shape):
         self.center = center
         self.volume = 4/3 * np.pi * self.radius**3
     def generate_random_points(self, n):
+        if n <= 0:
+            return np.array([])
         # generate n random points within the tumor
         # the points are generated in a cube of side 2*radius
         # then the points outside the tumor are discarded

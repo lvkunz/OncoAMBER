@@ -1,5 +1,5 @@
-half_length_world: 10.5 #mm
-voxel_per_side: 35
+half_length_world: 7.5 #mm
+voxel_per_side: 25
 dt: 10 #hours
 endtime: 3000 #hours
 seed: 383061                            #seed for random number generator. -1 for random seed
@@ -7,7 +7,7 @@ running_on_cluster: False               #don't touch, the bash script changes it
 
 #Initialisation
 vessel_number: 0.1                     #initial number of vessels for healthy tissue per mm^2
-initial_number_tumor_cells: 100         #initial total number of tumor cells
+initial_number_tumor_cells: 0         #initial total number of tumor cells
 tumor_initial_radius: 1.0 #mm
 doubling_time_tumor: 27  #hours
 doubling_time_sd: 5
@@ -17,13 +17,13 @@ world_file: double             #name of the world file to create or load
 save_world_every: 700                   #save the world every x hours
 
 #Radiation parameters
-topas_file: TOPAS_gamma6MeV_larger
-first_irradiation_time: 100               #time at which radiation is applied
-number_fractions: 0                     #number of fractions of radiation
-time_between_fractions: 25              #time between fractions of radiation
+topas_file: TOPAS_gamma6MeV
+first_irradiation_time: 10             #time at which radiation is applied
+number_fractions: 1                     #number of fractions of radiation
+time_between_fractions: 50              #time between fractions of radiation
 irradiation_intensity: 10               #duration of radiation
 intra_radiosensitivity: 0.1             #death rate of cells due to 1Gy of radiation
-vessel_radiosensitivity: 0.00005            #death rate of vessels due to 1Gy of radiation
+vessel_radiosensitivity: 0.005            #death rate of vessels due to 1Gy of radiation
 
 # Parameters for the simulation
 max_occupancy: 0.68                     #max pressure at which cells can't enter a voxel through migration or other means
