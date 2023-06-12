@@ -2,12 +2,12 @@ half_length_world: 7.5 #mm
 voxel_per_side: 25
 dt: 5 #hours
 endtime: 300 #hours
-seed: 383061                            #seed for random number generator. -1 for random seed
+seed: -1                           #seed for random number generator. -1 for random seed
 running_on_cluster: False               #don't touch, the bash script changes it automatically
 
 #Initialisation
 vessel_number: 0.1                     #initial number of vessels for healthy tissue per mm^2
-initial_number_tumor_cells: 0         #initial total number of tumor cells
+initial_number_tumor_cells: 10000         #initial total number of tumor cells
 tumor_initial_radius: 1.0 #mm
 doubling_time_tumor: 27  #hours
 doubling_time_sd: 5
@@ -64,11 +64,11 @@ show_slices: True                       #if True, show a slice of the tumor duri
 slice: x                                #what direction to slice the tumor (x or z
 show_o2_vitality_histograms: False       #if True, show a histogram of capillaries and vitality during the simulation
 show_tumor_and_vessels_3D: True         #if True, show the vasculature in 3D during the simulation with tumor cells
-visible_original_vessels: True         #if True, show the original vasculature in 3D during the simulation
+visible_original_vessels: False         #if True, show the original vasculature in 3D during the simulation
 show_alpha_beta_maps: False             #if True, show the distribution of the parameters beta and gamma
 show_cell_and_tumor_volume: True        #if True, show the volume of tumor cells and healthy cells during the simulation
 verbose: False
-show_angiogenesis_metrics: False         #if True, show the metrics for angiogenesis
+show_angiogenesis_metrics: True         #if True, show the metrics for angiogenesis
 true_vasculature: False
 show_3D_mesh: False                     #if True, show the 3D mesh of the tumor
 show_center_of_mass: True               #if True, show the center of mass of the tumor

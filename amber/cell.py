@@ -20,7 +20,7 @@ class Cell:
         self.type = type
         self.time_before_death = None
         self.time_spent_cycling = self.random_time_spent_cycling() #new cells have already been cycling for a random amount of time
-
+        self.pH = 7.4
     def duplicate(self):
         cell_class = type(self)  # Get the class of the current instance dynamically
         cell = cell_class(self.radius, self.usual_cycle_length, self.cycle_length_std, self.intra_radiosensitivity,
@@ -35,9 +35,10 @@ class Cell:
         return vitality #needs to be normalized between 0 and 1
 
     def radiosensitivity(self):
-        value = self.intra_radiosensitivity * self.oxygen
-        if self.necrotic:
-            value = self.intra_radiosensitivity * 0.
+        coeff_pH = 7.4 / self.pH
+        value = self.intra_radiosensitivity * self.oxygen * coeff_pH
+        # if self.necrotic:
+        #     value = self.intra_radiosensitivity * 0.1
         return value
 
     def random_doubling_time(self):

@@ -655,14 +655,51 @@ class World:
 
         #print a table with the values of the metrics for the current distribution, mean, median, std, min, max
         print('Angiogenesis Metrics')
-        print('Diameters')
-        print(f'Mean: {diameter_mean:.2f}, Median: {diameter_median:.2f}, Std: {np.std(diameters_values):.2f}, Min: {np.min(diameters_values):.2f}, Max: {np.max(volume_values):.2f}')
-        print('Length density')
-        print(f'Mean: {length_mean:.2f}, Median: {length_median:.2f}, Std: {np.std(length_values):.2f}, Min: {np.min(length_values):.2f}, Max: {np.max(length_values):.2f}')
-        print('Volume density')
-        print(f'Mean: {volume_mean:.2f}, Median: {volume_median:.2f}, Std: {np.std(volume_values):.2f}, Min: {np.min(volume_values):.2f}, Max: {np.max(volume_values):.2f}')
-        print('Vessel segment length')
-        print(f'Mean: {VSL_mean:.2f}, Median: {VSL_median:.2f}, Std: {np.std(VSL_values):.2f}, Min: {np.min(VSL_values):.2f}, Max: {np.max(VSL_values):.2f}')
+
+        length_values = np.array(length_values)
+        volume_values = np.array(volume_values)
+        VSL_values = np.array(VSL_values)
+        diameters_values = np.array(diameters_values)
+
+        if diameters_values.any():
+            diameter_std = np.std(diameters_values)
+            diameter_min = np.min(diameters_values)
+            diameter_max = np.max(diameters_values)
+            print('Diameters')
+            print(
+                f'Mean: {diameter_mean:.2f}, Median: {diameter_median:.2f}, Std: {diameter_std:.2f}, Min: {diameter_min:.2f}, Max: {diameter_max:.2f}')
+        else:
+            print('Diameters: No data available.')
+
+        if length_values.any():
+            length_std = np.std(length_values)
+            length_min = np.min(length_values)
+            length_max = np.max(length_values)
+            print('Length density')
+            print(
+                f'Mean: {length_mean:.2f}, Median: {length_median:.2f}, Std: {length_std:.2f}, Min: {length_min:.2f}, Max: {length_max:.2f}')
+        else:
+            print('Length density: No data available.')
+
+        if volume_values.any():
+            volume_std = np.std(volume_values)
+            volume_min = np.min(volume_values)
+            volume_max = np.max(volume_values)
+            print('Volume density')
+            print(
+                f'Mean: {volume_mean:.2f}, Median: {volume_median:.2f}, Std: {volume_std:.2f}, Min: {volume_min:.2f}, Max: {volume_max:.2f}')
+        else:
+            print('Volume density: No data available.')
+
+        if VSL_values.any():
+            VSL_std = np.std(VSL_values)
+            VSL_min = np.min(VSL_values)
+            VSL_max = np.max(VSL_values)
+            print('Vessel segment length')
+            print(
+                f'Mean: {VSL_mean:.2f}, Median: {VSL_median:.2f}, Std: {VSL_std:.2f}, Min: {VSL_min:.2f}, Max: {VSL_max:.2f}')
+        else:
+            print('Vessel segment length: No data available.')
 
     def save(self, path):
         print('Saving world object to file: ' + path)

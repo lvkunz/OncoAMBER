@@ -20,6 +20,7 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                 self.vessel_volume = 0
                 self.vessel_length = 0
                 self.bifurcation_density = 0
+                self.pH = 7.4
 
         def number_of_tumor_cells(self):
                 number = 0

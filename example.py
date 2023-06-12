@@ -49,7 +49,7 @@ if config.new_world:
 
     #add cells to the voxels (tumor cells)
     points = amber.Sphere(config.tumor_initial_radius, [0, 0, 0]).generate_random_points(config.initial_number_tumor_cells)
-    for point, i in enumerate(points):
+    for i, point in enumerate(points):
         if i % 10000 == 0: print('Adding tumor cells ', i, ' out of ', config.initial_number_tumor_cells)
         voxel = world.find_voxel(point)
         voxel.add_cell(amber.TumorCell(config.radius_tumor_cells, cycle_hours=config.doubling_time_tumor, cycle_std=config.doubling_time_sd, intra_radiosensitivity=config.intra_radiosensitivity, o2_to_vitality_factor=config.o2_to_vitality_factor, type='TumorCell'), config.max_occupancy)

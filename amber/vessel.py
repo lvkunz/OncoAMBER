@@ -314,11 +314,13 @@ class VasculatureNetwork:
     def compute_VSL(self):
         list_VSL = np.array([])
         for vessel in self.list_of_vessels:
-            list_VSL = np.append(list_VSL, vessel.length())
+            if vessel.visible:
+                list_VSL = np.append(list_VSL, vessel.length())
         return list_VSL
 
     def compute_diameters(self):
         list_diameters = np.array([])
         for vessel in self.list_of_vessels:
-            list_diameters = np.append(list_diameters, vessel.radius*2)
+            if vessel.visible:
+                list_diameters = np.append(list_diameters, vessel.radius*2)
         return list_diameters
