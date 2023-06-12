@@ -59,7 +59,7 @@ if config.new_world:
     #generate vasculature and print related information
     world.generate_healthy_vasculature(config.vessel_number,
                 splitting_rate=0.5,
-                mult_macro_steps=2.0,
+                mult_macro_steps=1.0,
                 micro_steps=30,
                 weight_direction=1.5,
                 weight_vegf=0.9,

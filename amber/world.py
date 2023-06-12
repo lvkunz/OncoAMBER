@@ -67,37 +67,58 @@ class World:
 
     def generate_healthy_vasculature(self, initial_vessel_number, splitting_rate =0.3, mult_macro_steps=1, micro_steps=8, weight_direction=3.0, weight_vegf=1.0, weight_pressure=0.0, extra_step = True):
         initial_vessel_number = int(initial_vessel_number * 4 * self.half_length ** 2)
-        # sampler = qmc.Halton(2, seed=config.seed)
-        # points_z = (sampler.random(initial_vessel_number)[:,0] - 0.5) * self.half_length*2
-        # points_y = (sampler.random(initial_vessel_number)[:,1] - 0.5) * self.half_length*2
         points_z = np.random.uniform(-self.half_length, self.half_length, initial_vessel_number)
         points_y = np.random.uniform(-self.half_length, self.half_length, initial_vessel_number)
         points_x = -self.half_length * np.ones(initial_vessel_number)
         points = []
+        points_bis = []
         for i in range(len(points_x)):
             points.append([points_x[i], points_y[i], points_z[i]])
+            points_bis.append([-points_x[i], points_y[i], points_z[i]])
         points = np.array(points)
+        points_bis = np.array(points_bis)
         points2 = []
+        points2_bis = []
         for i in range(len(points)):
-            if points[i][0] == self.half_length:
-                points2.append([points[i][0] - 0.01, points[i][1], points[i][2]])
-            else:
-                points2.append([points[i][0] + 0.01, points[i][1], points[i][2]])
-        points2 = np.array(points2)
-        print('Initial vessels: ', points[0], points2[0])
+            points2.append([points[i][0] + 0.01, points[i][1], points[i][2]])
+            points2_bis.append([points_bis[i][0] - 0.01, points_bis[i][1], points_bis[i][2]])
 
+        points2 = np.array(points2)
+        points2_bis = np.array(points2_bis)
+        print('Initial vessels: ', points[0], points2[0])
+        print('Initial vessels other face: ', points_bis[0], points2_bis[0])
         list_of_vessels = []
+        list_of_vessels_bis = []
         for j in range(len(points)):
             list_of_vessels.append(Vessel([points[j], points2[j]], radius = 0.01, step_size=self.config.vessel_step_size, parent_id=None, children_ids=None, in_growth=True, intra_radiosensitivity= self.config.vessel_radiosensitivity))
+            list_of_vessels_bis.append(Vessel([points_bis[j], points2_bis[j]], radius = 0.01, step_size=self.config.vessel_step_size, parent_id=None, children_ids=None, in_growth=True, intra_radiosensitivity= self.config.vessel_radiosensitivity))
+
         self.initiate_vasculature(list_of_vessels)
+        vasculature_bis = VasculatureNetwork(self.config, list_of_vessels_bis)
+        for vessel in vasculature_bis.list_of_vessels:
+            vessel.must_be_updated = True
+
         def pressure(point):
             return (self.half_length - abs(point[0]))*0.06
+        def pressure_bis(point):
+            return (-self.half_length + abs(point[0]))*0.06
         def vegf_gradient(point):
             return np.array([1,0,0])
-            # if point[0] > 0:
-            #     return np.array([-point[0],0,0])
-            # else:
-            #     return np.array([point[0],0,0])
+
+        def vegf_gradient_bis(point):
+            return np.array([-1,0,0])
+
+        vasculature_bis.grow_and_split(
+            dt=1,
+            splitting_rate=splitting_rate,
+            vegf_gradient= vegf_gradient_bis,
+            pressure= pressure_bis,
+            macro_steps=int(0.9*self.half_length*mult_macro_steps),
+            micro_steps=micro_steps,
+            weight_direction=weight_direction,
+            weight_vegf=weight_vegf,
+            weight_pressure=weight_pressure
+        )
 
         self.vasculature.grow_and_split(
             dt=1,
@@ -110,6 +131,8 @@ class World:
             weight_vegf=weight_vegf,
             weight_pressure=weight_pressure
         )
+
+        self.vasculature.add_multiple_vessels(vasculature_bis.list_of_vessels)
 
         self.vasculature.update_vessels_radius_from_last(self.config.radius_root_vessels, False, pressure)
         for vessel in self.vasculature.list_of_vessels:

@@ -31,20 +31,20 @@ def create_gif(image_dir, output_path, image_suffix, image_step=1):
         print("No images found to create the GIF.")
 
 tmin = 0  # Minimum time
-tmax = 5000 # Maximum time
+tmax = 10000 # Maximum time
 show_fits = 0  # Show the exponential fits
 fit = 'gompertz' #gompertz or exp
 show_necro = 1
 show_quiet_cycling = False
 show_vessels = True
 local = False
-gif = 0
+gif = 1
 param_to_plot = []
 
-repo = '20230607_lk001_Linux/CONFIG_vasculature_example.py_152741'
+repo = '20230609_lk001_Linux/CONFIG_vasculature_example3.py_104844'
 
-iter = [1]
-image_step = 50
+iter = [0,2,4,6]
+image_step = 10
 
 
 

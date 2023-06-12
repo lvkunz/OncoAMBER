@@ -183,6 +183,10 @@ class VasculatureNetwork:
     def add_vessel(self, vessel: Vessel):
         self.list_of_vessels.append(vessel)
 
+    def add_multiple_vessels(self, vessels):
+        for vessel in vessels:
+            self.add_vessel(vessel)
+
     def get_vessel(self, vessel_id):
         for vessel in self.list_of_vessels:
             if vessel.id == vessel_id:
