@@ -14,13 +14,13 @@ doubling_time_sd: 5
 radius_tumor_cells: 0.033 #mm
 new_world: True                         #if True, create a new world, if False, load a world from a file
 world_file: double             #name of the world file to create or load
-save_world_every: 700                   #save the world every x hours
+save_world_every: 1000                   #save the world every x hours
 
 #Radiation parameters
 topas_file: TOPAS_gamma6MeV
-first_irradiation_time: 50             #time at which radiation is applied
-number_fractions: 0                     #number of fractions of radiation
-time_between_fractions: 20              #time between fractions of radiation
+first_irradiation_time: 1000             #time at which radiation is applied
+number_fractions: 3                     #number of fractions of radiation
+time_between_fractions: 300              #time between fractions of radiation
 irradiation_intensity: 10               #duration of radiation
 intra_radiosensitivity: 0.1             #death rate of cells due to 1Gy of radiation
 vessel_radiosensitivity: 0.005            #death rate of vessels due to 1Gy of radiation

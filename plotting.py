@@ -41,9 +41,9 @@ local = False
 gif = 1
 param_to_plot = []
 
-repo = '20230609_lk001_Linux/CONFIG_vasculature_example3.py_104844'
+repo = '20230612_lk001_Linux/CONFIG_vasculature_example.py_144731'
 
-iter = [0,2,4,6]
+iter = [0,2,4,6,9]
 image_step = 10
 
 
