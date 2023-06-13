@@ -50,11 +50,14 @@ def show_tumor_3D_solid(world, t):
     #remove values below max from contour_values
     contour_values = [x for x in contour_values if x < max]
 
+    max_necro = np.max(necro_counts)
     # Create a Plotter object
     plotter = pv.Plotter(shape=(1, 2))
     plotter.subplot(0, 0)
     plotter.add_mesh(grid.outline_corners(), color='k')
-    contour_necro = grid2.contour([950])
+
+    necro_lim = min(max_necro, 950)
+    contour_necro = grid2.contour([necro_lim])
     plotter.add_mesh(contour_necro, cmap='Reds', opacity=0.9, scalars='necro', clim=[0, 1000])
 
 

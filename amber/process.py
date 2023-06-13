@@ -43,7 +43,10 @@ class Simulator: #this class is used to run the whole simulation
         ax.set_title('Center of mass path')
         ax.legend()
         plt.savefig('Plots/Center_of_mass.png', dpi=100)
-        plt.show()
+        if self.config.running_on_cluster:
+            plt.close()
+        else:
+            plt.show()
 
     def show_cell_and_tumor_volume(self, number_tumor_cells, number_necrotic_cells, number_quiescent_cells, number_cycling_cells, tumor_size, tumor_size_free, number_vessels, times):
         # plot number of cells evolution
@@ -80,9 +83,10 @@ class Simulator: #this class is used to run the whole simulation
 
         # Save the figure
         fig.savefig('Plots/Combined_plots_tumor_evolution.png', dpi=100)
-
-        # Display the figure
-        plt.show()
+        if self.config.running_on_cluster:
+            plt.close()
+        else:
+            plt.show()
     def show(self, world: World, t = 0): #this function is used to show the world at a certain time
         print('Showing world at time : ', t)
         start = current_time()
@@ -100,21 +104,24 @@ class Simulator: #this class is used to run the whole simulation
 
             axes[0].set_xlim(-size, size)
             axes[0].set_ylim(-size, size)
-            world.show_tumor_slice(axes[0], fig, 'vessel_length_density')
+            world.show_tumor_slice(axes[0], fig, 'vessel_length_density', levels= np.linspace(0, 200, 20), refinement_level=3, cmap='jet')
             axes[0].grid(True)
             axes[0].set_facecolor('whitesmoke')
             axes[0].set_title('Vessel length density [mm/mm^3]')
 
             axes[1].set_xlim(-size, size)
             axes[1].set_ylim(-size, size)
-            world.show_tumor_slice(axes[1], fig, 'vessel_volume_density')
+            world.show_tumor_slice(axes[1], fig, 'vessel_volume_density', refinement_level=3, cmap='jet')
             axes[1].grid(True)
             axes[1].set_facecolor('whitesmoke')
             axes[1].set_title('Vessel volume density [%]')
 
             plt.tight_layout()
             plt.savefig('Plots/CurrentPlotting/t' + str(t) + '_VesselMetricsMaps.png', dpi=100)
-            plt.show()
+            if self.config.running_on_cluster:
+                plt.close()
+            else:
+                plt.show()
 
 
         #plot vasculature
@@ -135,7 +142,10 @@ class Simulator: #this class is used to run the whole simulation
             world.vasculature.plot(fig, axes)
             plt.tight_layout()
             plt.savefig('Plots/CurrentPlotting/t' + str(t) + '_Vasculature.png', dpi=100)
-            plt.show()
+            if self.config.running_on_cluster:
+                plt.close()
+            else:
+                plt.show()
 
         if self.config.show_slices:
             print('Showing slices')
@@ -174,7 +184,10 @@ class Simulator: #this class is used to run the whole simulation
 
             plt.tight_layout()
             plt.savefig('Plots/CurrentPlotting/t' + str(t) + '_AllPlots.png', dpi=100)
-            plt.show()
+            if self.config.running_on_cluster:
+                plt.close()
+            else:
+                plt.show()
 
         if self.config.show_o2_vitality_histograms:
             print('Showing histograms')
@@ -193,7 +206,10 @@ class Simulator: #this class is used to run the whole simulation
                 axes[1, i].set_xlabel('Vitality')
                 axes[1, i].set_ylabel('Number of cells')
                 voxel.vitality_histogram(axes[1, i], fig)
-            plt.show()
+            if self.config.running_on_cluster:
+                plt.close()
+            else:
+                plt.show()
 
         end = current_time()
         print('Time elapsed for showing graphs: ' + str(end - start) + ' seconds')
@@ -446,7 +462,10 @@ class UpdateCellOxygen(Process):
             ax.axes.set_xlabel('Pressure')
             ax.axes.set_ylabel('Number of vessels')
             ax.title.set_text('Alpha map')
-            plt.show()
+            if self.config.running_on_cluster:
+                plt.close()
+            else:
+                plt.show()
 
             fig = plt.figure(dpi=300)
             ax = fig.add_subplot(111, projection='3d')
@@ -455,7 +474,10 @@ class UpdateCellOxygen(Process):
             ax.axes.set_xlabel('Pressure')
             ax.axes.set_ylabel('Number of vessels')
             ax.title.set_text('Beta map')
-            plt.show()
+            if self.config.running_on_cluster:
+                plt.close()
+            else:
+                plt.show()
 
     def __call__(self, voxel: Voxel):
 

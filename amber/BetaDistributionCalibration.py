@@ -54,7 +54,7 @@ def run_calibration(side = 6, a = -7, b = 1, max_n = 100):
     max = max_n + 1
     n_values = list(range(1, max, 1))
 
-    for p in range(9):
+    for p in range(8):
         pressure = 0.1 * p
         pressure = round(pressure, 3)
         print('pressure', pressure)
@@ -64,7 +64,8 @@ def run_calibration(side = 6, a = -7, b = 1, max_n = 100):
             # sampler = qmc.Halton(2)
             multiple_alpha_values = []
             multiple_beta_values = []
-            for _ in range(10):
+            all_o2_values = []
+            for _ in range(100):
 
                 # points_x = sampler.random(n)[:,0] * side #quasi random to have a distribution mimicking distance between vessels
                 # points_y = sampler.random(n)[:,1] * side
@@ -77,7 +78,7 @@ def run_calibration(side = 6, a = -7, b = 1, max_n = 100):
                     vessels.append(Vessel([points_x[i], points_y[i]], radius, side))
 
                 points = []
-                for i in range(5000):
+                for i in range(50000):
                     point = [np.random.uniform(0, side), np.random.uniform(0, side), np.random.uniform(0, side)]
                     distances = []
                     for vessel in vessels:
@@ -87,30 +88,54 @@ def run_calibration(side = 6, a = -7, b = 1, max_n = 100):
                 o2_values = []
                 for point in points:
                     b_ = b*(1 - pressure)
-                    o2_values.append(sigmoid(point, a=a, b=b_))
-
+                    o2 = sigmoid(point, a=a, b=b_)
+                    o2_values.append(o2)
+                    all_o2_values.append(o2)
 
                 # Fit a beta distribution to the data
                 alpha, beta_param, _, _ = beta.fit(o2_values, floc=0, fscale=1.0)
                 multiple_alpha_values.append(alpha)
                 multiple_beta_values.append(beta_param)
 
-                r = np.random.beta(alpha, beta_param, 5000)
+                # r = np.random.beta(alpha, beta_param, 5000)
                 # rbis = np.random.beta(modelled_alpha, modelled_beta, 5000)
 
-                plt.figure()
-                plt.hist(o2_values, bins=100, alpha=0.5, label='Data', color='blue', density=True)
-                plt.hist(r, bins=100, alpha=0.5, label='Beta', color='red', density=True)
-                # plt.hist(rbis, bins=100, alpha=0.5, label='Modelled Beta', color='green', density=True)
-                # plt.plot(np.linspace(0, 1, 100), beta.pdf(np.linspace(0, 1, 100), alpha, beta_param))
-                plt.title('n = ' + str(n) + ', side = ' + str(side) + ', pressure = ' + str(pressure) + '\n fitted alpha = ' + str(round(alpha,4)) + ', fitted beta = ' + str(round(beta_param,4)))#+ ', modelled alpha ' + str(round(modelled_alpha,4)) + 'modelled beta ' + str(round(modelled_beta,4)), fontsize=8)
-                plt.xlabel('O2')
-                plt.ylabel('Frequency')
-                plt.legend()
-                plt.show()
+                # plt.figure()
+                # plt.hist(o2_values, bins=100, alpha=0.5, label='Data', color='blue', density=True)
+                # plt.hist(r, bins=100, alpha=0.5, label='Beta', color='red', density=True)
+                # # plt.hist(rbis, bins=100, alpha=0.5, label='Modelled Beta', color='green', density=True)
+                # # plt.plot(np.linspace(0, 1, 100), beta.pdf(np.linspace(0, 1, 100), alpha, beta_param))
+                # plt.title('n = ' + str(n) + ', side = ' + str(side) + ', pressure = ' + str(pressure) + '\n fitted alpha = ' + str(round(alpha,4)) + ', fitted beta = ' + str(round(beta_param,4)))#+ ', modelled alpha ' + str(round(modelled_alpha,4)) + 'modelled beta ' + str(round(modelled_beta,4)), fontsize=8)
+                # plt.xlabel('O2')
+                # plt.ylabel('Frequency')
+                # plt.legend()
+                # plt.show()
 
             alpha_mean = np.mean(multiple_alpha_values)
             beta_param_mean = np.mean(multiple_beta_values)
+            all_o2_values = np.array(all_o2_values)
+            # alpha_all, beta_param_all, _, _ = beta.fit(all_o2_values, floc=0, fscale=1.0)
+            # r_all = np.random.beta(alpha_all, beta_param_all, 5000)
+            r_avg = np.random.beta(alpha_mean, beta_param_mean, 5000)
+            plt.figure()
+            plt.hist(all_o2_values, bins=100, alpha=0.5, label='Data', color='green', density=True)
+            plt.hist(r_avg, bins=100, alpha=0.5, label='Beta_avg', color='blue', density=True)
+            # plt.hist(r_all, bins=100, alpha=0.5, label='Beta_all', color='red', density=True)
+            plt.title('n = ' + str(n) + ', side = ' + str(side) + ', pressure = ' + str(pressure) + '\n fitted alpha = ' + str(round(alpha_mean,4)) + ', fitted beta = ' + str(round(beta_param_mean,4)))#+ ', modelled alpha ' + str(round(modelled_alpha,4)) + 'modelled beta ' + str(round(modelled_beta,4)), fontsize=8)
+            # plt.title('n = ' + str(n) + ', side = ' + str(side) + ', pressure = ' + str(
+            #     pressure) + '\n fitted alpha = ' + str(round(alpha_all, 4)) + ', fitted beta = ' + str(round(beta_param_all,
+            #                                                                                              4)))  # + ', modelled alpha ' + str(round(modelled_alpha,4)) + 'modelled beta ' + str(round(modelled_beta,4)), fontsize=8)
+            plt.xlabel('O2')
+            plt.ylabel('Frequency')
+            plt.legend()
+            plt.show()
+
+
+
+            print('alpha mean', alpha_mean)
+            print('beta mean', beta_param_mean)
+            # print('alpha all', alpha_all)
+            # print('beta all', beta_param_all)
 
             alpha_values = np.append(alpha_values, alpha_mean)
             beta_values = np.append(beta_values, beta_param_mean)

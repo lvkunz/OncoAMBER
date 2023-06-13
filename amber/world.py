@@ -581,9 +581,9 @@ class World:
         volume_necrotic_free = 0
         volume_total = 0
         for voxel in self.voxel_list:
-            if voxel.number_of_tumor_cells() > 0:
+            if voxel.number_of_tumor_cells() > 50:
                 volume_necrotic_free += voxel.volume
-            if voxel.number_of_tumor_cells() > 0 or voxel.number_of_necrotic_cells() > 0:
+            if voxel.number_of_tumor_cells() > 50 or voxel.number_of_necrotic_cells() > 50:
                 volume_total += voxel.volume
         return volume_total, volume_necrotic_free
 
@@ -652,7 +652,10 @@ class World:
         fig.tight_layout()
         # Show the plot
         plt.savefig('Plots/CurrentPlotting/t' + str(t) +'_Angiogenesis.png')
-        plt.show()
+        if self.config.running_on_cluster:
+            plt.close()
+        else:
+            plt.show()
 
         #print a table with the values of the metrics for the current distribution, mean, median, std, min, max
         print('Angiogenesis Metrics')
