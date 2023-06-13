@@ -651,6 +651,7 @@ class World:
         fig.suptitle('Angiogenesis Metrics at time ' + str(t) + ' hours, number of vessels = ' + str(len(self.vasculature.list_of_vessels)))
         fig.tight_layout()
         # Show the plot
+        plt.savefig('Plots/CurrentPlotting/t' + str(t) +'_Angiogenesis.png')
         plt.show()
 
         #print a table with the values of the metrics for the current distribution, mean, median, std, min, max
