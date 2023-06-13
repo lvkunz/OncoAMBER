@@ -2,7 +2,7 @@ half_length_world: 10.5 #mm
 voxel_per_side: 35
 dt: 10 #hours
 endtime: 6000 #hours
-seed: 1                           #seed for random number generator. -1 for random seed
+seed: 2                           #seed for random number generator. -1 for random seed
 running_on_cluster: False               #don't touch, the bash script changes it automatically
 
 #Initialisation
@@ -13,8 +13,8 @@ doubling_time_tumor: 100  #hours
 doubling_time_sd: 10
 radius_tumor_cells: 0.033 #mm
 new_world: True                         #if True, create a new world, if False, load a world from a file
-world_file: double             #name of the world file to create or load
-save_world_every: 700                   #save the world every x hours
+world_file: no_necro             #name of the world file to create or load
+save_world_every: 2000                   #save the world every x hours
 
 #Radiation parameters
 topas_file: TOPAS_gamma6MeV
