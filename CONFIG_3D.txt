@@ -13,7 +13,7 @@ doubling_time_tumor: 27  #hours
 doubling_time_sd: 5
 radius_tumor_cells: 0.033 #mm
 new_world: False                         #if True, create a new world, if False, load a world from a file
-world_file: t700double383061             #name of the world file to create or load
+world_file: t1400double383061             #name of the world file to create or load
 save_world_every: 700                   #save the world every x hours
 
 #Radiation parameters
@@ -64,7 +64,7 @@ show_slices: True                       #if True, show a slice of the tumor duri
 slice: x                                #what direction to slice the tumor (x or z
 show_o2_vitality_histograms: False       #if True, show a histogram of capillaries and vitality during the simulation
 show_tumor_and_vessels_3D: True         #if True, show the vasculature in 3D during the simulation with tumor cells
-visible_original_vessels: False         #if True, show the original vasculature in 3D during the simulation
+visible_original_vessels: True         #if True, show the original vasculature in 3D during the simulation
 show_alpha_beta_maps: False             #if True, show the distribution of the parameters beta and gamma
 show_cell_and_tumor_volume: True        #if True, show the volume of tumor cells and healthy cells during the simulation
 verbose: False

@@ -500,7 +500,7 @@ class World:
 
         #central z slice of world first voxel is at z = 0
         list = self.voxel_list
-        size = 750 / self.number_of_voxels
+        size = 300
         values = []
         positions = []
         # collect doses and positions for all voxels
@@ -518,7 +518,7 @@ class World:
         [p[0] for p in positions],
         [p[1] for p in positions],
         [p[2] for p in positions],
-        c=values, cmap=cmap, alpha= 0.7, vmin=vmin, vmax=vmax, s=size, marker='h', edgecolors= 'none')
+        c=values, cmap=cmap, alpha= 0.7, vmin=vmin, vmax=vmax, s=size, marker='o', edgecolors= 'none')
         # add colorbar
         fig.colorbar(ax.collections[0], ax=ax, shrink=0.5)
         fig.tight_layout()

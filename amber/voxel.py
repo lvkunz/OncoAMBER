@@ -100,6 +100,7 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                 ax.hist(oxygen, bins = 50, color = 'blue', alpha = 0.5, range = (0,1))
                 ax.set_xlim(0, 1)
                 ax.set_ylabel('Number of cells')
+                #set an xlimit
                 ax.set_title('Oxygen histogram')
                 return ax, fig
 
