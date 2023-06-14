@@ -1,5 +1,5 @@
-half_length_world: 10.5 #mm
-voxel_per_side: 35
+half_length_world: 15.0 #mm
+voxel_per_side: 50
 dt: 10 #hours
 endtime: 6000 #hours
 seed: 2                           #seed for random number generator. -1 for random seed
@@ -23,7 +23,7 @@ number_fractions: 0                     #number of fractions of radiation
 time_between_fractions: 20              #time between fractions of radiation
 irradiation_intensity: 10               #duration of radiation
 intra_radiosensitivity: 0.1             #death rate of cells due to 1Gy of radiation
-vessel_radiosensitivity: 0.005            #death rate of vessels due to 1Gy of radiation
+vessel_radiosensitivity: 0.003            #death rate of vessels due to 1Gy of radiation
 
 # Parameters for the simulation
 max_occupancy: 0.68                     #max pressure at which cells can't enter a voxel through migration or other means
@@ -64,7 +64,7 @@ show_slices: True                       #if True, show a slice of the tumor duri
 slice: x                                #what direction to slice the tumor (x or z
 show_o2_vitality_histograms: False       #if True, show a histogram of capillaries and vitality during the simulation
 show_tumor_and_vessels_3D: True         #if True, show the vasculature in 3D during the simulation with tumor cells
-visible_original_vessels: True         #if True, show the original vasculature in 3D during the simulation
+visible_original_vessels: False         #if True, show the original vasculature in 3D during the simulation
 show_alpha_beta_maps: False             #if True, show the distribution of the parameters beta and gamma
 show_cell_and_tumor_volume: True        #if True, show the volume of tumor cells and healthy cells during the simulation
 verbose: False

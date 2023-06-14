@@ -315,8 +315,10 @@ class World:
             # pressure pushing cells to move towards the center of the tumor
             vector_to_center = voxel_i.position - center_of_mass
             distance = np.linalg.norm(vector_to_center)
-            neighbor_towards_center = self.find_voxel_number(voxel_i.position - (side/distance) * vector_to_center)
-            migration_matrix[i, neighbor_towards_center] += self.config.pressure_coefficient_central_migration * dt * (distance**2)
+            if distance > 0:
+                neighbor_towards_center = self.find_voxel_number(voxel_i.position - (side/distance) * vector_to_center)
+                migration_matrix[i, neighbor_towards_center] += self.config.pressure_coefficient_central_migration * dt * (distance**2)
+
         # Convert the lil_matrix to a csr_matrix for faster arithmetic operations
         migration_matrix = migration_matrix.tocsr()
         #show the matrix
@@ -593,7 +595,16 @@ class World:
         side = self.voxel_list[0].half_length * 2
         length_values = []
         volume_values = []
-        for voxel in self.voxel_list:
+        voxel_list_iter = []
+
+        if self.config.visible_original_vessels:
+            voxel_list_iter = self.voxel_list
+        else:
+            for voxel in self.voxel_list:
+                if voxel.number_of_tumor_cells() > 50:
+                    voxel_list_iter.append(voxel)
+
+        for voxel in voxel_list_iter:
             if real:
                 vessel_volume_density = (voxel.vessel_volume) * 100 / volume
                 vessel_length_density = (voxel.vessel_length) / volume

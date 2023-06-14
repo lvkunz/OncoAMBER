@@ -57,20 +57,15 @@ def show_tumor_3D_solid(world, t):
     plotter.add_mesh(grid.outline_corners(), color='k')
 
     necro_lim = min(max_necro, 950)
-    contour_necro = grid2.contour([necro_lim])
-    plotter.add_mesh(contour_necro, cmap='Reds', opacity=0.9, scalars='necro', clim=[0, 1000])
+    if necro_lim > 0:
+        contour_necro = grid2.contour([necro_lim])
+        plotter.add_mesh(contour_necro, cmap='Reds', opacity=0.9, scalars='necro', clim=[0, 1000])
 
 
     for i, value in enumerate(contour_values):
         contour = grid.contour([value])
         plotter.add_mesh(contour, cmap='Greens', opacity= opacities[i], scalars='tumor')
 
-    plotter.subplot(0, 1)
-    plotter.add_mesh(grid.contour([1]), cmap='Greens', opacity= opacities[0], scalars='tumor')
-    #cmap limits
-
-    plotter.add_mesh_slice(grid, normal='x', cmap='Greens', scalars='tumor', clim=[0, 1000])
-    plotter.add_mesh_slice(grid2, normal='y', cmap='Reds', scalars='necro', clim=[0, 1000])
     # for vessel in world.vasculature.list_of_vessels:
     #     if vessel.visible:
     #         path = vessel.path
@@ -78,7 +73,16 @@ def show_tumor_3D_solid(world, t):
     #             origin = path[0]
     #             end = path[-1]
     #             line = pv.Line(origin, end)
-    #             plotter.add_mesh(line, color='crimson', line_width=1)
+    #             plotter.add_mesh(line, color='crimson', line_width=vessel.radius*10)
+
+    plotter.subplot(0, 1)
+    plotter.add_mesh(grid.contour([1]), cmap='Greens', opacity= opacities[0], scalars='tumor')
+    #cmap limits
+
+    plotter.add_mesh_slice(grid, normal='x', cmap='Greens', scalars='tumor', clim=[0, 1000])
+    plotter.add_mesh_slice(grid2, normal='y', cmap='Reds', scalars='necro', clim=[0, 1000])
+
+
 
     # plotter.export_html('3D_plot_' + str(t) + '.html', 'panel')
     plotter.show(window_size=(4000, 2000), screenshot='3D_plot_' + str(t) + '.png')

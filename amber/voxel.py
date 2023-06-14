@@ -6,11 +6,11 @@ def sigmoid(L, x, x0, k):
 class Voxel(object): #extra parameters are max_occupancy, viscosity
         def __init__(self, position, half_length, viscosity, list_of_cells_in=None, n_capillaries = 0, voxel_number = 0):
                 if list_of_cells_in is None:
-                        list_of_cells_in = []
+                        list_of_cells_in = np.array([])
                 self.position = position
                 self.half_length = half_length
                 self.list_of_cells = list_of_cells_in
-                self.list_of_necrotic_cells = []
+                self.list_of_necrotic_cells = np.array([])
                 self.n_capillaries = n_capillaries
                 self.volume = 8*half_length**3
                 self.voxel_number = voxel_number
@@ -100,7 +100,6 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                 ax.hist(oxygen, bins = 50, color = 'blue', alpha = 0.5, range = (0,1))
                 ax.set_xlim(0, 1)
                 ax.set_ylabel('Number of cells')
-                #set an xlimit
                 ax.set_title('Oxygen histogram')
                 return ax, fig
 

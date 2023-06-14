@@ -138,7 +138,7 @@ class Simulator: #this class is used to run the whole simulation
                 axes.set_zticks([])
             #change text size
             # axes.view_init(90, -90)
-            world.show_tumor_3D(axes, fig, 'number_of_tumor_cells', cmap='viridis', vmin=0, vmax=1000)
+            # world.show_tumor_3D(axes, fig, 'number_of_tumor_cells', cmap='viridis', vmin=0, vmax=1000)
             world.vasculature.plot(fig, axes)
             plt.tight_layout()
             plt.savefig('Plots/CurrentPlotting/t' + str(t) + '_Vasculature.png', dpi=300)

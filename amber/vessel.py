@@ -95,7 +95,7 @@ class Vessel:
             if self.in_growth:
                 ax.plot(self.path[:, 0], self.path[:, 1], self.path[:, 2], color=color, alpha=0.7, linewidth= self.radius*100)
             else:
-                ax.plot(self.path[:, 0], self.path[:, 1], self.path[:, 2], color='crimson', alpha=0.8, linewidth= self.radius*100)
+                ax.plot(self.path[:, 0], self.path[:, 1], self.path[:, 2], color='crimson', alpha=0.9, linewidth= self.radius*15)
         return fig, ax
 
     def choose_random_point(self, seed):
