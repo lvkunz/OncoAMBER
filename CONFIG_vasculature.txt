@@ -14,7 +14,7 @@ doubling_time_sd: 5
 radius_tumor_cells: 0.033 #mm
 new_world: True                         #if True, create a new world, if False, load a world from a file
 world_file: double             #name of the world file to create or load
-save_world_every: 100                   #save the world every x hours
+save_world_every: 1000                   #save the world every x hours
 
 #Radiation parameters
 topas_file: TOPAS_gamma6MeV
