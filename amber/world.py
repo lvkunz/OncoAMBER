@@ -601,7 +601,7 @@ class World:
             voxel_list_iter = self.voxel_list
         else:
             for voxel in self.voxel_list:
-                if voxel.number_of_tumor_cells() > 50:
+                if voxel.number_of_tumor_cells() > 0:
                     voxel_list_iter.append(voxel)
 
         for voxel in voxel_list_iter:

@@ -100,28 +100,28 @@ class Simulator: #this class is used to run the whole simulation
             print('Showing angiogenesis metrics')
             world.show_angiogenesis_metrics(t, self.config.true_vasculature)
 
-            fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(40, 20))
-
-            axes[0].set_xlim(-size, size)
-            axes[0].set_ylim(-size, size)
-            world.show_tumor_slice(axes[0], fig, 'vessel_length_density', levels= np.linspace(0, 200, 20), refinement_level=3, cmap='jet')
-            axes[0].grid(True)
-            axes[0].set_facecolor('whitesmoke')
-            axes[0].set_title('Vessel length density [mm/mm^3]')
-
-            axes[1].set_xlim(-size, size)
-            axes[1].set_ylim(-size, size)
-            world.show_tumor_slice(axes[1], fig, 'vessel_volume_density', refinement_level=3, cmap='jet')
-            axes[1].grid(True)
-            axes[1].set_facecolor('whitesmoke')
-            axes[1].set_title('Vessel volume density [%]')
-
-            plt.tight_layout()
-            plt.savefig('Plots/CurrentPlotting/t' + str(t) + '_VesselMetricsMaps.png', dpi=100)
-            if self.config.running_on_cluster:
-                plt.close()
-            else:
-                plt.show()
+            # fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(40, 20))
+            #
+            # axes[0].set_xlim(-size, size)
+            # axes[0].set_ylim(-size, size)
+            # world.show_tumor_slice(axes[0], fig, 'vessel_length_density', levels= np.linspace(0, 200, 20), refinement_level=3, cmap='jet')
+            # axes[0].grid(True)
+            # axes[0].set_facecolor('whitesmoke')
+            # axes[0].set_title('Vessel length density [mm/mm^3]')
+            #
+            # axes[1].set_xlim(-size, size)
+            # axes[1].set_ylim(-size, size)
+            # world.show_tumor_slice(axes[1], fig, 'vessel_volume_density', refinement_level=3, cmap='jet')
+            # axes[1].grid(True)
+            # axes[1].set_facecolor('whitesmoke')
+            # axes[1].set_title('Vessel volume density [%]')
+            #
+            # plt.tight_layout()
+            # plt.savefig('Plots/CurrentPlotting/t' + str(t) + '_VesselMetricsMaps.png', dpi=100)
+            # if self.config.running_on_cluster:
+            #     plt.close()
+            # else:
+            #     plt.show()
 
 
         #plot vasculature
@@ -331,7 +331,7 @@ class CellDivision(Process): #cell division process, cells divide in a voxel if 
         return
 
 class CellDeath(Process): #cell necrosis process, cells die in a voxel if they have too low vitality
-    def __init__(self, config, name, dt, necrosis_threshold, necrosis_probability, apoptosis_threshold, apoptosis_probability):
+    def __init__(self, config, name, dt, necrosis_threshold, necrosis_probability, apoptosis_threshold, apoptosis_probability,necrosis_removal_probability):
         super().__init__(config, 'CellNecrosis', dt)
         self.necrosis_threshold = necrosis_threshold
         self.necrosis_probability = necrosis_probability
@@ -339,6 +339,7 @@ class CellDeath(Process): #cell necrosis process, cells die in a voxel if they h
         self.apoptosis_probability = apoptosis_probability
         if self.necrosis_threshold > self.apoptosis_threshold:
             raise ValueError('necrosis threshold must be smaller or equal to apoptosis threshold. you can set apoptosis probability to 0 if you want to avoid apoptosis.')
+        self.necrosis_removal_probability = necrosis_removal_probability
     def necrosis_curve(self, x):
         r = self.necrosis_probability - x / self.necrosis_threshold
         if r < 0: r = 0
@@ -370,6 +371,10 @@ class CellDeath(Process): #cell necrosis process, cells die in a voxel if they h
                 elif sample < a:
                     #apoptosis
                     voxel.remove_cell(cell)
+        for necro in voxel.list_of_necrotic_cells:
+            proba = (1 - ((1-self.necrosis_removal_probability)**self.dt))
+            if random.random() < proba:
+                voxel.remove_necrotic_cell(necro)
 
 
 class CellAging(Process): #cell aging process, cells age in a voxel
