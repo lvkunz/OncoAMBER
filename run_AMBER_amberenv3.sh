@@ -127,7 +127,7 @@ for (( COUNT=0; COUNT<$ITER; COUNT++ )); do
 #BSUB -r
 #BSUB -C 0
 #BSUB -n 1
-#BSUB -R "rusage[mem=3000]"
+#BSUB -R "rusage[mem=2500]"
 #BSUB -Q "140"
 cd $DIR
 

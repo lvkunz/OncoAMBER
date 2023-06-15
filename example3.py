@@ -93,7 +93,8 @@ celldeath = amber.CellDeath(config, 'cell_death', dt,
                                         apoptosis_threshold=config.vitality_apoptosis_threshold,
                                         apoptosis_probability=config.probability_apoptosis,
                                         necrosis_threshold=config.vitality_necrosis_threshold,
-                                        necrosis_probability=config.probability_necrosis)
+                                        necrosis_probability=config.probability_necrosis,
+                                        necrosis_removal_probability=config.probability_necrosis_removal)
 
 cellaging = amber.CellAging(config, 'cell_aging', dt)
 
