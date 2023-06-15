@@ -534,6 +534,13 @@ class UpdateVasculature(Process): #update the vasculature
     def __call__(self, world: World):
         #print in separate thread
         n_killed = world.vessels_killed(self.killing_radius_threshold)
+
+        for vessel in world.vasculature.list_of_vessels:
+            if vessel.time_before_death is not None:
+                vessel.time_before_death -= self.dt
+                if vessel.time_before_death < 0:
+                    world.vasculature.kill_vessel(vessel.id)
+
         print('Killed vessels: ', n_killed)
         print('Growing vessels')
         total_VEGF = 0
@@ -599,10 +606,7 @@ class Irradiation(Process): #irradiation
                     if n_cell.time_before_death is None:
                         n_cell.time_before_death = random.lognormvariate(1, 1)
 
-            count = 0
         for vessel in world.vasculature.list_of_vessels:
-            if count % 300 == 0:
-                print('Vessel: ', count)
             path = vessel.path
             list_voxels = []
             list_doses = [0]
@@ -610,14 +614,11 @@ class Irradiation(Process): #irradiation
                 current_voxel = world.find_voxel_number(point)
                 if current_voxel not in list_voxels:
                     list_voxels.append(current_voxel)
-                    list_doses.append(voxel.dose)
+                    list_doses.append(world.voxel_list[current_voxel].dose)
 
             max_dose = max(list_doses)
             probability_vessel = max_dose * self.irradiation_intensity * vessel.radiosensitivity()
             if random.random() < probability_vessel:
-                print('Killing vessel: ', vessel.id)
-                print(max_dose)
-                print(probability_vessel)
-                world.vasculature.kill_vessel(vessel.id)
-            count += 1
+                if vessel.time_before_death is None:
+                    vessel.time_before_death = random.lognormvariate(1, 1)
         return

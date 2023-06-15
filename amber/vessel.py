@@ -23,6 +23,7 @@ class Vessel:
         self.in_growth = in_growth
         self.visible = True
         self.must_be_updated = False
+        self.time_before_death = None
         self.intra_radiosensitivity = intra_radiosensitivity
 
     def __iter__(self):

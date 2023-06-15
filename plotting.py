@@ -7,29 +7,6 @@ import pandas as pd
 from PIL import Image
 import re
 
-
-
-def create_gif(image_dir, output_path, image_suffix, image_step=1):
-    images = []
-    t = 0
-    while True:
-        image_file = os.path.join(image_dir, f"t{t}_{image_suffix}.png")
-        if not os.path.exists(image_file):
-            break
-
-        print(f"Adding image {image_file}")
-        img = Image.open(image_file)
-        images.append(img)
-
-        t += image_step
-
-    if images:
-        # Save the first image as the GIF background
-        images[0].save(output_path, save_all=True, append_images=images[1:], loop=0, duration=image_step*10)
-        print(f"GIF created successfully at {output_path}")
-    else:
-        print("No images found to create the GIF.")
-
 tmin = 0  # Minimum time
 tmax = 3000 # Maximum time
 show_fits = 0  # Show the exponential fits
@@ -38,15 +15,9 @@ show_necro = 1
 show_quiet_cycling = False
 show_vessels = True
 local = False
-gif = 0
 param_to_plot = []
 
-repo = '20230613_lk001_Linux/CONFIG_no_necro_example3.py_174813'
-
-iter = [0]
-image_step = 10
-
-
+repo = '20230614_lk001_Linux/CONFIG_vasculature_example.py_155013'
 
 csv_file = ''
 #all repositories in repo:
@@ -248,78 +219,3 @@ if show_fits:
     plt.grid(True)
     plt.savefig(repo+'/doubling_time_tumor_size.png', dpi=300)
     plt.show()
-
-for i in iter:
-    print('iter', i, 'of', iter, 'is being processed')
-    image_directory = repo + '/iter' + str(i) + '/Plots/CurrentPlotting'
-    image_sufix1 = 'AllPlots'
-    output_path1 = repo + '/' + image_sufix1 + str(i) + '.gif'
-    image_sufix2 = 'Vasculature'
-    output_path2 = repo + '/' + image_sufix2 + str(i) + '.gif'
-
-    if gif:
-        create_gif(image_directory, output_path1, image_sufix1, image_step)
-        create_gif(image_directory, output_path2, image_sufix2, image_step)
-
-
-
-
-# Provide the directory containing the images and the output path for the GIF
-
-# #plot the data and the fitted curve
-# fig, axs = plt.subplots(2, 1, figsize=(14, 10))
-# fig.set_dpi(300)
-# # Plot number of tumor cells
-# axs[0].plot(times, number_cells, 'o', linewidth=2, alpha=0.8)
-# axs[0].plot(times, func(times, *popt1), 'k--', label='fit: a=%5.3f, b=%5.3f, c=%5.3f' % tuple(popt1))
-# axs[0].set_xlabel('Time (days)')
-# axs[0].set_ylabel('Number of tumor cells')
-# axs[0].set_title('Number of tumor cells over time')
-# axs[0].set_facecolor('whitesmoke')
-# axs[0].grid(True, linestyle='--', linewidth=0.5, alpha=0.5)
-#
-# # Plot tumor size
-# axs[1].plot(times, tumor_size, 'o', linewidth=2, alpha=0.8)
-# axs[1].plot(times, func(times, *popt2), 'k--', label='fit: a=%5.3f, b=%5.3f, c=%5.3f' % tuple(popt2))
-# axs[1].set_xlabel('Time (days)')
-# axs[1].set_ylabel('Tumor volume [mm^3]')
-# axs[1].set_title('Tumor volume over time')
-# axs[1].set_facecolor('whitesmoke')
-# axs[1].grid(True, linestyle='--', linewidth=0.5, alpha=0.5)
-#
-# # Set the x-axis ticks to show 1 day, 2 days, 3 days, etc.
-# xticks = [i for i in range(0, times[-1], 24)]
-# xticklabels = [i for i in range(0, int(times[-1]/24))]
-# axs[0].set_xticks(xticks)
-# axs[0].set_xticklabels(xticklabels)
-# axs[1].set_xticks(xticks)
-# axs[1].set_xticklabels(xticklabels)
-
-# Add vertical black arrows to show times of irradiation
-# irradiation_times_cells = [72, 96, 120, 144, 168]  # times of irradiation in hours
-# for time in irradiation_times_cells:
-#     t = time  # convert hours to days
-#     id = np.where(np.array(range(0, 200, 5)) == t)[0][0]  # get index of time
-#     arrow = axs[0].annotate('', xy=(t, number_cells[id] + 300), xytext=(t, number_cells[id] + 301), arrowprops=dict(facecolor='black', width=1.5, headwidth=5))
-#     arrow.set_zorder(-1)  # set arrow below plot line
-#
-# # Add vertical arrows to the tumor size plot
-# irradiation_times_size = [72, 96, 120, 144, 168]  # times of irradiation in hours
-# for time in irradiation_times_size:
-#     t = time  # convert hours to days
-#     id = np.where(np.array(range(4, 204, 4)) == t)[0][0]  # get index of time
-#     arrow = axs[1].annotate('', xy=(t, tumor_size[id] + 0.5), xytext=(t, tumor_size[id] + 0.6), arrowprops=dict(facecolor='black', width=1.5, headwidth=5))
-#     arrow.set_zorder(-1)  # set arrow below plot line
-
-# legend_elements = [Line2D([0], [0], marker='>', color='black', lw=0, label='Irradiation with 6MeV photon beam')]
-
-# # Add the custom legend to both subplots
-# axs[0].legend(handles=legend_elements, loc='upper left')
-# axs[1].legend(handles=legend_elements, loc='upper left')
-#
-# plt.tight_layout()
-# plt.savefig('tumorgrowth.png')
-# plt.show()
-
-
-
