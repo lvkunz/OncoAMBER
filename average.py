@@ -8,7 +8,7 @@ from PIL import Image
 import re
 
 tmin = 0  # Minimum time
-tmax = 800 # Maximum time
+tmax = 5000 # Maximum time
 show_fits = 0  # Show the exponential fits
 fit = 'gompertz' #gompertz or exp
 show_necro = 1
@@ -17,7 +17,12 @@ show_vessels = True
 local = False
 param_to_plot = []
 
-repo = '20230607_lk001_Linux/CONFIG_vasculature_example.py_152741'
+def plot_outliners(ax, x, y, y_min, y_max, color='black'):
+    for i in range(len(x)):
+        if y[i] < y_min[i] or y[i] > y_max[i]:
+            ax.plot(x[i], y[i], '.', color=color)
+
+repo = '20230615_lk001_Linux/CONFIG_vasculature_example3.py_164052'
 
 csv_file = ''
 #all repositories in repo:
@@ -37,8 +42,10 @@ parameter = param_space.columns[1]
 param = np.array(param_space[parameter])
 number_of_iterations = len(param_space['Iteration'])
 
-iter = [i for i in range(number_of_iterations)]
-iter = [0, 1, 4]
+iter = []
+
+if iter == []:
+    iter = [i for i in range(number_of_iterations)]
 
 paths = [f'{repo}/iter{i}/DataOutput/' for i in iter]
 #remove paths 4
@@ -174,6 +181,9 @@ if show_fits:
     popt, pcov = curve_fit(func_cell, max_times, number_cells_average, p0=p1, maxfev=100000)
 axes[0].plot(times_average, number_cells_average, '-', label = 'Number of Cells', color='blue', alpha=0.8)
 axes[0].fill_between(times_average, np.array(number_cells_average) - np.array(number_cells_sd), np.array(number_cells_average) + np.array(number_cells_sd), alpha=0.2, color='blue')
+# for i in range(len(paths)):
+#     plot_outliners(axes[0], times_list[i], number_cells_list[i], np.array(number_cells_average) - np.array(number_cells_sd), np.array(number_cells_average) + np.array(number_cells_sd), color='black')
+
 if show_necro:
     axes[0].plot(times_average, necrotic_cells_average, '-', label = 'Necrotic Cells', color='black', alpha=0.8)
     axes[0].fill_between(times_average, np.array(necrotic_cells_average) - np.array(necrotic_cells_sd), np.array(necrotic_cells_average) + np.array(necrotic_cells_sd), alpha=0.2, color='black')

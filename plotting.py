@@ -8,16 +8,16 @@ from PIL import Image
 import re
 
 tmin = 0  # Minimum time
-tmax = 9000 # Maximum time
+tmax = 5000 # Maximum time
 show_fits = 0  # Show the exponential fits
 fit = 'gompertz' #gompertz or exp
 show_necro = 0
-show_quiet_cycling = 1
+show_quiet_cycling = 0
 show_vessels = True
 local = False
-param_to_plot = [0.0001,0.001,0.01,0.1,1.0]
+param_to_plot = []
 
-repo = '20230613_lk001_Linux/CONFIG_vasculature_irrad_example.py_095844'
+repo = '20230615_lk001_Linux/CONFIG_vasculature_example3.py_164052'
 
 csv_file = ''
 #all repositories in repo:
@@ -94,6 +94,8 @@ doubling_times_tumor_size = []
 dpi = 300
 fig, axes = plt.subplots(2, 1, figsize=(8, 10), dpi=dpi)
 
+#data experimental
+
 
 
 for i in range(len(paths)):
@@ -155,6 +157,16 @@ for i in range(len(paths)):
         axes[1].plot(times_list[i], func_volume(times_list[i], *popt), '-', color=color)#, label='fit '+parameter+': '+str(param[i]))
         doubling_time = np.log(2)/popt[1]
         doubling_times_tumor_size.append(doubling_time)
+
+data = pd.read_csv('data_exp.csv', sep=',', header=0)
+
+data['time'] = data[data['time'] <= tmax]['time']
+data['ctrl'] = data[data['time'] <= tmax]['ctrl']
+
+# Scatter plot of 'time' vs 'ctrl'
+plt.plot(data['time'], data['ctrl'], marker='x', color='k', label='Experimental data', markersize=5, linestyle='None')
+
+
 
 axes[0].set_title('Number of Cells Evolution')
 axes[0].set_xlabel('Time')
