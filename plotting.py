@@ -17,7 +17,7 @@ show_vessels = True
 local = False
 param_to_plot = []
 
-repo = '20230615_lk001_Linux/CONFIG_vasculature_example3.py_164052'
+repo = '20230616_lk001_Linux/CONFIG_vasculature_irrad_example.py_113740'
 
 csv_file = ''
 #all repositories in repo:
@@ -164,7 +164,7 @@ data['time'] = data[data['time'] <= tmax]['time']
 data['ctrl'] = data[data['time'] <= tmax]['ctrl']
 
 # Scatter plot of 'time' vs 'ctrl'
-plt.plot(data['time'], data['ctrl'], marker='x', color='k', label='Experimental data', markersize=5, linestyle='None')
+# plt.plot(data['time'], data['ctrl'], marker='x', color='k', label='Experimental data', markersize=5, linestyle='None')
 
 
 
