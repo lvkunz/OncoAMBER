@@ -1,4 +1,4 @@
-IncludeFile = /Users/louiskunz/PycharmProjects/OncoAMBER/gamma6MeV.txt 
+IncludeFile = /Users/louiskunz/PycharmProjects/OncoAMBER/TOPAS_gamma6MeV.txt 
 d:Ge/MyBox/HLX      = 15.0 mm 
 d:Ge/MyBox/HLY      = 15.0 mm 
 d:Ge/MyBox/HLZ      = 15.0 mm 
