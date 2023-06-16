@@ -8,7 +8,7 @@ from PIL import Image
 import re
 
 tmin = 0  # Minimum time
-tmax = 3000 # Maximum time
+tmax = 9000 # Maximum time
 show_fits = 0  # Show the exponential fits
 fit = 'gompertz' #gompertz or exp
 show_necro = 1
@@ -17,7 +17,7 @@ show_vessels = True
 local = False
 param_to_plot = []
 
-repo = '20230614_lk001_Linux/CONFIG_vasculature_example.py_155013'
+repo = '20230614_lk001_Linux/CONFIG_vasculature_example.py_155348'
 
 csv_file = ''
 #all repositories in repo:
@@ -160,7 +160,7 @@ axes[0].set_title('Number of Cells Evolution')
 axes[0].set_xlabel('Time')
 axes[0].set_ylabel('Number of Cells')
 # axes[0].set_xlim(0, 250)
-# axes[0].set_ylim(0, 2e5)
+# axes[0].set_ylim(0, 5e5)
 axes[0].grid(True)
 axes[0].legend()
 
