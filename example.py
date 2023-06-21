@@ -73,8 +73,11 @@ if config.new_world:
 
 else:
     world = amber.load(str(config.world_file)+'.pkl')
+    seed = world.config.seed #use the seed of the world to make sure that the same world is used
+    config.seed = seed
+    np.random.seed(seed)
+    random.seed(seed)
     world.config = config
-
 
 if config.show_3D_mesh:
     amber.show_tumor_3D_solid(world, 0)

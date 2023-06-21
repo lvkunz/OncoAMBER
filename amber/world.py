@@ -1,3 +1,5 @@
+import numpy as np
+
 from amber.voxel import *
 from amber.vessel import *
 from amber.ScalarField import *
@@ -290,6 +292,11 @@ class World:
             center_of_mass = np.array([0.0,0.0,0.0])
         else:
             center_of_mass /= total_cells
+        print('center of mass real', center_of_mass)
+        #we don't let the tumor move too far from the center
+        if np.linalg.norm(center_of_mass) > self.half_length/3:
+            center_of_mass = center_of_mass / np.linalg.norm(center_of_mass) * self.half_length/3
+        print('center of mass moved', center_of_mass)
         self.center_of_mass = center_of_mass
 
         for i in range(total_voxels):
@@ -312,7 +319,8 @@ class World:
                     n_events = coeff / t_res
                     migration_matrix[i, j] = n_events
 
-            # pressure pushing cells to move towards the center of the tumor
+            # pressure pushing cells to move towards the center of the tumor\
+
             vector_to_center = voxel_i.position - center_of_mass
             distance = np.linalg.norm(vector_to_center)
             if distance > 0:

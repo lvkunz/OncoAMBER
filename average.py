@@ -11,20 +11,19 @@ import re
 
 tmin = 0  # Minimum time
 tmax = 5000 # Maximum time
-show_fits = 1  # Show the exponential fits
+show_fits = 0  # Show the exponential fits
 fit = 'gompertz' #gompertz or exp
 show_necro = 1
 show_quiet_cycling = 1
 show_vessels = True
 local = False
-param_to_plot = []
 
 def plot_outliners(ax, x, y, y_min, y_max, color='black'):
     for i in range(len(x)):
         if y[i] < y_min[i] or y[i] > y_max[i]:
             ax.plot(x[i], y[i], '.', color=color)
 
-repo = '20230607_lk001_Linux/CONFIG_vasculature_example.py_152741'
+repo = '20230616_lk001_Linux/CONFIG_avascular_example.py_155600'
 
 csv_file = ''
 #all repositories in repo:
@@ -44,7 +43,8 @@ parameter = param_space.columns[1]
 param = np.array(param_space[parameter])
 number_of_iterations = len(param_space['Iteration'])
 
-iter = []
+iter = [5,6,7,8,9]
+# iter = [1,2,3,4]
 
 if iter == []:
     iter = [i for i in range(number_of_iterations)]
@@ -236,7 +236,7 @@ axes[0].set_title('Number of Cells Evolution')
 axes[0].set_xlabel('Time')
 axes[0].set_ylabel('Number of Cells')
 # axes[0].set_xlim(0, 250)
-# axes[0].set_ylim(0, 5e5)
+axes[0].set_ylim(0, None)
 axes[0].grid(True)
 axes[0].legend()
 
@@ -244,7 +244,7 @@ axes[1].set_title('Tumor Volume Evolution')
 axes[1].set_xlabel('Time')
 axes[1].set_ylabel('Tumor Volume [mm^3]')
 # axes[1].set_xlim(0, 250)
-# axes[1].set_ylim(0, 50)
+axes[1].set_ylim(0, None)
 axes[1].grid(True)
 axes[1].legend()
 
@@ -295,6 +295,6 @@ axes[1].set_ylabel('Growth Rate')
 axes[1].grid(True)
 axes[1].legend()
 plt.tight_layout()
-plt.savefig(repo+'/growth_rate'+str(tmax)+'.png', dpi=dpi)
+plt.savefig(repo+'/growth_rate_average'+str(tmax)+'.png', dpi=dpi)
 plt.show()
 

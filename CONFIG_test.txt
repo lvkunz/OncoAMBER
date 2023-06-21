@@ -1,20 +1,20 @@
 half_length_world: 7.5 #mm
 voxel_per_side: 25
 dt: 10 #hours
-endtime: 300 #hours
+endtime: 4000 #hours
 seed: 1                           #seed for random number generator. -1 for random seed
 running_on_cluster: False               #don't touch, the bash script changes it automatically
 
 #Initialisation
 vessel_number: 0.1                     #initial number of vessels for healthy tissue per mm^2
-initial_number_tumor_cells: 100         #initial total number of tumor cells
-tumor_initial_radius: 0.5 #mm
+initial_number_tumor_cells: 10000         #initial total number of tumor cells
+tumor_initial_radius: 2.5 #mm
 doubling_time_tumor: 27  #hours
 doubling_time_sd: 5
 radius_tumor_cells: 0.033 #mm
-new_world: False                         #if True, create a new world, if False, load a world from a file
-world_file: 3D             #name of the world file to create or load
-save_world_every: 10000                   #save the world every x hours
+new_world: True                         #if True, create a new world, if False, load a world from a file
+world_file: double             #name of the world file to create or load
+save_world_every: 1000                   #save the world every x hours
 
 #Radiation parameters
 topas_file: TOPAS_gamma6MeV
