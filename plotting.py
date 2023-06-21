@@ -8,18 +8,19 @@ from PIL import Image
 import re
 
 tmin = 0  # Minimum time
-tmax = 1000 # Maximum time
+tmax = 10000 # Maximum time
 show_fits = 0  # Show the exponential fits
 fit = 'gompertz' #gompertz or exp
 show_necro = 0
 show_quiet_cycling = 0
 show_vessels = True
 show_rates = True
+experimental = False
 rate_choice = 'volume' #volume or number
 local = False
 param_to_plot = []
 
-repo = '20230616_lk001_Linux/CONFIG_match_example.py_153907'
+repo = '20230616_lk001_Linux/CONFIG_vasculature_irrad_example.py_155524'
 
 csv_file = ''
 #all repositories in repo:
@@ -113,8 +114,6 @@ doubling_times_tumor_size = []
 dpi = 300
 fig, axes = plt.subplots(2, 1, figsize=(8, 10), dpi=dpi)
 
-#data experimental
-
 
 
 for i in range(len(paths)):
@@ -183,7 +182,7 @@ data['time'] = data[data['time'] <= tmax]['time']
 data['ctrl'] = data[data['time'] <= tmax]['ctrl']
 
 # Scatter plot of 'time' vs 'ctrl'
-plt.plot(data['time'], data['ctrl'], marker='x', color='k', label='Experimental data', markersize=5, linestyle='None')
+if experimental: plt.plot(data['time'], data['ctrl'], marker='x', color='k', label='Experimental data', markersize=5, linestyle='None')
 
 
 
