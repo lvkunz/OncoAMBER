@@ -1,3 +1,5 @@
+import random
+
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
@@ -9,7 +11,7 @@ import re
 
 tmin = 0  # Minimum time
 tmax = 5000 # Maximum time
-show_fits = 0  # Show the exponential fits
+show_fits = 1  # Show the exponential fits
 fit = 'gompertz' #gompertz or exp
 show_necro = 1
 show_quiet_cycling = 1
@@ -22,7 +24,7 @@ def plot_outliners(ax, x, y, y_min, y_max, color='black'):
         if y[i] < y_min[i] or y[i] > y_max[i]:
             ax.plot(x[i], y[i], '.', color=color)
 
-repo = '20230615_lk001_Linux/CONFIG_vasculature_example3.py_164052'
+repo = '20230607_lk001_Linux/CONFIG_vasculature_example.py_152741'
 
 csv_file = ''
 #all repositories in repo:
@@ -174,8 +176,18 @@ elif fit == 'gompertz':
     def func_volume(x, a, b):
         return a * np.exp(np.log(tumor_size_average[0]/a)*np.exp(-b * x))
 
-    p1 = ( 30000, 0.1)
-    p2 = ( 300 , 0.1)
+    p1 = ( 3000000, 0.01)
+    p2 = ( 3000 , 0.01)
+
+elif fit == 'exp-linear':
+
+    def func_cell(x, a, b, c, d, e):
+        return a * np.exp(b * x) + c * np.log(d * x) + e
+
+
+    def func_volume(x, a, b, c, d, e):
+        return a * np.exp(b * x) + c * np.log(d * x) + e
+
 
 if show_fits:
     popt, pcov = curve_fit(func_cell, max_times, number_cells_average, p0=p1, maxfev=100000)
@@ -193,8 +205,9 @@ if show_quiet_cycling:
     axes[0].plot(times_average , quiescent_cells_average , '-', label = 'Quiescent Cells', color='green', alpha=0.8)
     axes[0].fill_between(times_average, np.array(quiescent_cells_average) - np.array(quiescent_cells_sd), np.array(quiescent_cells_average) + np.array(quiescent_cells_sd), alpha=0.2, color='green')
 if show_fits:
-    axes[0].plot(times_average , func_cell(times_list[i], *popt), '--', color='blue')
-
+    axes[0].plot(times_average , func_cell(times_average, *popt), '--', color='blue')
+    #diff fitting
+    axes[0].plot(times_average , number_cells_average- func_cell(times_average, *popt), '--', color='orange')
 
 
     doubling_time = np.log(2) / popt[1]
@@ -215,7 +228,7 @@ axes[1].fill_between(times_average, np.array(tumor_size_average) - np.array(tumo
 axes[1].plot(times_average, tumor_size_free_average, '-', color = 'black', markersize = 5, alpha=0.5, label='Necrotic Core Volume')
 axes[1].fill_between(times_average, np.array(tumor_size_free_average) - np.array(tumor_size_free_sd), np.array(tumor_size_free_average) + np.array(tumor_size_free_sd), alpha=0.2, color='black')
 if show_fits:
-    axes[1].plot(times_list[i], func_volume(times_list[i], *popt), '-', color='blue')#, label='fit '+parameter+': '+str(param[i]))
+    axes[1].plot(times_list[i], func_volume(times_average, *popt), '--', color='purple')#, label='fit '+parameter+': '+str(param[i]))
     doubling_time = np.log(2)/popt[1]
     doubling_times_tumor_size.append(doubling_time)
 
@@ -254,28 +267,34 @@ if show_vessels:
     plt.savefig(repo+'/vessels_evolution_average'+str(tmax)+'.png', dpi=dpi)
     plt.show()
 
-if show_fits:
-    if len(param_to_plot) > 0:
-        param = param_to_plot
-    print('Doubling times (Number of Cells):', doubling_times_number_cells)
-    print('Doubling times (Tumor Size):', doubling_times_tumor_size)
 
-    plt.plot(param, doubling_times_number_cells, 'bo', label='Cells doubling time')
-    plt.xlabel(parameter)
-    plt.ylabel('Doubling time [days]')
-    plt.title('Doubling time vs. ' + parameter)
-    # plt.yscale('log')  # set y-axis to logarithmic scale
-    plt.legend()
-    plt.grid(True)
-    plt.savefig(repo+'/doubling_time.png', dpi=300)
-    plt.show()
+rates_average = []
+dt = times_average[1] - times_average[0]
+for t in times_average:
+    idd = np.where(times_average == t)[0][0]
+    if t <= 10*dt:
+        rates_average.append(0)
+    else:
+        rate = (number_cells_average[idd] - number_cells_average[idd-10])/(10*dt)
+        rates_average.append(rate)
 
-    plt.plot(param, doubling_times_tumor_size, 'ro', label='Tumor volume doubling time')
-    plt.xlabel(parameter)
-    plt.ylabel('Doubling time [days]')
-    plt.title('Doubling time vs. ' + parameter)
-    # plt.yscale('log')  # set y-axis to logarithmic scale
-    plt.legend()
-    plt.grid(True)
-    plt.savefig(repo+'/doubling_time_tumor_size.png', dpi=300)
-    plt.show()
+
+fig, axes = plt.subplots(2, 1, figsize=(8, 5), dpi=dpi)
+for i in range(len(times_average)):
+    axes[0].plot(number_cells_average[i], rates_average[i], 'o', color='black', markersize=5, alpha=0.5)
+axes[0].set_title('Growth Rate vs Number of Cells')
+axes[0].set_xlabel('Number of Cells')
+axes[0].set_ylabel('Growth Rate')
+axes[0].grid(True)
+
+
+axes[1].plot(times_average, rates_average, '-', color = 'crimson', markersize = 5, alpha=0.5, label='Growth Rate')
+axes[1].set_title('Growth Rate Evolution')
+axes[1].set_xlabel('Time')
+axes[1].set_ylabel('Growth Rate')
+axes[1].grid(True)
+axes[1].legend()
+plt.tight_layout()
+plt.savefig(repo+'/growth_rate'+str(tmax)+'.png', dpi=dpi)
+plt.show()
+

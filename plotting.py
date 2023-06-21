@@ -8,16 +8,18 @@ from PIL import Image
 import re
 
 tmin = 0  # Minimum time
-tmax = 5000 # Maximum time
+tmax = 1000 # Maximum time
 show_fits = 0  # Show the exponential fits
 fit = 'gompertz' #gompertz or exp
 show_necro = 0
 show_quiet_cycling = 0
 show_vessels = True
+show_rates = True
+rate_choice = 'volume' #volume or number
 local = False
 param_to_plot = []
 
-repo = '20230616_lk001_Linux/CONFIG_vasculature_irrad_example.py_113740'
+repo = '20230616_lk001_Linux/CONFIG_match_example.py_153907'
 
 csv_file = ''
 #all repositories in repo:
@@ -53,6 +55,7 @@ quiescent_cells_list = []
 tumor_size_list = []
 tumor_size_free_list = []
 number_vessels_list = []
+rates_list = []
 times_list = []
 
 for path in paths:
@@ -64,6 +67,7 @@ for path in paths:
     tumor_size_free = np.load(f'{path}tumor_size_free.npy', allow_pickle=True)
     number_vessels = np.load(f'{path}number_vessels.npy', allow_pickle=True)
     times = np.load(f'{path}times.npy', allow_pickle=True)
+
 
     # Find the indices of the times that are within the time range
     idx = np.where((times >= tmin) & (times<=tmax))
@@ -77,6 +81,20 @@ for path in paths:
     number_vessels = number_vessels[idx]
     times = times[idx]
 
+    rates = []
+    dt = times[1] - times[0]
+    for t in times:
+        idd = np.where(times == t)[0][0]
+        if t <= 10 * dt:
+            rates.append(0)
+        else:
+            if rate_choice == 'volume':
+                rate = (tumor_size[idd] - tumor_size[idd - 10]) / (10 * dt)
+            elif rate_choice == 'number':
+                rate = (number_cells[idd] - number_cells[idd - 10]) / (10 * dt)
+            rates.append(rate)
+
+
     # Append the filtered arrays to the lists
     number_cells_list.append(number_cells)
     tumor_size_list.append(tumor_size)
@@ -85,6 +103,7 @@ for path in paths:
     cycling_cells_list.append(cycling_cells)
     quiescent_cells_list.append(quiescent_cells)
     number_vessels_list.append(number_vessels)
+    rates_list.append(rates)
     times_list.append(times)
 
 
@@ -164,7 +183,7 @@ data['time'] = data[data['time'] <= tmax]['time']
 data['ctrl'] = data[data['time'] <= tmax]['ctrl']
 
 # Scatter plot of 'time' vs 'ctrl'
-# plt.plot(data['time'], data['ctrl'], marker='x', color='k', label='Experimental data', markersize=5, linestyle='None')
+plt.plot(data['time'], data['ctrl'], marker='x', color='k', label='Experimental data', markersize=5, linestyle='None')
 
 
 
@@ -230,4 +249,43 @@ if show_fits:
     plt.legend()
     plt.grid(True)
     plt.savefig(repo+'/doubling_time_tumor_size.png', dpi=300)
+    plt.show()
+
+if show_rates:
+    fig, axes = plt.subplots(2, 2, figsize=(12, 12), dpi=dpi)
+    for i in range(len(paths)):
+        if len(param_to_plot) > 0:
+            if param[i] not in param_to_plot:
+                continue
+
+        axes[0, 0].plot(number_cells_list[i], rates_list[i], 'o', markersize=1, alpha=0.5)
+        axes[1,0].plot(times_list[i], rates_list[i], 'o', markersize=1, alpha=0.5, label=parameter+': '+str(param[i]))
+        axes[0,1].plot(number_vessels_list[i], rates_list[i], 'o', markersize=1, alpha=0.5, label=parameter+': '+str(param[i]))
+        axes[1,1].plot(cycling_cells_list[i], rates_list[i], 'o', markersize=1, alpha=0.5, label=parameter+': '+str(param[i]))
+
+    axes[0,0].set_title('Growth Rate vs Number of Cells')
+    axes[0,0].set_xlabel('Number of Cells')
+    axes[0,0].set_ylabel('Growth Rate')
+    axes[0,0].set_ylim(0, None)
+    axes[0,0].grid(True)
+    axes[1,0].set_title('Growth Rate Evolution')
+    axes[1,0].set_xlabel('Time')
+    axes[1,0].set_ylabel('Growth Rate')
+    axes[1, 0].set_ylim(0, None)
+    axes[1,0].grid(True)
+    axes[1,0].legend()
+    axes[0,1].set_title('Growth Rate vs Number of Vessels')
+    axes[0,1].set_xlabel('Number of Vessels')
+    axes[0,1].set_ylabel('Growth Rate')
+    axes[0,1].set_ylim(0, None)
+    axes[0,1].grid(True)
+    axes[0,1].legend()
+    axes[1,1].set_title('Growth Rate vs Number of Cycling Cells')
+    axes[1,1].set_xlabel('Number of Cycling Cells')
+    axes[1,1].set_ylabel('Growth Rate')
+    axes[1,1].set_ylim(0, None)
+    axes[1,1].grid(True)
+    axes[1,1].legend()
+    plt.tight_layout()
+    plt.savefig(repo + '/growth_rate' + str(tmax) + '.png', dpi=dpi)
     plt.show()
