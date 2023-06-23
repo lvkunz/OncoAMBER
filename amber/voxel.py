@@ -1,4 +1,6 @@
 import numpy as np
+import scipy.sparse as sparse
+
 
 def sigmoid(L, x, x0, k):
     return L/(1 + np.exp(-k*(x-x0)))
@@ -57,12 +59,6 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
 
         def pressure(self):
                 packing_density = (self.occupied_volume() /self.volume)
-                # NkT = 1 #use somethig sensitive to make sense of this
-                # if len(self.list_of_cells) == 0:
-                #         return 0
-                # ratio = (1+packing_density+packing_density**2-packing_density**3)/((1-packing_density)**3) #using Carrahan-Sterling equation
-                # ratio = ratio - 1
-                # pressure = (NkT*ratio)/self.volume
                 return packing_density
 
         def random_points_in_voxel(self, n):
@@ -128,6 +124,15 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                 ax.set_title('Cycling time histogram')
                 ax.legend()
                 return ax, fig
+
+        def compute_cell_interaction_matrix(self, dt):
+                cell_interaction_matrix = sparse.lil_matrix((len(self.list_of_cells), len(self.list_of_cells)), dtype=np.float16)
+                for i in range(len(self.list_of_cells)):
+                        for j in range(len(self.list_of_cells)):
+                                if i != j:
+                                        cell_interaction_matrix[i,j] = self.list_of_cells[i].probability_of_interaction(self.list_of_cells[j], dt)
+                cell_interaction_matrix = cell_interaction_matrix.tocsr()
+                return cell_interaction_matrix
 
 
 

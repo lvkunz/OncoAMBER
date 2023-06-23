@@ -397,6 +397,20 @@ class CellAging(Process): #cell aging process, cells age in a voxel
                     voxel.remove_necrotic_cell(n_cell)
         pass
 
+class CellInteraction(Process):
+
+    def __init__(self, config, name, dt):
+        super().__init__(config, 'CellInteraction', dt)
+        self.dt = dt
+
+    def __call__(self, voxel):
+        matrix = voxel.compute_cell_interaction_matrix(self.dt)
+        number_cells = len(voxel.list_of_cells)
+        idd = np.where(matrix > 0)
+        for i in range(len(idd[0])):
+            cell1 = voxel.list_of_cells[idd[0][i]]
+            cell2 = voxel.list_of_cells[idd[1][i]]
+            cell1.interact(cell2, self.dt)
 
 class CellMigration(Process): #cell migration process, cells migrate in the world
     def __init__(self, config, name, dt):
@@ -545,6 +559,9 @@ class UpdateVasculature(Process): #update the vasculature
                 vessel.time_before_death -= self.dt
                 if vessel.time_before_death < 0:
                     world.vasculature.kill_vessel(vessel.id)
+            if vessel.maturity < 1.0:
+                vessel.maturity += self.dt / self.config.vessel_time_to_maturity
+                vessel.maturity = min(vessel.maturity, 1.0)
 
         print('Killed vessels: ', n_killed)
         print('Growing vessels')
@@ -563,7 +580,6 @@ class UpdateVasculature(Process): #update the vasculature
             random_vessel = random.choice(vessels)
             if len(random_vessel.path) > 2:
                 point = random_vessel.choose_random_point(self.config.seed)
-                print('VEGF: ',np.linalg.norm(vegf_gradient(point)))
                 if np.linalg.norm(vegf_gradient(point)) > self.config.vegf_gradient_threshold:
                     world.vasculature.branching(random_vessel.id, point)
 

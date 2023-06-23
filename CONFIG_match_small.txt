@@ -1,9 +1,9 @@
-half_length_world: 12 #mm
-voxel_per_side: 40
+half_length_world: 7.5 #mm
+voxel_per_side: 25
 dt: 20 #hours
-endtime: 600 #hours
-seed: 1                           #seed for random number generator. -1 for random seed
-running_on_cluster: False               #don't touch, the bash script changes it automatically
+endtime: 800 #hours
+seed: -1                           #seed for random number generator. -1 for random seed
+running_on_cluster: True               #don't touch, the bash script changes it automatically
 
 #Initialisation
 vessel_number: 0.2                     #initial number of vessels for healthy tissue per mm^2
@@ -39,11 +39,11 @@ VEGF_production_per_cell: 0.005         #VEGF production per cell per hour?
 o2_threshold_for_VEGF_production: 0.8   #threshold in vitality for cells to start producing VEGF
 vegf_map_step_gradient: 3.0 #mm         #vegf map step size, should be the order of the tumor size
 lower_pressure_threshold_step: 0.2      #reference value at which step size for vasculature remains the same, above, the step size decreases
-higher_pressure_threshold_step: 0.75     #value for which the stepsize for vasculature growth is 0
+higher_pressure_threshold_step: 0.8    #value for which the stepsize for vasculature growth is 0
 radius_root_vessels: 0.01  #mm          #radius of the endvessels of the tree
-radius_killing_threshold: 0.0022 #mm    #threshold radius of vessels getting killed by pressure or because they are too small (0.022 - 5% of volume only)
+radius_killing_threshold: 0.0015 #mm    #threshold radius of vessels getting killed by pressure or because they are too small (0.022 - 5% of volume only)
 radius_decrease_exponent: 2             #exponent for the decrease of radius of vessels depending on pressure
-n_capillaries_per_VVD: 25000.0          #n capillaries [1/mm3]
+n_capillaries_per_VVD: 10000000.0          #n capillaries [1/mm3]
 capillary_length: 2.0 #mm               #length of capillaries in mm, will give a number of diffusion averagings steps
 vegf_gradient_threshold: 0.0            #threshold in VEGF gradient for vessels to grow
 splitting_rate_vasculature: 0.1         #probability of splitting a vessel when growing
@@ -56,7 +56,9 @@ radius_pressure_sensitive: True         #if True, radius of vessels is pressure 
 o2_to_vitality_factor: 1.0              #factor for the conversion of capillaries to vitality
 vessel_step_size: 0.05 #mm              #step size for vasculature growth
 growth_step_stop_threshold: 0.03 #mm    #threshold for step size for vasculature growth, under which growth stops
-new_vessels_per_hour: 0.005            #number of new vessels per hour*mm3
+vessel_time_to_maturity: 24 #hours      #time for a vessel to mature
+maturity_new_vessels: 1.0               #maturity of new vessels
+new_vessels_per_hour: 0.002             #number of new vessels per hour*mm3
 
 # Graphics parameters
 show_time_steps: True                   #if True, show the time during the simulation

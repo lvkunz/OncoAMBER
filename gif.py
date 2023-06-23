@@ -32,9 +32,9 @@ def create_gif(image_dir, output_path, image_suffix, image_step=1):
 
 
 local = False
-repo = '20230613_lk001_Linux/CONFIG_vasculature_irrad_example.py_095844'
+repo = '20230621_local'
 
-iter = [4]
+iter = [0,1]
 image_step = 20
 
 
@@ -60,10 +60,15 @@ if local: paths = ['DataOutput/']
 for i in iter:
     print('iter', i, 'of', iter, 'is being processed')
     image_directory = repo + '/iter' + str(i) + '/Plots/CurrentPlotting'
+
     image_sufix1 = 'AllPlots'
     output_path1 = repo + '/' + image_sufix1 + str(i) + '.gif'
     image_sufix2 = 'Vasculature'
     output_path2 = repo + '/' + image_sufix2 + str(i) + '.gif'
+    if local:
+        image_directory = 'Plots/CurrentPlotting'
+        output_path1 = image_sufix1 + '.gif'
+        output_path2 = image_sufix2 + '.gif'
 
     create_gif(image_directory, output_path1, image_sufix1, image_step)
     create_gif(image_directory, output_path2, image_sufix2, image_step)

@@ -24,8 +24,8 @@ class Vessel:
         self.visible = True
         self.must_be_updated = False
         self.time_before_death = None
+        self.maturity = 1.0 # 0: newly created, 1: mature
         self.intra_radiosensitivity = intra_radiosensitivity
-
     def __iter__(self):
         return self
 
@@ -41,8 +41,7 @@ class Vessel:
                 break
             length += step_size
         return length
-        # if step_size < config.growth_stop_threshold'] * self.step_size:
-        #     self.in_growth = False
+
 
     def step(self, half_length_world, lower_pressure_threshold_step, higher_pressure_threshold_step, vegf_gradient, pressure, weight_direction=0.5, weight_vegf=0.5, weight_pressure=0.5):
         if not isinstance(self.path, np.ndarray) or len(self.path.shape) != 2 or self.path.shape[1] != 3:
@@ -113,15 +112,6 @@ class Vessel:
         else:
             return np.mean([pressure(point) for point in self.path])
 
-    def max_pressure(self, pressure):
-        return np.max([pressure(point) for point in self.path])
-
-    def max_dose(self, dose_map):
-        max_dose = 0
-        for point in self.path:
-            if dose_map.evaluate(point) > max_dose:
-                max_dose = dose_map.evaluate(point)
-        return max_dose
     def radiosensitivity(self):
         radius = self.radius
         radiosensitivity = self.intra_radiosensitivity/radius
@@ -168,6 +158,7 @@ class VasculatureNetwork:
 
         vessel_new = Vessel([branching_point], self.config.radius_root_vessels, self.config.vessel_step_size, parent_id= mother_vessel.id, children_ids=None, in_growth=True, intra_radiosensitivity=mother_vessel.intra_radiosensitivity)  # the radius has to be updated later
         vessel_new.visible = True
+        vessel_new.maturity = self.config.maturity_new_vessels
         mother_vessel.children_ids = [vessel_end.id, vessel_new.id]
         self.list_of_vessels.append(vessel_end)
         self.list_of_vessels.append(vessel_new)
@@ -238,12 +229,13 @@ class VasculatureNetwork:
             update_radius_recursive(root_vessel.id)
             root_vessel.must_be_updated = False
 
-        if pressure_sensitive:
-            print("Updating for pressure")
-            pow = self.config.radius_decrease_exponent
-            coeff = self.config.max_occupancy ** (-pow)
-            for vessel in self.list_of_vessels:
-                vessel.radius = vessel.radius * (1 - coeff * (vessel.mean_pressure(pressure)**pow))
+        print("Updating for pressure")
+        pow = self.config.radius_decrease_exponent
+        coeff = self.config.max_occupancy ** (-pow)
+        for vessel in self.list_of_vessels:
+            vessel.radius = vessel.radius * (1 - coeff * (vessel.mean_pressure(pressure)**pow))
+            vessel.radius = vessel.radius * vessel.maturity
+
 
     def volume_occupied(self):
         points = []

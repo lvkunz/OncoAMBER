@@ -38,7 +38,7 @@ show_vessels = True
 local = False
 generate_images = False
 generate_gif = True
-repo = '20230614_lk001_Linux/CONFIG_vasculature_example.py_155013/iter0'
+repo = '20230621_local/iter0/'
 
 image_step = 10
 

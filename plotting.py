@@ -8,19 +8,20 @@ from PIL import Image
 import re
 
 tmin = 0  # Minimum time
-tmax = 11000 # Maximum time
+tmax = 5000 # Maximum time
 show_fits = 0  # Show the exponential fits
-fit = 'gompertz' #gompertz or exp
+fit = 'exp' #gompertz or exp
 show_necro = 0
 show_quiet_cycling = 0
 show_vessels = True
 show_rates = True
-experimental = False
+experimental = True
 rate_choice = 'volume' #volume or number
-local = False
+local = 1
 param_to_plot = []
 
-repo = '20230614_lk001_Linux/CONFIG_vasculature_example.py_155348'
+repo = '20230621_lk001_Linux/CONFIG_match_example.py_101251'
+repo = repo + '/'
 
 csv_file = ''
 #all repositories in repo:
@@ -29,7 +30,7 @@ for filename in os.listdir(repo):
     # Check if the file is a csv file
     if filename.endswith('.csv'):
         csv_file = filename
-
+print(csv_file)
 param_space = pd.read_csv(f'{repo}/{csv_file}', sep=' ', header=0)
 print(param_space)
 
@@ -39,6 +40,7 @@ parameter = param_space.columns[1]
 
 param = np.array(param_space[parameter])
 number_of_iterations = len(param_space['Iteration'])
+print(number_of_iterations)
 
 paths = [f'{repo}/iter{i}/DataOutput/' for i in range(0, number_of_iterations)]
 #remove paths 4
@@ -46,8 +48,11 @@ print(paths)
 
 
 
-if local: paths = ['DataOutput/']
-
+if local:
+    paths = ['DataOutput/']
+    parameter = ''
+    param = [1]
+    repo = ''
 
 number_cells_list = []
 necrotic_cells_list = []
@@ -112,9 +117,9 @@ for path in paths:
 doubling_times_number_cells = []
 doubling_times_tumor_size = []
 dpi = 300
+#change font size
 fig, axes = plt.subplots(2, 1, figsize=(8, 10), dpi=dpi)
-
-
+#change font size
 
 for i in range(len(paths)):
     print(param[i])
@@ -169,43 +174,67 @@ for i in range(len(paths)):
     # Fit tumor size
     if show_fits:
         popt, pcov = curve_fit(func_volume, times_list[i], tumor_size_list[i], p0=p2, maxfev=100000)
-    axes[1].plot(times_list[i], tumor_size_list[i], 'o', color = color, markersize = 5, alpha=0.5, label=parameter+': '+str(param[i]))
-    axes[1].plot(times_list[i], tumor_size_free_list[i], '+', color = color, markersize = 5, alpha=0.5)
+    # axes[1].plot(times_list[i], tumor_size_list[i], 'o', color = color, markersize = 5, alpha=0.5, label=parameter+': '+str(param[i]))
+    axes[1].plot(times_list[i], tumor_size_list[i], 'o', color = 'red', markersize = 5, alpha=0.5, label='Model Values')
+    # axes[1].plot(times_list[i], tumor_size_free_list[i], '+', color = color, markersize = 5, alpha=0.5)
     if show_fits:
         axes[1].plot(times_list[i], func_volume(times_list[i], *popt), '-', color=color)#, label='fit '+parameter+': '+str(param[i]))
         doubling_time = np.log(2)/popt[1]
         doubling_times_tumor_size.append(doubling_time)
 
 data = pd.read_csv('data_exp.csv', sep=',', header=0)
+data2 = pd.read_csv('LLC_sc_CCSB.csv', sep=',', header=0)
 
-data['time'] = data[data['time'] <= tmax]['time']
+data2['Time'] = data2['Time'] * 24 + 125
+
+data['time'] = data[data['time'] <= tmax]['time'] - 25
 data['ctrl'] = data[data['time'] <= tmax]['ctrl']
+data['RT'] = data[data['time'] <= tmax]['RT']
 
+plt.rcParams.update({'font.size': 16})
 # Scatter plot of 'time' vs 'ctrl'
-if experimental: plt.plot(data['time'], data['ctrl'], marker='x', color='k', label='Experimental data', markersize=5, linestyle='None')
+if experimental:
+    time = []
+    volume = []
+    sd = []
+    for i in data2['Time'].unique():
+        time.append(i)
+        vol = []
+        for j in data2[data2['Time'] == i]['Vol']:
+            vol.append(j)
+        volume.append(np.mean(vol))
+        sd.append(np.std(vol))
 
+    axes[1].plot(data['time'], data['ctrl'], 'x', color='black', label='Experimental Data', markersize=10)
+    # axes[1].plot(data['time'], data['RT'], 'x', color='blue', markersize = 10, linewidth=2)
+    # axes[1].errorbar(time, volume, yerr=sd, fmt='x', color='black', label='Experimental Data', markersize=10)
 
 
 axes[0].set_title('Number of Cells Evolution')
-axes[0].set_xlabel('Time')
-axes[0].set_ylabel('Number of Cells')
+axes[0].set_xlabel('Time', fontsize=18)
+axes[0].set_ylabel('Number of Cells', fontsize=18)
 # axes[0].set_xlim(0, 250)
 # axes[0].set_ylim(0, 5e5)
 axes[0].grid(True)
 axes[0].legend()
-
-axes[1].set_title('Tumor Volume Evolution')
-axes[1].set_xlabel('Time')
-axes[1].set_ylabel('Tumor Volume [mm^3]')
+axes[1].set_xlabel('Time [h]', fontsize=16)
+axes[1].set_ylabel('Tumor Volume [mm^3]', fontsize=16)
 # axes[1].set_xlim(0, 250)
 # axes[1].set_ylim(0, 50)
+#change the x axis font size
+for tick in axes[1].xaxis.get_major_ticks():
+    tick.label.set_fontsize(14)
+#change the y axis font size
+for tick in axes[1].yaxis.get_major_ticks():
+    tick.label.set_fontsize(14)
+
 axes[1].grid(True)
 axes[1].legend()
 
 #add a tiny text box in the corner with the repo name
 plt.figtext(0.01, 0.01, repo, wrap=True, horizontalalignment='left', fontsize=6)
 plt.tight_layout()
-plt.savefig(repo+'/tumor_evolution_'+str(tmax)+'.png', dpi=dpi)
+plt.savefig(repo+'tumor_evolution_'+str(tmax)+'.png', dpi=dpi)
 plt.show()
 
 if show_vessels:
@@ -221,7 +250,7 @@ if show_vessels:
     axes.grid(True)
     axes.legend()
     plt.tight_layout()
-    plt.savefig(repo+'/vessels_evolution_'+str(tmax)+'.png', dpi=dpi)
+    plt.savefig(repo+'vessels_evolution_'+str(tmax)+'.png', dpi=dpi)
     plt.show()
 
 if show_fits:
@@ -237,8 +266,9 @@ if show_fits:
     # plt.yscale('log')  # set y-axis to logarithmic scale
     plt.legend()
     plt.grid(True)
-    plt.savefig(repo+'/doubling_time.png', dpi=300)
+    plt.savefig(repo+'doubling_time.png', dpi=300)
     plt.show()
+
 
     plt.plot(param, doubling_times_tumor_size, 'ro', label='Tumor volume doubling time')
     plt.xlabel(parameter)
@@ -247,7 +277,7 @@ if show_fits:
     # plt.yscale('log')  # set y-axis to logarithmic scale
     plt.legend()
     plt.grid(True)
-    plt.savefig(repo+'/doubling_time_tumor_size.png', dpi=300)
+    plt.savefig(repo+'doubling_time_tumor_size.png', dpi=300)
     plt.show()
 
 if show_rates:
@@ -286,5 +316,5 @@ if show_rates:
     axes[1,1].grid(True)
     axes[1,1].legend()
     plt.tight_layout()
-    plt.savefig(repo + '/growth_rate' + str(tmax) + '.png', dpi=dpi)
+    plt.savefig(repo + 'growth_rate' + str(tmax) + '.png', dpi=dpi)
     plt.show()

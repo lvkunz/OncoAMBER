@@ -2,12 +2,15 @@ import random
 
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.integrate import quad
 from scipy.optimize import curve_fit
 import glob
 import os
 import pandas as pd
 from PIL import Image
 import re
+from scipy.integrate import odeint
+
 
 tmin = 0  # Minimum time
 tmax = 5000 # Maximum time
@@ -16,14 +19,14 @@ fit = 'gompertz' #gompertz or exp
 show_necro = 1
 show_quiet_cycling = 1
 show_vessels = True
-local = False
+local = True
 
 def plot_outliners(ax, x, y, y_min, y_max, color='black'):
     for i in range(len(x)):
         if y[i] < y_min[i] or y[i] > y_max[i]:
             ax.plot(x[i], y[i], '.', color=color)
 
-repo = '20230616_lk001_Linux/CONFIG_avascular_example.py_155600'
+repo = '20230621_local'
 
 csv_file = ''
 #all repositories in repo:
@@ -43,7 +46,7 @@ parameter = param_space.columns[1]
 param = np.array(param_space[parameter])
 number_of_iterations = len(param_space['Iteration'])
 
-iter = [5,6,7,8,9]
+iter = [1]
 # iter = [1,2,3,4]
 
 if iter == []:
@@ -272,29 +275,120 @@ rates_average = []
 dt = times_average[1] - times_average[0]
 for t in times_average:
     idd = np.where(times_average == t)[0][0]
-    if t <= 10*dt:
+    if t <= 3*dt:
         rates_average.append(0)
     else:
-        rate = (number_cells_average[idd] - number_cells_average[idd-10])/(10*dt)
+        rate = (number_cells_average[idd] - number_cells_average[idd-3])/(3*dt)
         rates_average.append(rate)
 
+def func_gompertz(x, a, b):
+    x = np.array(x)
+    return x * (b - a * np.log(x))
+def func_logistic(x, a, b):
+    x = np.array(x)
+    return a * x - b * x * x
 
-fig, axes = plt.subplots(2, 1, figsize=(8, 5), dpi=dpi)
-for i in range(len(times_average)):
-    axes[0].plot(number_cells_average[i], rates_average[i], 'o', color='black', markersize=5, alpha=0.5)
-axes[0].set_title('Growth Rate vs Number of Cells')
-axes[0].set_xlabel('Number of Cells')
-axes[0].set_ylabel('Growth Rate')
-axes[0].grid(True)
+def func_holling(x, a, b, k):
+    x = np.array(x)
+    return (a * x)/(k + x) - b * x
+
+def func_holling_(x, t, a, b, k):
+    return (a * x)/(k + x) - b * x
 
 
-axes[1].plot(times_average, rates_average, '-', color = 'crimson', markersize = 5, alpha=0.5, label='Growth Rate')
-axes[1].set_title('Growth Rate Evolution')
-axes[1].set_xlabel('Time')
-axes[1].set_ylabel('Growth Rate')
-axes[1].grid(True)
-axes[1].legend()
+param0 = np.array([1.0, 1.0, 1.0])
+param0_ = np.array([1.0, 1.0])
+#add a random component to the initial guess
+# param0 = np.array(param0) * (1 + 1.0 * np.random.random(len(param0)) - 0.1)
+weights = np.zeros(len(number_cells_average))
+for i in range(len(number_cells_average)):
+    if number_cells_average[i] < 5e5:
+        weights[i] = 1
+    else:
+        weights[i] = 5
+
+popt_g, pcov_g = curve_fit(func_gompertz, number_cells_average, rates_average, p0=param0_, maxfev=100000, sigma=weights)
+popt_l, pcov_l = curve_fit(func_logistic, number_cells_average, rates_average, p0=param0_, maxfev=100000, sigma=weights)
+popt_h, pcov_h = curve_fit(func_holling, number_cells_average, rates_average, p0=param0, maxfev=100000,sigma=weights)
+print('Fitted parameters Gompertz: ', popt_g)
+print('Fitted parameters Logistic: ', popt_l)
+print('Fitted parameters Holling: ', popt_h)
+#N fin
+
+N_final = popt_h[0]/popt_h[1] - popt_h[2]
+print('N final: ', N_final)
+#solve the ODE for the Holling model
+# find at what time the tumor reaches N_final
+times_final = []
+for i in range(len(number_cells_average)):
+    if number_cells_average[i] > N_final:
+        times_final.append(times_average[i])
+        break
+fig, axes = plt.subplots(2, 2, figsize=(12, 12), dpi=dpi)
+# popt_r = np.array([1.0, 1.0])
+axes[0, 0].plot(number_cells_average, rates_average, 'o', markersize=3, color='orange')
+axes[0,0 ].plot(number_cells_average, func_gompertz(number_cells_average, *popt_g), linestyle = 'dotted', color='black', label='Gompertz fit')
+axes[0, 0].plot(number_cells_average, func_logistic(number_cells_average, *popt_l), linestyle = 'dashed', color='black', label='Logistic fit')
+axes[0, 0].plot(number_cells_average, func_holling(number_cells_average, *popt_h), linestyle = 'dashdot', color='black', label='Holling fit')
+axes[0, 0].legend()
+axes[1, 0].plot(times_average, rates_average, 'o', markersize=3, color='black')
+axes[0, 1].plot(number_vessels_average, rates_average, 'o', markersize=3, color='crimson')
+axes[1, 1].plot(cycling_cells_average, rates_average, 'o', markersize=3, color='green')
+
+axes[0, 0].set_title('Growth Rate vs Number of Cells')
+axes[0, 0].set_xlabel('Number of Cells')
+axes[0, 0].set_ylabel('Growth Rate')
+axes[0, 0].set_ylim(0, None)
+axes[0, 0].grid(True)
+axes[1, 0].set_title('Growth Rate Evolution')
+axes[1, 0].set_xlabel('Time')
+axes[1, 0].set_ylabel('Growth Rate')
+axes[1, 0].set_ylim(0, None)
+axes[1, 0].grid(True)
+axes[0, 1].set_title('Growth Rate vs Number of Vessels')
+axes[0, 1].set_xlabel('Number of Vessels')
+axes[0, 1].set_ylabel('Growth Rate')
+axes[0, 1].set_ylim(0, None)
+axes[0, 1].grid(True)
+axes[1, 1].set_title('Growth Rate vs Number of Cycling Cells')
+axes[1, 1].set_xlabel('Number of Cycling Cells')
+axes[1, 1].set_ylabel('Growth Rate')
+axes[1, 1].set_ylim(0, None)
+axes[1, 1].grid(True)
 plt.tight_layout()
-plt.savefig(repo+'/growth_rate_average'+str(tmax)+'.png', dpi=dpi)
+plt.savefig(repo + '/growth_rate' + str(tmax) + '.png', dpi=dpi)
 plt.show()
+
+
+#plot the integral of the growth rate to get the number of cells
+
+
+# Define parameters
+a = popt_h[0]
+b = popt_h[1]
+k = popt_h[2]
+
+# Define time points
+t = times_average
+# t = np.linspace(0, tmax*3, 6000)
+# Set initial condition
+x0 = number_cells_average[0]
+# Solve the differential equation
+x = odeint(func_holling_, x0, t, args=(a, b, k)).flatten()
+
+fig, axes = plt.subplots(1, 1, figsize=(6, 6), dpi=dpi)
+axes.plot(times_average, number_cells_average, '-', label = 'Number of Cells', color='blue', alpha=0.8)
+axes.plot(t, x, '--', label = 'Holling fit', color='black', alpha=0.8)
+axes.fill_between(times_average, np.array(number_cells_average) - np.array(number_cells_sd), np.array(number_cells_average) + np.array(number_cells_sd), alpha=0.2, color='blue')
+axes.set_xlabel('Time')
+axes.set_ylabel('Number of Cells')
+axes.set_title('Number of Cells')
+axes.legend()
+axes.grid(True)
+plt.tight_layout()
+plt.savefig(repo + '/number_cells_fitted' + str(tmax) + '.png', dpi=dpi)
+plt.show()
+
+
+
 

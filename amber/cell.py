@@ -24,7 +24,7 @@ class Cell:
     def duplicate(self):
         cell_class = type(self)  # Get the class of the current instance dynamically
         cell = cell_class(self.radius, self.usual_cycle_length, self.cycle_length_std, self.intra_radiosensitivity,
-                          self.o2_to_vitality_factor, self.type)
+                          self.o2_to_vitality_factor)
         cell.time_spent_cycling = 0  # The new cell has not been cycling yet
         return cell
 
@@ -48,8 +48,22 @@ class Cell:
         longest_possible_time = self.doubling_time
         return np.random.uniform(0, longest_possible_time)
 
+    def probability_of_interaction(self, cell, dt):
+        return 0.0
+
+    def interact(self, cell, dt):
+        pass
+
 class TumorCell(Cell):
-    def __init__(self, radius, cycle_hours, cycle_std, intra_radiosensitivity, o2_to_vitality_factor, type = 'TumorCell'):
-        super().__init__(radius, cycle_hours, cycle_std, intra_radiosensitivity, o2_to_vitality_factor, type)
+    def __init__(self, radius, cycle_hours, cycle_std, intra_radiosensitivity, o2_to_vitality_factor):
+        super().__init__(radius, cycle_hours, cycle_std, intra_radiosensitivity, o2_to_vitality_factor, type =  'TumorCell')
 
+class ImmuneCell(Cell):
+    def __init__(self, radius, cycle_hours, cycle_std, intra_radiosensitivity, o2_to_vitality_factor):
+        super().__init__(radius, cycle_hours, cycle_std, intra_radiosensitivity, o2_to_vitality_factor, type = 'ImmuneCell')
 
+    def probability_of_interaction(self, cell, dt):
+        return 0.001 * dt
+    def interact(self, cell, dt):
+        if cell.type == 'TumorCell':
+            cell.time_before_death = 0
