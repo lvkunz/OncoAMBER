@@ -52,7 +52,14 @@ if config.new_world:
     for i, point in enumerate(points):
         if i % 10000 == 0: print('Adding tumor cells ', i, ' out of ', config.initial_number_tumor_cells)
         voxel = world.find_voxel(point)
-        voxel.add_cell(amber.TumorCell(config.radius_tumor_cells, cycle_hours=config.doubling_time_tumor, cycle_std=config.doubling_time_sd, intra_radiosensitivity=config.intra_radiosensitivity, o2_to_vitality_factor=config.o2_to_vitality_factor), config.max_occupancy)
+        voxel.add_cell(amber.TumorCell(config.radius_tumor_cells,
+                                       cycle_hours=config.doubling_time_tumor,
+                                       cycle_std=config.doubling_time_sd,
+                                       intra_radiosensitivity=config.intra_radiosensitivity,
+                                       o2_to_vitality_factor=config.o2_to_vitality_factor,
+                                       VEGF_threshold = config.VEGF_production_threshold,
+                                       VEGF_rate = config.VEGF_production_per_cell
+                                       ), config.max_occupancy)
 
     #generate vasculature and print related information
     world.generate_healthy_vasculature(config.vessel_number,
@@ -122,7 +129,10 @@ update_vessels = amber.UpdateVasculature(config, 'update_vessels', dt,
                                         weight_pressure=config.weight_pressure,
                                         radius_pressure_sensitive=config.radius_pressure_sensitive)
 
-list_of_processes = [cellmigration, update_cell_state, update_molecules, cellaging, celldivision, celldeath, update_vessels]
+cellinteraction = amber.CellInteraction(config, 'cell_interaction', dt)
+
+
+list_of_processes = [cellmigration, update_cell_state, update_molecules, cellinteraction, cellaging, celldivision, celldeath, update_vessels]
 
 #run the simulation and time it
 

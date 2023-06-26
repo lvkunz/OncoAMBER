@@ -56,6 +56,8 @@ radius_pressure_sensitive: True         #if True, radius of vessels is pressure 
 o2_to_vitality_factor: 1.0              #factor for the conversion of capillaries to vitality
 vessel_step_size: 0.05 #mm              #step size for vasculature growth
 growth_step_stop_threshold: 0.03 #mm    #threshold for step size for vasculature growth, under which growth stops
+vessel_time_to_maturity: 24 #hours      #time for a vessel to mature
+maturity_new_vessels: 1.0
 new_vessels_per_hour: 0.00               #number of new vessels per hour*mm3
 
 # Graphics parameters

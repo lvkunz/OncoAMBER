@@ -36,7 +36,7 @@ probability_necrosis_removal: 0.005     #probability of necrotic cells to be rem
 viscosity: 1.0                          #factor for diffusion of cells from one voxel to the next (not really a viscosity, it's more a diffusion coeff)
 pressure_coefficient_central_migration: 0.8 #coefficient accounting for the number of cells moving from one voxel towards the center in n_cells/mm*hours
 VEGF_production_per_cell: 0.005         #VEGF production per cell per hour?
-o2_threshold_for_VEGF_production: 0.8   #threshold in vitality for cells to start producing VEGF
+VEGF_production_threshold: 0.8   #threshold in vitality for cells to start producing VEGF
 vegf_map_step_gradient: 3.0 #mm         #vegf map step size, should be the order of the tumor size
 lower_pressure_threshold_step: 0.2      #reference value at which step size for vasculature remains the same, above, the step size decreases
 higher_pressure_threshold_step: 0.75     #value for which the stepsize for vasculature growth is 0
@@ -56,6 +56,8 @@ radius_pressure_sensitive: True         #if True, radius of vessels is pressure 
 o2_to_vitality_factor: 1.0              #factor for the conversion of capillaries to vitality
 vessel_step_size: 0.05 #mm              #step size for vasculature growth
 growth_step_stop_threshold: 0.03 #mm    #threshold for step size for vasculature growth, under which growth stops
+vessel_time_to_maturity: 24 #hours      #time for a vessel to mature
+maturity_new_vessels: 1.0               #maturity of new vessels
 new_vessels_per_hour: 0.0002            #number of new vessels per hour*mm3
 
 # Graphics parameters

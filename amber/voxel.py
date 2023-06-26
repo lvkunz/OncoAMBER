@@ -126,7 +126,7 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                 return ax, fig
 
         def compute_cell_interaction_matrix(self, dt):
-                cell_interaction_matrix = sparse.lil_matrix((len(self.list_of_cells), len(self.list_of_cells)), dtype=np.float16)
+                cell_interaction_matrix = sparse.lil_matrix((len(self.list_of_cells), len(self.list_of_cells)), dtype=np.float32)
                 for i in range(len(self.list_of_cells)):
                         for j in range(len(self.list_of_cells)):
                                 if i != j:

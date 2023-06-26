@@ -19,14 +19,14 @@ fit = 'gompertz' #gompertz or exp
 show_necro = 1
 show_quiet_cycling = 1
 show_vessels = True
-local = True
+local = 0
 
 def plot_outliners(ax, x, y, y_min, y_max, color='black'):
     for i in range(len(x)):
         if y[i] < y_min[i] or y[i] > y_max[i]:
             ax.plot(x[i], y[i], '.', color=color)
 
-repo = '20230621_local'
+repo = '20230621_lk001_Linux/CONFIG_avascular_example.py_171946'
 
 csv_file = ''
 #all repositories in repo:
@@ -46,8 +46,8 @@ parameter = param_space.columns[1]
 param = np.array(param_space[parameter])
 number_of_iterations = len(param_space['Iteration'])
 
-iter = [1]
-# iter = [1,2,3,4]
+# iter = [0,1,2,3,4]
+iter = [5,6,7,8,9]
 
 if iter == []:
     iter = [i for i in range(number_of_iterations)]

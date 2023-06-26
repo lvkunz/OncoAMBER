@@ -7,7 +7,7 @@ import pandas as pd
 from PIL import Image
 import re
 
-tmin = 0  # Minimum time
+tmin = 1000  # Minimum time
 tmax = 5000 # Maximum time
 show_fits = 0  # Show the exponential fits
 fit = 'exp' #gompertz or exp
@@ -15,12 +15,12 @@ show_necro = 0
 show_quiet_cycling = 0
 show_vessels = True
 show_rates = True
-experimental = True
+experimental = 0
 rate_choice = 'volume' #volume or number
-local = 1
+local = 0
 param_to_plot = []
 
-repo = '20230621_lk001_Linux/CONFIG_match_example.py_101251'
+repo = '20230621_lk001_Linux/CONFIG_vasculature_irrad_example.py_102957'
 repo = repo + '/'
 
 csv_file = ''
@@ -43,6 +43,8 @@ number_of_iterations = len(param_space['Iteration'])
 print(number_of_iterations)
 
 paths = [f'{repo}/iter{i}/DataOutput/' for i in range(0, number_of_iterations)]
+# paths = [f'{repo}/iter{i}/DataOutput/' for i in [2,5,9]]
+# param = [param[i] for i in [2,5,9]]
 #remove paths 4
 print(paths)
 
@@ -174,9 +176,9 @@ for i in range(len(paths)):
     # Fit tumor size
     if show_fits:
         popt, pcov = curve_fit(func_volume, times_list[i], tumor_size_list[i], p0=p2, maxfev=100000)
-    # axes[1].plot(times_list[i], tumor_size_list[i], 'o', color = color, markersize = 5, alpha=0.5, label=parameter+': '+str(param[i]))
-    axes[1].plot(times_list[i], tumor_size_list[i], 'o', color = 'red', markersize = 5, alpha=0.5, label='Model Values')
-    # axes[1].plot(times_list[i], tumor_size_free_list[i], '+', color = color, markersize = 5, alpha=0.5)
+    axes[1].plot(times_list[i], tumor_size_list[i], 'o', color = color, markersize = 5, alpha=0.5, label=parameter+': '+str(param[i]))
+    # axes[1].plot(times_list[i], tumor_size_list[i], 'o', color = 'red', markersize = 5, alpha=0.5, label='Model Values')
+    axes[1].plot(times_list[i], tumor_size_free_list[i], '+', color = color, markersize = 5, alpha=0.5)
     if show_fits:
         axes[1].plot(times_list[i], func_volume(times_list[i], *popt), '-', color=color)#, label='fit '+parameter+': '+str(param[i]))
         doubling_time = np.log(2)/popt[1]
@@ -211,7 +213,7 @@ if experimental:
 
 
 axes[0].set_title('Number of Cells Evolution')
-axes[0].set_xlabel('Time', fontsize=18)
+axes[0].set_xlabel('Time [h]', fontsize=18)
 axes[0].set_ylabel('Number of Cells', fontsize=18)
 # axes[0].set_xlim(0, 250)
 # axes[0].set_ylim(0, 5e5)

@@ -2,7 +2,7 @@ import numpy as np
 import scipy.stats as stats
 from scipy.stats import gamma
 class Cell:
-    def __init__(self, radius, cycle_hours, cycle_std, intra_radiosensitivity, o2_to_vitality_factor, type = 'NormalCell'):
+    def __init__(self, radius, cycle_hours, cycle_std, intra_radiosensitivity, o2_to_vitality_factor, VEGF_threshold, VEGF_rate, type = 'NormalCell'):
         self.radius = radius
         self.necrotic = False
         self.usual_cycle_length = cycle_hours
@@ -14,6 +14,8 @@ class Cell:
         self.oxygen = np.random.uniform(0, 1)
         self.intra_radiosensitivity = intra_radiosensitivity
         self.o2_to_vitality_factor = o2_to_vitality_factor
+        self.VEGF_threshold = VEGF_threshold
+        self.VEGF_rate = VEGF_rate
         if type != 'NormalCell' and type != 'TumorCell':
             print(type + ' is not a valid cell type')
             raise ValueError('Cell type must be either NormalCell or TumorCell')
@@ -23,8 +25,14 @@ class Cell:
         self.pH = 7.4
     def duplicate(self):
         cell_class = type(self)  # Get the class of the current instance dynamically
-        cell = cell_class(self.radius, self.usual_cycle_length, self.cycle_length_std, self.intra_radiosensitivity,
-                          self.o2_to_vitality_factor)
+        cell = cell_class(self.radius,
+                          self.usual_cycle_length,
+                          self.cycle_length_std,
+                          self.intra_radiosensitivity,
+                          self.o2_to_vitality_factor,
+                          self.VEGF_threshold,
+                          self.VEGF_rate,
+                          )
         cell.time_spent_cycling = 0  # The new cell has not been cycling yet
         return cell
 
@@ -48,22 +56,41 @@ class Cell:
         longest_possible_time = self.doubling_time
         return np.random.uniform(0, longest_possible_time)
 
+    def VEGF_secretion(self):
+        if self.vitality() < self.VEGF_threshold:
+            return self.VEGF_rate * (1 - self.vitality())
+        else:
+            return 0
+
     def probability_of_interaction(self, cell, dt):
         return 0.0
 
     def interact(self, cell, dt):
         pass
 
+    def fiber_secretion(self, dt):
+        return 0.0
+
 class TumorCell(Cell):
-    def __init__(self, radius, cycle_hours, cycle_std, intra_radiosensitivity, o2_to_vitality_factor):
-        super().__init__(radius, cycle_hours, cycle_std, intra_radiosensitivity, o2_to_vitality_factor, type =  'TumorCell')
+    def __init__(self, radius, cycle_hours, cycle_std, intra_radiosensitivity, o2_to_vitality_factor, VEGF_threshold, VEGF_rate):
+        super().__init__(radius, cycle_hours, cycle_std, intra_radiosensitivity, o2_to_vitality_factor, VEGF_threshold, VEGF_rate,  type =  'TumorCell')
 
 class ImmuneCell(Cell):
     def __init__(self, radius, cycle_hours, cycle_std, intra_radiosensitivity, o2_to_vitality_factor):
-        super().__init__(radius, cycle_hours, cycle_std, intra_radiosensitivity, o2_to_vitality_factor, type = 'ImmuneCell')
-
+        super().__init__(radius, cycle_hours, cycle_std, intra_radiosensitivity, o2_to_vitality_factor, VEGF_threshold=0.0, VEGF_rate=0.0, type = 'ImmuneCell')
+    #immune cells don't cycle, so they don't need a doubling time or time spent cycling
     def probability_of_interaction(self, cell, dt):
         return 0.001 * dt
+
     def interact(self, cell, dt):
         if cell.type == 'TumorCell':
             cell.time_before_death = 0
+
+class Fibroblast(Cell):
+
+    def __init__(self, radius, cycle_hours, cycle_std, intra_radiosensitivity, o2_to_vitality_factor, fiber_secretion_rate):
+        super().__init__(radius, cycle_hours, cycle_std, intra_radiosensitivity, o2_to_vitality_factor, VEGF_threshold = 0.0, VEGF_rate= 0.0, type = 'Fibroblast')
+        self.fiber_secretion_rate = fiber_secretion_rate
+    def fiber_secretion(self, dt):
+        return self.fiber_secretion_rate * dt
+

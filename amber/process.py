@@ -406,7 +406,8 @@ class CellInteraction(Process):
     def __call__(self, voxel):
         matrix = voxel.compute_cell_interaction_matrix(self.dt)
         number_cells = len(voxel.list_of_cells)
-        idd = np.where(matrix > 0)
+        #find non zero elements of the sparse matrix
+        idd = matrix.nonzero()
         for i in range(len(idd[0])):
             cell1 = voxel.list_of_cells[idd[0][i]]
             cell2 = voxel.list_of_cells[idd[1][i]]
@@ -521,17 +522,26 @@ class UpdateCellOxygen(Process):
         for i in range(n_cells):
             voxel.list_of_cells[i].oxygen = o2_values[i]
 class UpdateVoxelMolecules(Process): #update the molecules in the voxel (VEGF), other not implemented yet
-    def __init__(self, config, name, dt, VEGF_production_per_cell, threshold_for_VEGF_production):
+    def __init__(self, config, name, dt):
         super().__init__(config, 'UpdateMolecules', dt)
-        self.VEGF_production_per_cell = VEGF_production_per_cell
-        self.threshold_for_VEGF_production = threshold_for_VEGF_production
-    def __call__(self, voxel: Voxel):
-        VEGF = 0
+
+    def update_VEGF(self, voxel: Voxel):
+        VEGF = 0.0
         for cell in voxel.list_of_cells:
-            if cell.vitality() < self.threshold_for_VEGF_production:
-                VEGF = VEGF + self.VEGF_production_per_cell*(1-cell.vitality())
+            VEGF += cell.VEGF_secretion
         VEGF = min(VEGF, 1.0)
         voxel.molecular_factors['VEGF'] = VEGF
+        return
+    def update_fiber_density(self, voxel: Voxel):
+        fiber_density = 0.0
+        for cell in voxel.list_of_cells:
+            fiber_density += cell.fiber_secretion
+        fiber_density = min(fiber_density, 1.0)
+        voxel.molecular_factors['fiber_density'] = fiber_density
+        return
+    def __call__(self, voxel: Voxel):
+        self.update_VEGF(voxel)
+        # self.update_fiber_density(voxel)
         return
 class UpdateVasculature(Process): #update the vasculature
     def __init__(self, config, name, dt, killing_radius_threshold, n_capillaries_per_VVD, capillary_length, splitting_rate, macro_steps, micro_steps, weight_direction, weight_vegf, weight_pressure, radius_pressure_sensitive):
