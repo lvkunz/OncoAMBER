@@ -113,9 +113,7 @@ cellmigration = amber.CellMigration(config, 'cell_migration', dt)
 update_cell_state = amber.UpdateCellOxygen(config, 'update_cell_state', dt,
                                         voxel_half_length=(config.half_length_world/config.voxel_per_side))
 
-update_molecules = amber.UpdateVoxelMolecules(config, 'update_molecules', dt,
-                                        VEGF_production_per_cell=config.VEGF_production_per_cell,
-                                        threshold_for_VEGF_production=config.o2_threshold_for_VEGF_production)
+update_molecules = amber.UpdateVoxelMolecules(config, 'update_molecules', dt)
 
 update_vessels = amber.UpdateVasculature(config, 'update_vessels', dt,
                                         killing_radius_threshold=config.radius_killing_threshold,
@@ -130,9 +128,9 @@ update_vessels = amber.UpdateVasculature(config, 'update_vessels', dt,
                                         radius_pressure_sensitive=config.radius_pressure_sensitive)
 
 cellinteraction = amber.CellInteraction(config, 'cell_interaction', dt)
+#not included in the simulation
 
-
-list_of_processes = [cellmigration, update_cell_state, update_molecules, cellinteraction, cellaging, celldivision, celldeath, update_vessels]
+list_of_processes = [cellmigration, update_cell_state, update_molecules, cellaging, celldivision, celldeath, update_vessels]
 
 #run the simulation and time it
 

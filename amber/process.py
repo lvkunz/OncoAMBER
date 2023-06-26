@@ -528,7 +528,7 @@ class UpdateVoxelMolecules(Process): #update the molecules in the voxel (VEGF), 
     def update_VEGF(self, voxel: Voxel):
         VEGF = 0.0
         for cell in voxel.list_of_cells:
-            VEGF += cell.VEGF_secretion
+            VEGF += cell.VEGF_secretion()
         VEGF = min(VEGF, 1.0)
         voxel.molecular_factors['VEGF'] = VEGF
         return
