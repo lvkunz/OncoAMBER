@@ -1,7 +1,7 @@
 half_length_world: 7.5 #mm
 voxel_per_side: 25
-dt: 8 #hours
-endtime: 3000 #hours
+dt: 4 #hours
+endtime: 4000 #hours
 seed: -1                           #seed for random number generator. -1 for random seed
 running_on_cluster: False               #don't touch, the bash script changes it automatically
 
@@ -18,7 +18,7 @@ save_world_every: 800                   #save the world every x hours
 
 #Radiation parameters
 topas_file: TOPAS_gamma6MeV
-first_irradiation_time: 16             #time at which radiation is applied
+first_irradiation_time: 800             #time at which radiation is applied
 number_fractions: 5                     #number of fractions of radiation
 time_between_fractions: 24              #time between fractions of radiation
 irradiation_intensity: 1               #duration of radiation
