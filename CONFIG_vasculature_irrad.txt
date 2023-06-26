@@ -7,9 +7,9 @@ running_on_cluster: False               #don't touch, the bash script changes it
 
 #Initialisation
 vessel_number: 0.3                     #initial number of vessels for healthy tissue per mm^2
-initial_number_tumor_cells: 100000         #initial total number of tumor cells
-tumor_initial_radius: 1.5 #mm
-doubling_time_tumor: 27  #hours
+initial_number_tumor_cells: 100         #initial total number of tumor cells
+tumor_initial_radius: 0.5 #mm
+doubling_time_tumor: 15  #hours
 doubling_time_sd: 5
 radius_tumor_cells: 0.033 #mm
 new_world: True                         #if True, create a new world, if False, load a world from a file
