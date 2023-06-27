@@ -40,6 +40,8 @@ mkdir -p $OUTPUT_DIR
 cp $INFILE $OUTPUT_DIR
 cp ${CONFIG_NAME}.txt $OUTPUT_DIR
 
+
+
 param_names=()
 
 # Loop until the user enters "none"
