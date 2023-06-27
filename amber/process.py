@@ -51,31 +51,32 @@ class Simulator: #this class is used to run the whole simulation
     def show_cell_and_tumor_volume(self, number_tumor_cells, number_necrotic_cells, number_quiescent_cells, number_cycling_cells, tumor_size, tumor_size_free, number_vessels, times):
         # plot number of cells evolution
         fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(8, 12))
-
+        #change font size
+        plt.rcParams.update({'font.size': 14})
         # Plot number of cells evolution
         ax1.plot(times, number_tumor_cells, 'blue', label='All cells')
         ax1.plot(times, number_cycling_cells, 'red', label='Cycling cells')
         ax1.plot(times, number_quiescent_cells, 'green', label='Quiescent cells')
         ax1.plot(times, number_necrotic_cells, 'black', label='Necrotic cells')
         ax1.set_title('Number of cells evolution')
-        ax1.set_xlabel('Time')
-        ax1.set_ylabel('Number of cells')
+        ax1.set_xlabel('Time [h]', fontsize=14)
+        ax1.set_ylabel('Number of cells', fontsize=14)
         ax1.grid(True)
-        ax1.legend()
+        ax1.legend(fontsize=14)
 
         # Plot tumor size evolution
         ax2.plot(times, tumor_size, 'red')
         ax2.plot(times, tumor_size_free, 'blue')
-        ax2.set_title('Tumor volume evolution')
-        ax2.set_xlabel('Time')
-        ax2.set_ylabel('Tumor volume [mm^3]')
+        ax2.set_title('Tumor volume evolution', fontsize=14)
+        ax2.set_xlabel('Time [h]', fontsize=14)
+        ax2.set_ylabel('Tumor volume [mm^3]', fontsize=14)
         ax2.grid(True)
 
         # Plot number of vessels evolution
         ax3.plot(times, number_vessels, 'black')
-        ax3.set_title('Number of vessels evolution')
-        ax3.set_xlabel('Time')
-        ax3.set_ylabel('Number of vessels [mm^3]')
+        ax3.set_title('Number of vessels evolution', fontsize=14)
+        ax3.set_xlabel('Time [h]', fontsize=14)
+        ax3.set_ylabel('Number of vessels', fontsize=14)
         ax3.grid(True)
 
         # Adjust the spacing between subplots
@@ -148,16 +149,17 @@ class Simulator: #this class is used to run the whole simulation
                 plt.show()
 
         if self.config.show_slices:
+            font = 22
             print('Showing slices')
-            fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(25, 20))
-            fig.suptitle('Visualization at time t = ' + str(t) + ' hours', fontsize=16)
+            fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(14, 12))
+            fig.suptitle('t = ' + str(t) + 'h', fontsize=16)
 
             axes[0, 0].set_xlim(-size, size)
             axes[0, 0].set_ylim(-size, size)
-            world.show_tumor_slice(axes[0, 0], fig, 'number_of_tumor_cells', levels= np.linspace(1, 1001, 11), extend = 'neither')
+            world.show_tumor_slice(axes[0, 0], fig, 'number_of_tumor_cells', levels= np.linspace(1, 1001, 11), cmap='viridis', extend = 'neither')
             axes[0,0].grid(True)
             axes[0,0].set_facecolor('whitesmoke')
-            axes[0, 0].set_title('Cells in voxels')
+            axes[0, 0].set_title('Number of Cells', fontsize=font)
 
             norm = TwoSlopeNorm(vmin=0, vcenter=5, vmax=100)
 
@@ -166,21 +168,21 @@ class Simulator: #this class is used to run the whole simulation
             world.show_tumor_slice(axes[0, 1], fig, 'n_capillaries', cmap = 'RdBu', norm = norm, levels= np.linspace(0, 110, 16))
             axes[0, 1].grid(True)
             axes[0, 1].set_facecolor('whitesmoke')
-            axes[0, 1].set_title('Capillaries in voxels')
+            axes[0, 1].set_title('Number of Capillaries', fontsize=font)
 
             axes[1, 0].set_xlim(-size, size)
             axes[1, 0].set_ylim(-size, size)
             world.show_tumor_slice(axes[1, 0], fig, 'molecular_factors', factor='VEGF', levels= np.linspace(0.001, 1.0, 11), cmap='Oranges')
             axes[1, 0].grid(True)
             axes[1, 0].set_facecolor('whitesmoke')
-            axes[1, 0].set_title('VEGF in voxels')
+            axes[1, 0].set_title('VEGF concentration', fontsize=font)
 
             axes[1, 1].set_xlim(-size, size)
             axes[1, 1].set_ylim(-size, size)
-            world.show_tumor_slice(axes[1, 1], fig, 'number_of_necrotic_cells', levels= np.linspace(1, 1001, 11), extend = 'neither')
+            world.show_tumor_slice(axes[1, 1], fig, 'number_of_necrotic_cells', levels= np.linspace(1, 1001, 11), cmap='viridis', extend = 'neither')
             axes[1, 1].grid(True)
             axes[1, 1].set_facecolor('whitesmoke')
-            axes[1, 1].set_title('Necrosis in voxels')
+            axes[1, 1].set_title('Number of Necrotic Cells', fontsize=font)
 
             plt.tight_layout()
             plt.savefig('Plots/CurrentPlotting/t' + str(t) + '_AllPlots.png', dpi=100)

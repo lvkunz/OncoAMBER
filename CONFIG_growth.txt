@@ -1,28 +1,28 @@
 half_length_world: 7.5 #mm
 voxel_per_side: 25
-dt: 8 #hours
-endtime: 400 #hours
+dt: 5 #hours
+endtime: 4000 #hours
 seed: -1                           #seed for random number generator. -1 for random seed
-running_on_cluster: True               #don't touch, the bash script changes it automatically
+running_on_cluster: True
 
 #Initialisation
 vessel_number: 0.3                     #initial number of vessels for healthy tissue per mm^2
-initial_number_tumor_cells: 1000         #initial total number of tumor cells
+initial_number_tumor_cells: 100         #initial total number of tumor cells
 tumor_initial_radius: 0.5 #mm
-doubling_time_tumor: 15  #hours
+doubling_time_tumor: 20  #hours
 doubling_time_sd: 5
 radius_tumor_cells: 0.033 #mm
-new_world: False                         #if True, create a new world, if False, load a world from a file
-world_file: perfect             #name of the world file to create or load
-save_world_every: 100000                   #save the world every x hours
+new_world: True                         #if True, create a new world, if False, load a world from a file
+world_file: growth             #name of the world file to create or load
+save_world_every: 800                   #save the world every x hours
 
 #Radiation parameters
 topas_file: TOPAS_gamma6MeV
-first_irradiation_time: 100             #time at which radiation is applied
-number_fractions: 5                     #number of fractions of radiation
+first_irradiation_time: 800             #time at which radiation is applied
+number_fractions: 0                     #number of fractions of radiation
 time_between_fractions: 24              #time between fractions of radiation
 irradiation_intensity: 1               #duration of radiation
-intra_radiosensitivity: 1.0             #death rate of cells due to 1Gy of radiation
+intra_radiosensitivity: 0.1             #death rate of cells due to 1Gy of radiation
 vessel_radiosensitivity: 0.001          #death rate of vessels due to 1Gy of radiation
 
 # Parameters for the simulation
