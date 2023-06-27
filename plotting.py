@@ -7,20 +7,20 @@ import pandas as pd
 from PIL import Image
 import re
 
-tmin = 1000  # Minimum time
-tmax = 5000 # Maximum time
+tmin = 800  # Minimum time
+tmax = 1400 # Maximum time
 show_fits = 0  # Show the exponential fits
 fit = 'exp' #gompertz or exp
 show_necro = 0
 show_quiet_cycling = 0
 show_vessels = True
-show_rates = True
+show_rates = False
 experimental = 0
 rate_choice = 'volume' #volume or number
 local = 0
 param_to_plot = []
 
-repo = '20230621_lk001_Linux/CONFIG_vasculature_irrad_example.py_102957'
+repo = '20230626_lk001_Linux/CONFIG_vasculature_irrad_example.py_132853'
 repo = repo + '/'
 
 csv_file = ''

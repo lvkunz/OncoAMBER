@@ -625,11 +625,17 @@ class Irradiation(Process): #irradiation
     def __call__(self, world: World):
         for voxel in world.voxel_list:
             probability = self.doses[voxel.voxel_number]*self.irradiation_intensity
+            if len(voxel.list_of_cells) > 0:
+                print('Probability: ', probability)
             for cell in voxel.list_of_cells:
                 cell_probability = probability * cell.radiosensitivity()
+                print('Cell radiosensitivity: ', cell.radiosensitivity())
+                print('Cell oxygen: ', cell.oxygen)
+                print('Cell probability: ', cell_probability)
                 if random.random() < cell_probability:
                     if cell.time_before_death is None:
                         cell.time_before_death = random.lognormvariate(1, 1)
+                        print('Cell time before death: ', cell.time_before_death)
 
             for n_cell in voxel.list_of_necrotic_cells:
                 cell_probability_n = probability * n_cell.radiosensitivity()

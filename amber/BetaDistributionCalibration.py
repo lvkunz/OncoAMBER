@@ -4,7 +4,7 @@ from scipy.stats import beta
 import pandas as pd
 import seaborn as sns
 
-class Vessel:
+class Vessel_:
     def __init__(self, origin, radius, length):
         self.origin = (origin[0], origin[1], 0)
         self.end = (origin[0], origin[1], length)
@@ -75,7 +75,7 @@ def run_calibration(side = 6, a = -7, b = 1, max_n = 100):
 
                 vessels = []
                 for i in range(len(points_x)):
-                    vessels.append(Vessel([points_x[i], points_y[i]], radius, side))
+                    vessels.append(Vessel_([points_x[i], points_y[i]], radius, side))
 
                 points = []
                 for i in range(50000):

@@ -23,7 +23,7 @@ number_fractions: 5                     #number of fractions of radiation
 time_between_fractions: 24              #time between fractions of radiation
 irradiation_intensity: 1               #duration of radiation
 intra_radiosensitivity: 0.1             #death rate of cells due to 1Gy of radiation
-vessel_radiosensitivity: 0.0          #death rate of vessels due to 1Gy of radiation
+vessel_radiosensitivity: 0.001          #death rate of vessels due to 1Gy of radiation
 
 # Parameters for the simulation
 max_occupancy: 0.68                     #max pressure at which cells can't enter a voxel through migration or other means

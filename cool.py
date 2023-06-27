@@ -36,11 +36,11 @@ show_necro = True
 show_quiet_cycling = True
 show_vessels = True
 local = False
-generate_images = False
+generate_images = True
 generate_gif = True
-repo = '20230621_local/iter0/'
+repo = '20230626_lk001_Linux/CONFIG_vasculature_irrad_example.py_132740/iter8/'
 
-image_step = 10
+image_step = 8
 
 
 path = f'{repo}/DataOutput/'

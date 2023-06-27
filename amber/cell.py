@@ -44,7 +44,7 @@ class Cell:
 
     def radiosensitivity(self):
         coeff_pH = 7.4 / self.pH
-        value = self.intra_radiosensitivity * self.oxygen * coeff_pH
+        value = self.intra_radiosensitivity * (0.5 + 0.5*self.oxygen) * coeff_pH
         # if self.necrotic:
         #     value = self.intra_radiosensitivity * 0.1
         return value

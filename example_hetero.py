@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(0, '/PHShome/lk001/.conda/envs/amberenv3/lib/python3.9/site-packages') #cluster
+sys.path.insert(0, '/PHShome/lk001/.conda/envs/amberenv/lib/python3.9/site-packages') #cluster
 import amber
 import numpy as np
 import random
@@ -49,10 +49,20 @@ if config.new_world:
 
     #add cells to the voxels (tumor cells)
     points = amber.Sphere(config.tumor_initial_radius, [0, 0, 0]).generate_random_points(config.initial_number_tumor_cells)
+    factor = [1, 1.5, 0.5]
     for i, point in enumerate(points):
+        doubling = factor[random.randint(0, len(factor) - 1)] * config.doubling_time_tumor
+        radio_sensitivity = factor[random.randint(0, len(factor) - 1)] * config.intra_radiosensitivity
         if i % 10000 == 0: print('Adding tumor cells ', i, ' out of ', config.initial_number_tumor_cells)
         voxel = world.find_voxel(point)
-        voxel.add_cell(amber.TumorCell(config.radius_tumor_cells, cycle_hours=config.doubling_time_tumor, cycle_std=config.doubling_time_sd, intra_radiosensitivity=config.intra_radiosensitivity, o2_to_vitality_factor=config.o2_to_vitality_factor, type='TumorCell'), config.max_occupancy)
+        voxel.add_cell(amber.TumorCell(config.radius_tumor_cells,
+                                       cycle_hours=doubling,
+                                       cycle_std=config.doubling_time_sd,
+                                       intra_radiosensitivity=radio_sensitivity,
+                                       o2_to_vitality_factor=config.o2_to_vitality_factor,
+                                       VEGF_threshold = config.VEGF_production_threshold,
+                                       VEGF_rate = config.VEGF_production_per_cell
+                                       ), config.max_occupancy)
 
     #generate vasculature and print related information
     world.generate_healthy_vasculature(config.vessel_number,
@@ -73,8 +83,11 @@ if config.new_world:
 
 else:
     world = amber.load(str(config.world_file)+'.pkl')
+    seed = world.config.seed #use the seed of the world to make sure that the same world is used
+    config.seed = seed
+    np.random.seed(seed)
+    random.seed(seed)
     world.config = config
-
 
 if config.show_3D_mesh:
     amber.show_tumor_3D_solid(world, 0)
@@ -103,9 +116,7 @@ cellmigration = amber.CellMigration(config, 'cell_migration', dt)
 update_cell_state = amber.UpdateCellOxygen(config, 'update_cell_state', dt,
                                         voxel_half_length=(config.half_length_world/config.voxel_per_side))
 
-update_molecules = amber.UpdateVoxelMolecules(config, 'update_molecules', dt,
-                                        VEGF_production_per_cell=config.VEGF_production_per_cell,
-                                        threshold_for_VEGF_production=config.o2_threshold_for_VEGF_production)
+update_molecules = amber.UpdateVoxelMolecules(config, 'update_molecules', dt)
 
 update_vessels = amber.UpdateVasculature(config, 'update_vessels', dt,
                                         killing_radius_threshold=config.radius_killing_threshold,
@@ -119,7 +130,10 @@ update_vessels = amber.UpdateVasculature(config, 'update_vessels', dt,
                                         weight_pressure=config.weight_pressure,
                                         radius_pressure_sensitive=config.radius_pressure_sensitive)
 
-list_of_processes = [update_cell_state, celldivision, celldeath, update_molecules, cellaging, cellmigration, update_vessels]
+cellinteraction = amber.CellInteraction(config, 'cell_interaction', dt)
+#not included in the simulation
+
+list_of_processes = [cellmigration, update_cell_state, update_molecules, cellaging, celldivision, celldeath, update_vessels]
 
 #run the simulation and time it
 
