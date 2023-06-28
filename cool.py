@@ -38,9 +38,9 @@ show_vessels = True
 local = False
 generate_images = True
 generate_gif = True
-repo = '20230626_lk001_Linux/CONFIG_vasculature_irrad_example.py_132740/iter8/'
+repo = '20230627_lk001_Linux/CONFIG_growth_example.py_160329/iter0/'
 
-image_step = 8
+image_step = 5
 
 
 path = f'{repo}/DataOutput/'

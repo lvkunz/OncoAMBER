@@ -32,10 +32,10 @@ def create_gif(image_dir, output_path, image_suffix, image_step=1):
 
 
 local = False
-repo = '20230626_lk001_Linux/CONFIG_vasculature_irrad_example.py_132740'
+repo = '20230627_lk001_Linux/CONFIG_perfect_example.py_161407'
 
-iter = [8]
-image_step = 12
+iter = [0,3,6,9]
+image_step = 8
 
 
 csv_file = ''

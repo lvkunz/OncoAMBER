@@ -26,7 +26,7 @@ def plot_outliners(ax, x, y, y_min, y_max, color='black'):
         if y[i] < y_min[i] or y[i] > y_max[i]:
             ax.plot(x[i], y[i], '.', color=color)
 
-repo = '20230621_lk001_Linux/CONFIG_avascular_example.py_171946'
+repo = '20230627_lk001_Linux/CONFIG_growth_example.py_160329'
 
 csv_file = ''
 #all repositories in repo:
@@ -302,7 +302,7 @@ param0_ = np.array([1.0, 1.0])
 # param0 = np.array(param0) * (1 + 1.0 * np.random.random(len(param0)) - 0.1)
 weights = np.zeros(len(number_cells_average))
 for i in range(len(number_cells_average)):
-    if number_cells_average[i] < 5e5:
+    if number_cells_average[i] < 2e5:
         weights[i] = 1
     else:
         weights[i] = 5
