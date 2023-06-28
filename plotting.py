@@ -8,7 +8,7 @@ from PIL import Image
 import re
 
 tmin = 0  # Minimum time
-tmax = 5000 # Maximum time
+tmax = 5001 # Maximum time
 show_fits = 0  # Show the exponential fits
 fit = 'exp' #gompertz or exp
 show_necro = 0
@@ -18,9 +18,9 @@ show_rates = False
 experimental = 0
 rate_choice = 'volume' #volume or number
 local = 0
-param_to_plot = []
+param_to_plot = [0,10,20]
 
-repo = '20230627_lk001_Linux/CONFIG_perfect_example.py_161640'
+repo = '20230626_lk001_Linux/CONFIG_vasculature_irrad_example.py_132853'
 repo = repo + '/'
 
 csv_file = ''
