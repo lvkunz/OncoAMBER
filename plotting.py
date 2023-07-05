@@ -12,15 +12,15 @@ tmax = 5001 # Maximum time
 show_fits = 0  # Show the exponential fits
 fit = 'exp' #gompertz or exp
 show_necro = 0
-show_quiet_cycling = 1
+show_quiet_cycling = 0
 show_vessels = True
 show_rates = False
 experimental = 0
 rate_choice = 'volume' #volume or number
 local = 0
-param_to_plot = [0,10,20]
+param_to_plot = []
 
-repo = '20230626_lk001_Linux/CONFIG_vasculature_irrad_example.py_132853'
+repo = '20230628_lk001_Linux/CONFIG_vasculature_irrad_10frac_example.py_170615'
 repo = repo + '/'
 
 csv_file = ''
@@ -42,11 +42,10 @@ param = np.array(param_space[parameter])
 number_of_iterations = len(param_space['Iteration'])
 print(number_of_iterations)
 
-paths = [f'{repo}/iter{i}/DataOutput/' for i in range(0, number_of_iterations)]
-# paths = [f'{repo}/iter{i}/DataOutput/' for i in [2,5,9]]
-# param = [param[i] for i in [2,5,9]]
+# paths = [f'{repo}iter{i}/DataOutput/' for i in range(0, number_of_iterations)]
+# paths = [f'{repo}iter{i}/DataOutput/' for i in [2]]
+# param = [param[i] for i in [2]]
 #remove paths 4
-print(paths)
 
 
 
@@ -67,8 +66,8 @@ rates_list = []
 times_list = []
 
 for path in paths:
-    number_cells = np.load(f'{path}number_tumor_cells.npy', allow_pickle=True)
-    necrotic_cells = np.load(f'{path}number_necrotic_cells.npy', allow_pickle=True)
+    number_cells = np.load(f'{path}number_tumor_cells.npy',allow_pickle=True)
+    necrotic_cells = np.load(f'{path}number_necrotic_cells.npy',allow_pickle=True)
     cycling_cells = np.load(f'{path}number_cycling_cells.npy', allow_pickle=True)
     quiescent_cells = np.load(f'{path}number_quiescent_cells.npy', allow_pickle=True)
     tumor_size = np.load(f'{path}tumor_size.npy', allow_pickle=True)
@@ -177,7 +176,7 @@ for i in range(len(paths)):
     if show_fits:
         popt, pcov = curve_fit(func_volume, times_list[i], tumor_size_list[i], p0=p2, maxfev=100000)
     axes[1].plot(times_list[i], tumor_size_list[i], 'o', color = color, markersize = 5, alpha=0.5, label=parameter+': '+str(param[i]))
-    # axes[1].plot(times_list[i], tumor_size_list[i], 'o', color = 'red', markersize = 5, alpha=0.5, label='Model Values')
+    # axes[1].plot(times_list[i], tumor_size_list[i], 'o', color = 'black', markersize = 5, alpha=1, label='Model Values')
     axes[1].plot(times_list[i], tumor_size_free_list[i], '+', color = color, markersize = 5, alpha=0.5)
     if show_fits:
         axes[1].plot(times_list[i], func_volume(times_list[i], *popt), '-', color=color)#, label='fit '+parameter+': '+str(param[i]))
@@ -187,13 +186,12 @@ for i in range(len(paths)):
 data = pd.read_csv('data_exp.csv', sep=',', header=0)
 data2 = pd.read_csv('LLC_sc_CCSB.csv', sep=',', header=0)
 
-data2['Time'] = data2['Time'] * 24 + 125
+data2['Time'] = data2['Time'] * 24 + 72
 
-data['time'] = data[data['time'] <= tmax]['time'] - 25
+data['time'] = data[data['time'] <= tmax]['time'] - 95
 data['ctrl'] = data[data['time'] <= tmax]['ctrl']
 data['RT'] = data[data['time'] <= tmax]['RT']
 
-plt.rcParams.update({'font.size': 16})
 # Scatter plot of 'time' vs 'ctrl'
 if experimental:
     time = []
@@ -207,14 +205,14 @@ if experimental:
         volume.append(np.mean(vol))
         sd.append(np.std(vol))
 
-    axes[1].plot(data['time'], data['ctrl'], 'x', color='black', label='Experimental Data', markersize=10)
+    axes[1].plot(data['time'], data['ctrl'], 'x', color='red', label='Experimental Data 1 (Zou 2020)', markersize=10)
     # axes[1].plot(data['time'], data['RT'], 'x', color='blue', markersize = 10, linewidth=2)
-    # axes[1].errorbar(time, volume, yerr=sd, fmt='x', color='black', label='Experimental Data', markersize=10)
+    axes[1].errorbar(time, volume, yerr=sd, fmt='+', color='blue', label='Experimental Data 2 (Benzekry 2014)', markersize=10, linewidth=1)
 
 
 axes[0].set_title('Number of Cells Evolution')
-axes[0].set_xlabel('Time [h]', fontsize=18)
-axes[0].set_ylabel('Number of Cells', fontsize=18)
+axes[0].set_xlabel('Time [h]', fontsize=16)
+axes[0].set_ylabel('Number of Cells', fontsize=16)
 # axes[0].set_xlim(0, 250)
 # axes[0].set_ylim(0, 5e5)
 axes[0].grid(True)
@@ -224,14 +222,14 @@ axes[1].set_ylabel('Tumor Volume [mm^3]', fontsize=16)
 # axes[1].set_xlim(0, 250)
 # axes[1].set_ylim(0, 50)
 #change the x axis font size
-for tick in axes[1].xaxis.get_major_ticks():
-    tick.label.set_fontsize(14)
-#change the y axis font size
-for tick in axes[1].yaxis.get_major_ticks():
-    tick.label.set_fontsize(14)
+# for tick in axes[1].xaxis.get_major_ticks():
+#     tick.label.set_fontsize(14)
+# #change the y axis font size
+# for tick in axes[1].yaxis.get_major_ticks():
+#     tick.label.set_fontsize(14)
 
 axes[1].grid(True)
-axes[1].legend()
+axes[1].legend(fontsize = 14)
 
 #add a tiny text box in the corner with the repo name
 plt.figtext(0.01, 0.01, repo, wrap=True, horizontalalignment='left', fontsize=6)

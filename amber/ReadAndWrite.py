@@ -44,8 +44,8 @@ def show_tumor_3D_solid(world, t):
     grid.point_data['tumor'] = cell_counts.flatten(order="F")  # Flatten the array!
     grid2.point_data['necro'] = necro_counts.flatten(order="F")  # Flatten the array!
 
-    contour_values = [1,950]
-    opacities = [0.2, 0.7]
+    contour_values = [1,200]
+    opacities = [0.2, 0.5]
     max = np.max(cell_counts)
     #remove values below max from contour_values
     contour_values = [x for x in contour_values if x < max]
@@ -56,15 +56,15 @@ def show_tumor_3D_solid(world, t):
     plotter.subplot(0, 0)
     plotter.add_mesh(grid.outline_corners(), color='k')
 
-    necro_lim = min(max_necro, 950)
+    necro_lim = min(max_necro, 500)
     if necro_lim > 0:
         contour_necro = grid2.contour([necro_lim])
-        plotter.add_mesh(contour_necro, cmap='Reds', opacity=0.9, scalars='necro', clim=[0, 1000])
+        plotter.add_mesh(contour_necro, cmap='Reds', opacity=0.9, scalars='necro', clim=[0, 500])
 
 
     for i, value in enumerate(contour_values):
         contour = grid.contour([value])
-        plotter.add_mesh(contour, cmap='Greens', opacity= opacities[i], scalars='tumor')
+        plotter.add_mesh(contour, cmap='Greens', opacity= opacities[i], scalars='tumor', clim=[0, 500])
 
     # for vessel in world.vasculature.list_of_vessels:
     #     if vessel.visible:
@@ -79,8 +79,8 @@ def show_tumor_3D_solid(world, t):
     plotter.add_mesh(grid.contour([1]), cmap='Greens', opacity= opacities[0], scalars='tumor')
     #cmap limits
 
-    plotter.add_mesh_slice(grid, normal='x', cmap='Greens', scalars='tumor', clim=[0, 1000])
-    plotter.add_mesh_slice(grid2, normal='y', cmap='Reds', scalars='necro', clim=[0, 1000])
+    plotter.add_mesh_slice(grid, normal='x', cmap='Greens', scalars='tumor', clim=[0, 500])
+    plotter.add_mesh_slice(grid2, normal='y', cmap='Reds', scalars='necro', clim=[0, 500])
 
 
 

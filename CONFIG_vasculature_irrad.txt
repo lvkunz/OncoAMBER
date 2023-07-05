@@ -22,7 +22,7 @@ first_irradiation_time: 800             #time at which radiation is applied
 number_fractions: 5                     #number of fractions of radiation
 time_between_fractions: 24              #time between fractions of radiation
 irradiation_intensity: 1               #duration of radiation
-intra_radiosensitivity: 0.1             #death rate of cells due to 1Gy of radiation
+intra_radiosensitivity: 1.0             #death rate of cells due to 1Gy of radiation
 vessel_radiosensitivity: 0.001          #death rate of vessels due to 1Gy of radiation
 
 # Parameters for the simulation

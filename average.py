@@ -13,7 +13,7 @@ from scipy.integrate import odeint
 
 
 tmin = 0  # Minimum time
-tmax = 5000 # Maximum time
+tmax = 5100 # Maximum time
 show_fits = 0  # Show the exponential fits
 fit = 'gompertz' #gompertz or exp
 show_necro = 1
@@ -26,7 +26,7 @@ def plot_outliners(ax, x, y, y_min, y_max, color='black'):
         if y[i] < y_min[i] or y[i] > y_max[i]:
             ax.plot(x[i], y[i], '.', color=color)
 
-repo = '20230627_lk001_Linux/CONFIG_growth_example.py_160329'
+repo = '20230628_lk001_Linux/CONFIG_vasculature_irrad_10frac_example.py_170615'
 
 csv_file = ''
 #all repositories in repo:
@@ -47,7 +47,7 @@ param = np.array(param_space[parameter])
 number_of_iterations = len(param_space['Iteration'])
 
 # iter = [0,1,2,3,4]
-iter = [5,6,7,8,9]
+iter = [0]
 
 if iter == []:
     iter = [i for i in range(number_of_iterations)]
@@ -235,21 +235,21 @@ if show_fits:
     doubling_time = np.log(2)/popt[1]
     doubling_times_tumor_size.append(doubling_time)
 
-axes[0].set_title('Number of Cells Evolution')
-axes[0].set_xlabel('Time')
-axes[0].set_ylabel('Number of Cells')
+axes[0].set_title('Number of Cells Evolution', fontsize=14)
+axes[0].set_xlabel('Time [h]', fontsize=16)
+axes[0].set_ylabel('Number of Cells', fontsize=16)
 # axes[0].set_xlim(0, 250)
 axes[0].set_ylim(0, None)
 axes[0].grid(True)
-axes[0].legend()
+axes[0].legend(fontsize=14)
 
-axes[1].set_title('Tumor Volume Evolution')
-axes[1].set_xlabel('Time')
-axes[1].set_ylabel('Tumor Volume [mm^3]')
+axes[1].set_title('Tumor Volume Evolution', fontsize=14)
+axes[1].set_xlabel('Time [h]', fontsize=16)
+axes[1].set_ylabel('Tumor Volume [mm^3]', fontsize=16)
 # axes[1].set_xlim(0, 250)
 axes[1].set_ylim(0, None)
 axes[1].grid(True)
-axes[1].legend()
+axes[1].legend(fontsize = 14)
 
 #add a tiny text box in the corner with the repo name
 plt.figtext(0.01, 0.01, repo, wrap=True, horizontalalignment='left', fontsize=6)
@@ -284,7 +284,15 @@ for t in times_average:
 def func_gompertz(x, a, b):
     x = np.array(x)
     return x * (b - a * np.log(x))
+
+def func_gompertz_(x,t, a, b):
+    x = np.array(x)
+    return x * (b - a * np.log(x))
 def func_logistic(x, a, b):
+    x = np.array(x)
+    return a * x - b * x * x
+
+def func_logistic_(x,t, a, b):
     x = np.array(x)
     return a * x - b * x * x
 
@@ -305,7 +313,7 @@ for i in range(len(number_cells_average)):
     if number_cells_average[i] < 2e5:
         weights[i] = 1
     else:
-        weights[i] = 5
+        weights[i] = 1
 
 popt_g, pcov_g = curve_fit(func_gompertz, number_cells_average, rates_average, p0=param0_, maxfev=100000, sigma=weights)
 popt_l, pcov_l = curve_fit(func_logistic, number_cells_average, rates_average, p0=param0_, maxfev=100000, sigma=weights)
@@ -326,18 +334,18 @@ for i in range(len(number_cells_average)):
         break
 fig, axes = plt.subplots(2, 2, figsize=(12, 12), dpi=dpi)
 # popt_r = np.array([1.0, 1.0])
-axes[0, 0].plot(number_cells_average, rates_average, 'o', markersize=3, color='orange')
+axes[0, 0].plot(number_cells_average, rates_average, 'o', markersize=3, color='orange', label='Model Values')
 axes[0,0 ].plot(number_cells_average, func_gompertz(number_cells_average, *popt_g), linestyle = 'dotted', color='black', label='Gompertz fit')
 axes[0, 0].plot(number_cells_average, func_logistic(number_cells_average, *popt_l), linestyle = 'dashed', color='black', label='Logistic fit')
 axes[0, 0].plot(number_cells_average, func_holling(number_cells_average, *popt_h), linestyle = 'dashdot', color='black', label='Holling fit')
-axes[0, 0].legend()
+axes[0, 0].legend(fontsize = 14)
 axes[1, 0].plot(times_average, rates_average, 'o', markersize=3, color='black')
 axes[0, 1].plot(number_vessels_average, rates_average, 'o', markersize=3, color='crimson')
 axes[1, 1].plot(cycling_cells_average, rates_average, 'o', markersize=3, color='green')
 
-axes[0, 0].set_title('Growth Rate vs Number of Cells')
-axes[0, 0].set_xlabel('Number of Cells')
-axes[0, 0].set_ylabel('Growth Rate')
+axes[0, 0].set_title('Growth Rate vs Number of Cells and fittings')
+axes[0, 0].set_xlabel('Number of Cells',fontsize=14)
+axes[0, 0].set_ylabel('Growth Rate',fontsize=14)
 axes[0, 0].set_ylim(0, None)
 axes[0, 0].grid(True)
 axes[1, 0].set_title('Growth Rate Evolution')
@@ -364,9 +372,15 @@ plt.show()
 
 
 # Define parameters
-a = popt_h[0]
-b = popt_h[1]
-k = popt_h[2]
+aH = popt_h[0]
+bH = popt_h[1]
+kH = popt_h[2]
+
+aG = popt_g[0]
+bG = popt_g[1]
+
+aL = popt_l[0]
+bL = popt_l[1]
 
 # Define time points
 t = times_average
@@ -374,16 +388,20 @@ t = times_average
 # Set initial condition
 x0 = number_cells_average[0]
 # Solve the differential equation
-x = odeint(func_holling_, x0, t, args=(a, b, k)).flatten()
+x = odeint(func_holling_, x0, t, args=(aH, bH, kH)).flatten()
+x2 = odeint(func_gompertz_, x0, t, args=(aG, bG)).flatten()
+x3 = odeint(func_logistic_, x0, t, args=(aL, bL)).flatten()
 
 fig, axes = plt.subplots(1, 1, figsize=(6, 6), dpi=dpi)
-axes.plot(times_average, number_cells_average, '-', label = 'Number of Cells', color='blue', alpha=0.8)
-axes.plot(t, x, '--', label = 'Holling fit', color='black', alpha=0.8)
-axes.fill_between(times_average, np.array(number_cells_average) - np.array(number_cells_sd), np.array(number_cells_average) + np.array(number_cells_sd), alpha=0.2, color='blue')
-axes.set_xlabel('Time')
-axes.set_ylabel('Number of Cells')
-axes.set_title('Number of Cells')
-axes.legend()
+axes.plot(times_average, number_cells_average, '-', label = 'Model values', color='green', alpha=0.8)
+axes.plot(t, x, linestyle = 'dashdot', label = 'Holling fit', color='black', alpha=1.0, linewidth=2)
+axes.plot(t, x2, linestyle = 'dotted', label = 'Gompertz fit', color='black', alpha=1.0, linewidth=2)
+axes.plot(t, x3, linestyle =  'dashed', label = 'Logistic fit', color='black', alpha=1.0, linewidth=2)
+axes.fill_between(times_average, np.array(number_cells_average) - np.array(number_cells_sd), np.array(number_cells_average) + np.array(number_cells_sd), alpha=0.2, color='green')
+axes.set_xlabel('Time [h]', fontsize=16)
+axes.set_ylabel('Number of Cells', fontsize=16)
+axes.set_title('Number of cells evolution and fittings', fontsize=16)
+axes.legend(fontsize = 14)
 axes.grid(True)
 plt.tight_layout()
 plt.savefig(repo + '/number_cells_fitted' + str(tmax) + '.png', dpi=dpi)

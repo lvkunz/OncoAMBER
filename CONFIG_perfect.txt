@@ -13,7 +13,7 @@ doubling_time_tumor: 15  #hours
 doubling_time_sd: 5
 radius_tumor_cells: 0.033 #mm
 new_world: False                         #if True, create a new world, if False, load a world from a file
-world_file: perfect             #name of the world file to create or load
+world_file: necrotic             #name of the world file to create or load
 save_world_every: 100000                   #save the world every x hours
 
 #Radiation parameters
@@ -73,5 +73,5 @@ show_cell_and_tumor_volume: True        #if True, show the volume of tumor cells
 verbose: False
 show_angiogenesis_metrics: True         #if True, show the metrics for angiogenesis
 true_vasculature: False
-show_3D_mesh: False                     #if True, show the 3D mesh of the tumor
+show_3D_mesh: True                     #if True, show the 3D mesh of the tumor
 show_center_of_mass: True               #if True, show the center of mass of the tumor

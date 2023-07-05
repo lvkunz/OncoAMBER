@@ -620,10 +620,14 @@ class Irradiation(Process): #irradiation
         world.update_dose(self.doses)
 
         # plot the simulation
-        fig, ax = plt.subplots()
-        world.show_tumor_slice(ax, fig, 'dose', cmap='Purples')
-        ax.title.set_text('Dose')
-        plt.show()
+        fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+        world.show_tumor_slice(ax, fig, 'dose', cmap='hot')
+        ax.title.set_text('Dose (arb. units)')
+        plt.savefig('dose.png', dpi=300)
+        if self.config.running_on_cluster:
+            plt.close()
+        else:
+            plt.show()
     def __call__(self, world: World):
         for voxel in world.voxel_list:
             probability = self.doses[voxel.voxel_number]*self.irradiation_intensity

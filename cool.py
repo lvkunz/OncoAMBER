@@ -31,14 +31,14 @@ def create_gif(image_dir, output_path, image_suffix, image_step=1):
         print("No images found to create the GIF.")
 
 tmin = 0  # Minimum time
-tmax = 3000 # Maximum time
+tmax = 5000 # Maximum time
 show_necro = True
 show_quiet_cycling = True
 show_vessels = True
 local = False
 generate_images = True
 generate_gif = True
-repo = '20230627_lk001_Linux/CONFIG_growth_example.py_160329/iter0/'
+repo = '20230627_lk001_Linux/CONFIG_growth_example.py_160329/iter0'
 
 image_step = 5
 
@@ -83,44 +83,44 @@ if generate_images:
 
         dpi = 100
         fig, axes = plt.subplots(2, 1, figsize=(8, 10), dpi=dpi)
-        axes[0].plot(times, number_cells, '.', markersize=1, alpha=0.8, label='Total number cells',color='blue')
+        axes[0].plot(times, number_cells, '.', markersize=1, alpha=0.8,color='blue')
         axes[0].plot(times_cut, number_cells_cut, '-', markersize=3, alpha=0.8, color='blue')
-        axes[0].scatter(times_cut[-1], number_cells_cut[-1], s=50, alpha=0.8, color='blue')
+        axes[0].scatter(times_cut[-1], number_cells_cut[-1], s=50, alpha=0.8, color='blue', label='Total number cells')
         if show_necro:
-            axes[0].plot(times, necrotic_cells, 's', markersize=1, alpha=0.8, color='black', label='Necrotic cells')
+            axes[0].plot(times, necrotic_cells, 's', markersize=1, alpha=0.8, color='black')
             axes[0].plot(times_cut, necrotic_cells_cut, '-', markersize=3, alpha=0.8, color='black')
-            axes[0].scatter(times_cut[-1], necrotic_cells_cut[-1], s=50, alpha=0.8, color='black')
+            axes[0].scatter(times_cut[-1], necrotic_cells_cut[-1], s=50, alpha=0.8, color='black', label='Necrotic cells')
         if show_quiet_cycling:
-            axes[0].plot(times, cycling_cells, '+', markersize=1, alpha=0.5, color='green', label='Cycling cells')
+            axes[0].plot(times, cycling_cells, '+', markersize=1, alpha=0.5, color='green')
             axes[0].plot(times_cut, cycling_cells_cut, '-', markersize=3, alpha=0.5, color='green')
-            axes[0].scatter(times_cut[-1], cycling_cells_cut[-1], s=50, alpha=0.5, color='green')
-            axes[0].plot(times, quiescent_cells, 'D', markersize=1, alpha=0.5, color='red', label='Quiescent cells')
+            axes[0].scatter(times_cut[-1], cycling_cells_cut[-1], s=50, alpha=0.5, color='green', label='Cycling cells')
+            axes[0].plot(times, quiescent_cells, 'D', markersize=1, alpha=0.5, color='red')
             axes[0].plot(times_cut, quiescent_cells_cut, '-', markersize=3, alpha=0.5, color='red')
-            axes[0].scatter(times_cut[-1], quiescent_cells_cut[-1], s=50, alpha=0.5, color='red')
+            axes[0].scatter(times_cut[-1], quiescent_cells_cut[-1], s=50, alpha=0.5, color='red', label='Quiescent cells')
 
-        axes[1].plot(times, tumor_size, 'o', color = 'blue', markersize = 1, alpha=0.5, label='Tumor Volume')
+        axes[1].plot(times, tumor_size, 'o', color = 'blue', markersize = 1, alpha=0.5)
         axes[1].plot(times_cut, tumor_size_cut, '-', color = 'blue', markersize = 3, alpha=0.5)
-        axes[1].scatter(times_cut[-1], tumor_size_cut[-1], s=50, alpha=0.5, color='blue')
+        axes[1].scatter(times_cut[-1], tumor_size_cut[-1], s=50, alpha=0.5, color='blue', label='Tumor Volume')
 
-        axes[1].plot(times, tumor_size_free, '+', color = 'red', markersize = 1, alpha=0.5)
-        axes[1].plot(times_cut, tumor_size_free_cut, '-', color = 'red', markersize = 3, alpha=0.5)
-        axes[1].scatter(times_cut[-1], tumor_size_free_cut[-1], s=50, alpha=0.5, color='red')
+        # axes[1].plot(times, tumor_size_free, '+', color = 'red', markersize = 1, alpha=0.5)
+        # axes[1].plot(times_cut, tumor_size_free_cut, '-', color = 'red', markersize = 3, alpha=0.5)
+        # axes[1].scatter(times_cut[-1], tumor_size_free_cut[-1], s=50, alpha=0.5, color='red')
 
-        axes[0].set_title('Number of Cells Evolution')
-        axes[0].set_xlabel('Time')
-        axes[0].set_ylabel('Number of Cells')
+        axes[0].set_title('Number of Cells Evolution', fontsize = 14)
+        axes[0].set_xlabel('Time [h]', fontsize = 16)
+        axes[0].set_ylabel('Number of Cells', fontsize = 16)
         # axes[0].set_xlim(0, 250)
         # axes[0].set_ylim(0, 2e5)
         axes[0].grid(True)
-        axes[0].legend()
+        axes[0].legend(fontsize = 14)
 
-        axes[1].set_title('Tumor Volume Evolution')
-        axes[1].set_xlabel('Time')
+        axes[1].set_title('Tumor Volume Evolution', fontsize = 14)
+        axes[1].set_xlabel('Time [h]', fontsize = 16)
         axes[1].set_ylabel('Tumor Volume [mm^3]')
         # axes[1].set_xlim(0, 250)
         # axes[1].set_ylim(0, 50)
         axes[1].grid(True)
-        axes[1].legend()
+        axes[1].legend(fontsize = 14)
 
         #add a tiny text box in the corner with the repo name
         plt.figtext(0.01, 0.01, repo, wrap=True, horizontalalignment='left', fontsize=6)
@@ -137,11 +137,11 @@ if generate_images:
             axes.plot(times, number_vessels, 'o', markersize=1, alpha=0.8, label='vessels')
             axes.plot(times_cut, number_vessels_cut, '-', markersize=3, alpha=0.8)
             axes.scatter(times_cut[-1], number_vessels_cut[-1], s=50, alpha=0.8)
-            axes.set_title('Number of Vessels Evolution')
-            axes.set_xlabel('Time')
-            axes.set_ylabel('Number of Vessels')
+            axes.set_title('Number of Vessels Evolution', fontsize = 14)
+            axes.set_xlabel('Time [h]', fontsize = 16)
+            axes.set_ylabel('Number of Vessels', fontsize = 16)
             axes.grid(True)
-            axes.legend()
+            axes.legend(fontsize = 14)
             plt.tight_layout()
             if not os.path.exists(repo + '/Plots/vessels_evolution'):
                 os.makedirs(repo + '/Plots/vessels_evolution')
@@ -157,8 +157,8 @@ if generate_gif:
     image_directory_evol = repo + '/Plots/evolution'
     image_directory_vessel_evol = repo + '/Plots/vessels_evolution'
 
-    create_gif(image_directory, output_path1, image_sufix1, image_step)
-    create_gif(image_directory, output_path2, image_sufix2, image_step)
+    # create_gif(image_directory, output_path1, image_sufix1, image_step)
+    # create_gif(image_directory, output_path2, image_sufix2, image_step)
     create_gif(image_directory_evol, repo + '/evolution.gif', '', image_step)
     create_gif(image_directory_vessel_evol, repo + '/vessels_evolution.gif', '', image_step)
 
