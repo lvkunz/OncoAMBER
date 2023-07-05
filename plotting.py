@@ -20,7 +20,7 @@ rate_choice = 'volume' #volume or number
 local = 0
 param_to_plot = []
 
-repo = '20230628_lk001_Linux/CONFIG_vasculature_irrad_10frac_example.py_170615'
+repo = '20230628_lk001_Linux/CONFIG_vasculature_irrad3_example.py_170540'
 repo = repo + '/'
 
 csv_file = ''
@@ -42,7 +42,7 @@ param = np.array(param_space[parameter])
 number_of_iterations = len(param_space['Iteration'])
 print(number_of_iterations)
 
-# paths = [f'{repo}iter{i}/DataOutput/' for i in range(0, number_of_iterations)]
+paths = [f'{repo}iter{i}/DataOutput/' for i in range(0, number_of_iterations)]
 # paths = [f'{repo}iter{i}/DataOutput/' for i in [2]]
 # param = [param[i] for i in [2]]
 #remove paths 4
