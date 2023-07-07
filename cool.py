@@ -36,19 +36,21 @@ show_necro = True
 show_quiet_cycling = True
 show_vessels = True
 local = False
-generate_images = True
+generate_images = False
 generate_gif = True
-repo = '20230627_lk001_Linux/CONFIG_growth_example.py_160329/iter0'
+repo = '20230705_lk001_Linux/CONFIG_vasculature_irrad_single_example.py_162736/iter3'
 
-image_step = 5
+image_step = 8
+irradiation = [796, 24, 1]
 
 
 path = f'{repo}/DataOutput/'
 
-number_cells = np.load(f'{path}number_tumor_cells.npy', allow_pickle=True)
+# number_cells = np.load(f'{path}number_tumor_cells.npy', allow_pickle=True)
 necrotic_cells = np.load(f'{path}number_necrotic_cells.npy', allow_pickle=True)
 cycling_cells = np.load(f'{path}number_cycling_cells.npy', allow_pickle=True)
 quiescent_cells = np.load(f'{path}number_quiescent_cells.npy', allow_pickle=True)
+number_cells = necrotic_cells + cycling_cells + quiescent_cells
 tumor_size = np.load(f'{path}tumor_size.npy', allow_pickle=True)
 tumor_size_free = np.load(f'{path}tumor_size_free.npy', allow_pickle=True)
 number_vessels = np.load(f'{path}number_vessels.npy', allow_pickle=True)
@@ -121,6 +123,32 @@ if generate_images:
         # axes[1].set_ylim(0, 50)
         axes[1].grid(True)
         axes[1].legend(fontsize = 14)
+
+        # # Set the x-axis ticks to show 1 day, 2 days, 3 days, etc.
+        xticks = [i for i in range(0, times[-1], 168)]
+        print(xticks)
+        xticklabels = [i for i in range(0, int(times[-1] / 24) + 1, 7)]
+        print(xticklabels)
+        axes[0].set_xticks(xticks)
+        axes[0].set_xticklabels(xticklabels)
+        axes[1].set_xticks(xticks)
+        axes[1].set_xticklabels(xticklabels)
+        #
+        # # Add vertical black arrows to show times of irradiation
+        irradiation_times_cells = [irradiation[0] + i * irradiation[1] for i in
+                                   range(0, irradiation[2])]  # times of irradiation in hours
+        shift = 10000
+        shift2 = 3
+        for time in irradiation_times_cells:
+            id = np.where(times == time)[0][0]  # get index of time
+            arrow1 = axes[0].annotate('', xy=(times[id], number_cells[id] + shift),
+                                      xytext=(times[id], number_cells[id] + shift + 1),
+                                      arrowprops=dict(facecolor='black', width=1.5, headwidth=5))
+            arrow1.set_zorder(-1)  # set arrow below plot line
+            arrow2 = axes[1].annotate('', xy=(times[id], tumor_size[id] + shift2),
+                                      xytext=(times[id], tumor_size[id] + shift2 + 1),
+                                      arrowprops=dict(facecolor='black', width=1.5, headwidth=5))
+            arrow2.set_zorder(-1)  # set arrow below plot line
 
         #add a tiny text box in the corner with the repo name
         plt.figtext(0.01, 0.01, repo, wrap=True, horizontalalignment='left', fontsize=6)

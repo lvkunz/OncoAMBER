@@ -2,6 +2,7 @@ import random
 
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 from scipy.integrate import quad
 from scipy.optimize import curve_fit
 import glob
@@ -13,20 +14,21 @@ from scipy.integrate import odeint
 
 
 tmin = 0  # Minimum time
-tmax = 5100 # Maximum time
+tmax = 2700 # Maximum time
 show_fits = 0  # Show the exponential fits
 fit = 'gompertz' #gompertz or exp
 show_necro = 1
 show_quiet_cycling = 1
-show_vessels = True
+show_vessels = False
 local = 0
+irradiation = [796, 300, 5]
 
 def plot_outliners(ax, x, y, y_min, y_max, color='black'):
     for i in range(len(x)):
         if y[i] < y_min[i] or y[i] > y_max[i]:
             ax.plot(x[i], y[i], '.', color=color)
 
-repo = '20230628_lk001_Linux/CONFIG_vasculature_irrad_10frac_example.py_170615'
+repo = '20230705_lk001_Linux/CONFIG_vasculature_irrad_updowns_example.py_163630'
 
 csv_file = ''
 #all repositories in repo:
@@ -47,7 +49,7 @@ param = np.array(param_space[parameter])
 number_of_iterations = len(param_space['Iteration'])
 
 # iter = [0,1,2,3,4]
-iter = [0]
+iter = []
 
 if iter == []:
     iter = [i for i in range(number_of_iterations)]
@@ -71,10 +73,11 @@ number_vessels_list = []
 times_list = []
 
 for path in paths:
-    number_cells = np.load(f'{path}number_tumor_cells.npy', allow_pickle=True)
+    # number_cells = np.load(f'{path}number_tumor_cells.npy', allow_pickle=True)
     necrotic_cells = np.load(f'{path}number_necrotic_cells.npy', allow_pickle=True)
     cycling_cells = np.load(f'{path}number_cycling_cells.npy', allow_pickle=True)
     quiescent_cells = np.load(f'{path}number_quiescent_cells.npy', allow_pickle=True)
+    number_cells = cycling_cells + quiescent_cells + necrotic_cells
     tumor_size = np.load(f'{path}tumor_size.npy', allow_pickle=True)
     tumor_size_free = np.load(f'{path}tumor_size_free.npy', allow_pickle=True)
     tumor_size_free = tumor_size - tumor_size_free
@@ -108,7 +111,7 @@ for path in paths:
 doubling_times_number_cells = []
 doubling_times_tumor_size = []
 dpi = 300
-fig, axes = plt.subplots(2, 1, figsize=(8, 10), dpi=dpi)
+fig, axes = plt.subplots(2, 1, figsize=(16, 10), dpi=dpi)
 
 #for each y point, find the average and SD
 
@@ -235,24 +238,49 @@ if show_fits:
     doubling_time = np.log(2)/popt[1]
     doubling_times_tumor_size.append(doubling_time)
 
+
+
+# # Set the x-axis ticks to show 1 day, 2 days, 3 days, etc.
+xticks = [i for i in range(0, times_average[-1], 168)]
+print(xticks)
+xticklabels = [i for i in range(0, int(times_average[-1]/24)+1, 7)]
+print(xticklabels)
+axes[0].set_xticks(xticks)
+axes[0].set_xticklabels(xticklabels)
+axes[1].set_xticks(xticks)
+axes[1].set_xticklabels(xticklabels)
+#
+# # Add vertical black arrows to show times of irradiation
+irradiation_times_cells = [irradiation[0] + i*irradiation[1] for i in range(0,irradiation[2])]  # times of irradiation in hours
+shift = 10000
+shift2 = 3
+for time in irradiation_times_cells:
+    id = np.where(times_average == time)[0][0]  # get index of time
+    arrow1 = axes[0].annotate('', xy=(times_average[id], number_cells_average[id] + shift), xytext=(times_average[id], number_cells_average[id] + shift+1), arrowprops=dict(facecolor='black', width=1.5, headwidth=5))
+    arrow1.set_zorder(-1)  # set arrow below plot line
+    arrow2 = axes[1].annotate('', xy=(times_average[id], tumor_size_average[id] + shift2), xytext=(times_average[id], tumor_size_average[id] + shift2+1), arrowprops=dict(facecolor='black', width=1.5, headwidth=5))
+    arrow2.set_zorder(-1)  # set arrow below plot line
+
+legend_elements = [Line2D([0], [0], marker='>', color='black', lw=0, label='Irradiation with 6MeV photon beam')]
+#add a tiny text box in the corner with the repo name
+plt.figtext(0.01, 0.01, repo, wrap=True, horizontalalignment='left', fontsize=6)
+
 axes[0].set_title('Number of Cells Evolution', fontsize=14)
-axes[0].set_xlabel('Time [h]', fontsize=16)
+axes[0].set_xlabel('Time [Day]', fontsize=16)
 axes[0].set_ylabel('Number of Cells', fontsize=16)
 # axes[0].set_xlim(0, 250)
 axes[0].set_ylim(0, None)
 axes[0].grid(True)
-axes[0].legend(fontsize=14)
+axes[0].legend(fontsize=16, loc='upper left')
 
 axes[1].set_title('Tumor Volume Evolution', fontsize=14)
-axes[1].set_xlabel('Time [h]', fontsize=16)
+axes[1].set_xlabel('Time [Day]', fontsize=16)
 axes[1].set_ylabel('Tumor Volume [mm^3]', fontsize=16)
 # axes[1].set_xlim(0, 250)
 axes[1].set_ylim(0, None)
 axes[1].grid(True)
-axes[1].legend(fontsize = 14)
+axes[1].legend(fontsize = 16, loc = 'upper left')
 
-#add a tiny text box in the corner with the repo name
-plt.figtext(0.01, 0.01, repo, wrap=True, horizontalalignment='left', fontsize=6)
 plt.tight_layout()
 plt.savefig(repo+'/tumor_evolution_average'+str(tmax)+'.png', dpi=dpi)
 plt.show()

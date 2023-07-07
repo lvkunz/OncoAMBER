@@ -76,7 +76,7 @@ if config.new_world:
     print('Area of vasculature: ', 10*(world.measure_vasculature_area()/(world.half_length*2)**3), 'mm^2/mm^3')
     world.update_capillaries(n_capillaries_per_VVD=config.n_capillaries_per_VVD, capillary_length=config.capillary_length)
 
-    world.save(str(config.world_file) + str(config.seed) + '.pkl')
+    # world.save(str(config.world_file) + str(config.seed) + '.pkl')
 
 else:
     world = amber.load(str(config.world_file)+'.pkl')
@@ -148,6 +148,6 @@ print('simulation time: ', simulation_end - simulation_start, ' seconds')
 print('total time: ', time.time() - start_time, ' seconds')
 
 
-world.save('final' + str(config.world_file) + str(config.seed) + '.pkl')
+# world.save('final' + str(config.world_file) + str(config.seed) + '.pkl')
 if config.show_3D_mesh:
     amber.show_tumor_3D_solid(world, 0)

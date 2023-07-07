@@ -8,7 +8,7 @@ from PIL import Image
 import re
 
 tmin = 0  # Minimum time
-tmax = 5001 # Maximum time
+tmax = 3001 # Maximum time
 show_fits = 0  # Show the exponential fits
 fit = 'exp' #gompertz or exp
 show_necro = 0
@@ -20,32 +20,37 @@ rate_choice = 'volume' #volume or number
 local = 0
 param_to_plot = []
 
-repo = '20230705_lk001_Linux/CONFIG_vasculature_irrad_single_example.py_165033'
-repo = repo + '/'
+repo = ''
+# # repo = repo + '/'
+#
+# csv_file = ''
+# #all repositories in repo:
+# #find csv file in repo
+# for filename in os.listdir(repo):
+#     # Check if the file is a csv file
+#     if filename.endswith('.csv'):
+#         csv_file = filename
+#
+# print(csv_file)
+# param_space = pd.read_csv(f'{repo}/{csv_file}', sep=' ', header=0)
+# print(param_space)
+#
+# print(param_space.columns)
+# print(param_space.columns[1])
+# parameter = param_space.columns[1]
+#
+# param = np.array(param_space[parameter])
+# number_of_iterations = len(param_space['Iteration'])
+# print(number_of_iterations)
 
-csv_file = ''
-#all repositories in repo:
-#find csv file in repo
-for filename in os.listdir(repo):
-    # Check if the file is a csv file
-    if filename.endswith('.csv'):
-        csv_file = filename
-print(csv_file)
-param_space = pd.read_csv(f'{repo}/{csv_file}', sep=' ', header=0)
-print(param_space)
-
-print(param_space.columns)
-print(param_space.columns[1])
-parameter = param_space.columns[1]
-
-param = np.array(param_space[parameter])
-number_of_iterations = len(param_space['Iteration'])
-print(number_of_iterations)
-
-paths = [f'{repo}iter{i}/DataOutput/' for i in range(0, number_of_iterations)]
+# paths = [f'{repo}iter{i}/DataOutput/' for i in range(0, number_of_iterations)]
 # paths = [f'{repo}iter{i}/DataOutput/' for i in [0,1,2,3]]
-# param = [param[i] for i in [0,1,2,3]]
+parameter = 'angiogenesis '
+param = ['off', 'on']
+list_color = ['red', 'green']
 #remove paths 4
+
+paths = ['20230628_lk001_Linux/CONFIG_growth_example.py_171639/iter0/DataOutput/','20230627_lk001_Linux/CONFIG_growth_example.py_160329/iter0/DataOutput/']
 
 
 
@@ -66,11 +71,10 @@ rates_list = []
 times_list = []
 
 for path in paths:
-    # number_cells = np.load(f'{path}number_tumor_cells.npy',allow_pickle=True)
+    number_cells = np.load(f'{path}number_tumor_cells.npy',allow_pickle=True)
     necrotic_cells = np.load(f'{path}number_necrotic_cells.npy',allow_pickle=True)
     cycling_cells = np.load(f'{path}number_cycling_cells.npy', allow_pickle=True)
     quiescent_cells = np.load(f'{path}number_quiescent_cells.npy', allow_pickle=True)
-    number_cells = cycling_cells + quiescent_cells + necrotic_cells
     tumor_size = np.load(f'{path}tumor_size.npy', allow_pickle=True)
     tumor_size_free = np.load(f'{path}tumor_size_free.npy', allow_pickle=True)
     number_vessels = np.load(f'{path}number_vessels.npy', allow_pickle=True)
@@ -153,7 +157,7 @@ for i in range(len(paths)):
 
     if show_fits:
         popt, pcov = curve_fit(func_cell, times_list[i], number_cells_list[i], p0=p1, maxfev=100000)
-    color = axes[0].plot(times_list[i], number_cells_list[i], '.', markersize=3, alpha=0.8, label=parameter+': '+str(param[i]))[0].get_color()
+    color = axes[0].plot(times_list[i], number_cells_list[i], '.', markersize=10,color = list_color[i], alpha=0.8, label=parameter+': '+str(param[i]))[0].get_color()
     if show_necro: axes[0].plot(times_list[i], necrotic_cells_list[i], 's', markersize=5, alpha=0.5, color=color)
     if show_quiet_cycling:
         axes[0].plot(times_list[i], cycling_cells_list[i], '+', markersize=3, alpha=0.5, color=color)
@@ -211,13 +215,12 @@ if experimental:
     axes[1].errorbar(time, volume, yerr=sd, fmt='+', color='blue', label='Experimental Data 2 (Benzekry 2014)', markersize=10, linewidth=1)
 
 
-axes[0].set_title('Number of Cells Evolution')
 axes[0].set_xlabel('Time [h]', fontsize=16)
 axes[0].set_ylabel('Number of Cells', fontsize=16)
 # axes[0].set_xlim(0, 250)
 # axes[0].set_ylim(0, 5e5)
 axes[0].grid(True)
-axes[0].legend()
+axes[0].legend(fontsize = 16)
 axes[1].set_xlabel('Time [h]', fontsize=16)
 axes[1].set_ylabel('Tumor Volume [mm^3]', fontsize=16)
 # axes[1].set_xlim(0, 250)
@@ -230,7 +233,7 @@ axes[1].set_ylabel('Tumor Volume [mm^3]', fontsize=16)
 #     tick.label.set_fontsize(14)
 
 axes[1].grid(True)
-axes[1].legend(fontsize = 14)
+axes[1].legend(fontsize = 16)
 
 #add a tiny text box in the corner with the repo name
 plt.figtext(0.01, 0.01, repo, wrap=True, horizontalalignment='left', fontsize=6)

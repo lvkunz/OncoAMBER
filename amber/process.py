@@ -620,9 +620,9 @@ class Irradiation(Process): #irradiation
         world.update_dose(self.doses)
 
         # plot the simulation
-        fig, ax = plt.subplots(1, 1, figsize=(10, 10))
-        world.show_tumor_slice(ax, fig, 'dose', cmap='hot')
-        ax.title.set_text('Dose (arb. units)')
+        fig, ax = plt.subplots(1, 1, figsize=(8, 6))
+        world.show_tumor_slice(ax, fig, 'dose', cmap='jet',refinement_level=2)
+        ax.set_title('Dose (arb. units)', fontsize=20)
         plt.savefig('dose.png', dpi=300)
         if self.config.running_on_cluster:
             plt.close()

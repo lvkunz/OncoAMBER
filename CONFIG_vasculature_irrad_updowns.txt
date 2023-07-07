@@ -19,9 +19,9 @@ save_world_every: 800                   #save the world every x hours
 #Radiation parameters
 topas_file: TOPAS_gamma6MeV
 first_irradiation_time: 800             #time at which radiation is applied
-number_fractions: 5                     #number of fractions of radiation
-time_between_fractions: 300              #time between fractions of radiation
-irradiation_intensity: 10                #duration of radiation
+number_fractions: 10                     #number of fractions of radiation
+time_between_fractions: 168              #time between fractions of radiation
+irradiation_intensity: 5                #duration of radiation
 intra_radiosensitivity: 1.0             #death rate of cells due to 1Gy of radiation
 vessel_radiosensitivity: 0.0005          #death rate of vessels due to 1Gy of radiation
 
