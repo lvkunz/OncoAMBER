@@ -21,14 +21,14 @@ show_necro = 1
 show_quiet_cycling = 1
 show_vessels = False
 local = 0
-irradiation = [796, 300, 5]
+irradiation = [796, 24, 5]
 
 def plot_outliners(ax, x, y, y_min, y_max, color='black'):
     for i in range(len(x)):
         if y[i] < y_min[i] or y[i] > y_max[i]:
             ax.plot(x[i], y[i], '.', color=color)
 
-repo = '20230705_lk001_Linux/CONFIG_vasculature_irrad_updowns_example.py_163630'
+repo = '20230711_lk001_Linux/CONFIG_vasculature_irrad_example_heterognty.py_130236'
 
 csv_file = ''
 #all repositories in repo:
