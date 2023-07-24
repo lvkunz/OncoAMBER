@@ -45,12 +45,23 @@ repo = ''
 
 # paths = [f'{repo}iter{i}/DataOutput/' for i in range(0, number_of_iterations)]
 # paths = [f'{repo}iter{i}/DataOutput/' for i in [0,1,2,3]]
-parameter = 'angiogenesis '
-param = ['off', 'on']
-list_color = ['red', 'green']
+parameter = 'hetrogenous '
+param = ['yes', 'yes','yes','yes','yes','yes','no','no','no','no','no']
+list_color = ['red','red','red','red','red','red','blue','blue','blue','blue','blue']
 #remove paths 4
 
-paths = ['20230628_lk001_Linux/CONFIG_growth_example.py_171639/iter0/DataOutput/','20230627_lk001_Linux/CONFIG_growth_example.py_160329/iter0/DataOutput/']
+paths = ['20230711_lk001_Linux/CONFIG_vasculature_irrad_example_heterognty.py_130236/iter0/DataOutput/',
+         '20230711_lk001_Linux/CONFIG_vasculature_irrad_example_heterognty.py_130236/iter1/DataOutput/',
+         '20230711_lk001_Linux/CONFIG_vasculature_irrad_example_heterognty.py_130236/iter2/DataOutput/',
+         '20230711_lk001_Linux/CONFIG_vasculature_irrad_example_heterognty.py_130236/iter3/DataOutput/',
+         '20230711_lk001_Linux/CONFIG_vasculature_irrad_example_heterognty.py_130236/iter4/DataOutput/',
+         '20230711_lk001_Linux/CONFIG_vasculature_irrad_example_heterognty.py_130236/iter5/DataOutput/',
+         '20230705_lk001_Linux/CONFIG_vasculature_irrad_example.py_162607/iter0/DataOutput/',
+         '20230705_lk001_Linux/CONFIG_vasculature_irrad_example.py_162607/iter1/DataOutput/',
+            '20230705_lk001_Linux/CONFIG_vasculature_irrad_example.py_162607/iter2/DataOutput/',
+            '20230705_lk001_Linux/CONFIG_vasculature_irrad_example.py_162607/iter3/DataOutput/',
+        '20230705_lk001_Linux/CONFIG_vasculature_irrad_example.py_162607/iter4/DataOutput/',
+         ]
 
 
 

@@ -640,14 +640,14 @@ class Irradiation(Process): #irradiation
                 print('Cell probability: ', cell_probability)
                 if random.random() < cell_probability:
                     if cell.time_before_death is None:
-                        cell.time_before_death = random.lognormvariate(1, 1)
+                        cell.time_before_death = random.lognormvariate(2, 1)
                         print('Cell time before death: ', cell.time_before_death)
 
             for n_cell in voxel.list_of_necrotic_cells:
                 cell_probability_n = probability * n_cell.radiosensitivity()
                 if random.random() < cell_probability_n:
                     if n_cell.time_before_death is None:
-                        n_cell.time_before_death = random.lognormvariate(1, 1)
+                        n_cell.time_before_death = random.lognormvariate(2, 1)
 
         for vessel in world.vasculature.list_of_vessels:
             path = vessel.path
