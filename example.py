@@ -104,9 +104,11 @@ celldeath = amber.CellDeath(config, 'cell_death', dt,
                                         apoptosis_probability=config.probability_apoptosis,
                                         necrosis_threshold=config.vitality_necrosis_threshold,
                                         necrosis_probability=config.probability_necrosis,
-                                        necrosis_removal_probability=config.probability_necrosis_removal)
+                                        necrosis_removal_probability=config.probability_necrosis_removal,
+                                        necrosis_damage_coeff=config.necrosis_damage_coeff,
+                                        apoptosis_damage_coeff=config.apoptosis_damage_coeff)
 
-cellaging = amber.CellAging(config, 'cell_aging', dt)
+cellaging = amber.CellAging(config, 'cell_aging', dt, repair_per_hour=config.repair_per_hour)
 
 cellmigration = amber.CellMigration(config, 'cell_migration', dt)
 

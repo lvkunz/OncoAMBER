@@ -213,6 +213,17 @@ class Simulator: #this class is used to run the whole simulation
             else:
                 plt.show()
 
+        if self.config.show_cell_damage:
+            print('Showing cell damage')
+            fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(10, 10), dpi=100)
+            fig.suptitle('Visualization at time t = ' + str(t) + ' hours', fontsize=16)
+            world.show_tumor_slice(axes, fig, 'average_cell_damage', levels= np.linspace(0, 1, 10), cmap='cool', extend = 'neither')
+            if self.config.running_on_cluster:
+                plt.close()
+            else:
+                plt.show()
+
+
         end = current_time()
         print('Time elapsed for showing graphs: ' + str(end - start) + ' seconds')
     def run(self, world: World, video=False):
@@ -333,46 +344,34 @@ class CellDivision(Process): #cell division process, cells divide in a voxel if 
         return
 
 class CellDeath(Process): #cell necrosis process, cells die in a voxel if they have too low vitality
-    def __init__(self, config, name, dt, necrosis_threshold, necrosis_probability, apoptosis_threshold, apoptosis_probability,necrosis_removal_probability):
+    def __init__(self, config, name, dt, necrosis_threshold, necrosis_probability, apoptosis_threshold, apoptosis_probability,necrosis_removal_probability, necrosis_damage_coeff, apoptosis_damage_coeff):
         super().__init__(config, 'CellNecrosis', dt)
         self.necrosis_threshold = necrosis_threshold
         self.necrosis_probability = necrosis_probability
         self.apoptosis_threshold = apoptosis_threshold
         self.apoptosis_probability = apoptosis_probability
+        self.necrosis_damage_coeff = necrosis_damage_coeff
+        self.apoptosis_damage_coeff = apoptosis_damage_coeff
         if self.necrosis_threshold > self.apoptosis_threshold:
             raise ValueError('necrosis threshold must be smaller or equal to apoptosis threshold. you can set apoptosis probability to 0 if you want to avoid apoptosis.')
         self.necrosis_removal_probability = necrosis_removal_probability
-    def necrosis_curve(self, x):
-        r = self.necrosis_probability - x / self.necrosis_threshold
-        if r < 0: r = 0
-        return r
 
-    def apoptosis_curve(self, x):
-        # r_ = (self.apoptosis_probability / self.apoptosis_threshold) * x
-        # if r_ < 0: r_ = 0
-        # return r_
-        if x < self.apoptosis_threshold:
-            return self.apoptosis_probability
-        else:
-            return 0
 
 
     def __call__(self, voxel):
         for cell in voxel.list_of_cells:
-            vitality = cell.vitality()
-            if vitality < self.apoptosis_threshold:
-                sample = np.random.uniform(0, 1)
-                p_necro = (1 - ((1-self.necrosis_curve(vitality))**self.dt))
-                p_apopt = (1 - ((1-self.apoptosis_curve(vitality))**self.dt))
-                if self.config.verbose: print('probability necro:', p_necro, 'probability apopto:', p_apopt)
-                n = p_necro
-                a = p_necro + p_apopt
-                if sample < n:
-                    #necrosis
-                    voxel.cell_becomes_necrotic(cell)
-                elif sample < a:
-                    #apoptosis
-                    voxel.remove_cell(cell)
+            sample = np.random.uniform(0, 1)
+            p_necro = (1 - ((1-cell.necrosis_probability(self.necrosis_probability,self.necrosis_threshold, self.necrosis_damage_coeff))**self.dt))
+            p_apopt = (1 - ((1-cell.apoptosis_probability(self.apoptosis_probability, self.apoptosis_threshold, self.apoptosis_damage_coeff))**self.dt))
+            if self.config.verbose: print('probability necro:', p_necro, 'probability apopto:', p_apopt)
+            n = p_necro
+            a = p_necro + p_apopt
+            if sample < n:
+                #necrosis
+                voxel.cell_becomes_necrotic(cell)
+            elif sample < a:
+                #apoptosis
+                voxel.remove_cell(cell)
         for necro in voxel.list_of_necrotic_cells:
             proba = (1 - ((1-self.necrosis_removal_probability)**self.dt))
             if random.random() < proba:
@@ -380,8 +379,9 @@ class CellDeath(Process): #cell necrosis process, cells die in a voxel if they h
 
 
 class CellAging(Process): #cell aging process, cells age in a voxel
-    def __init__(self, config, name, dt):
+    def __init__(self, config, name, dt, repair_per_hour):
         super().__init__(config,'CellAging', dt)
+        self.repair_per_hour = repair_per_hour
     def __call__(self, voxel):
         for cell in voxel.list_of_cells:
             if cell.time_before_death is not None:
@@ -391,6 +391,9 @@ class CellAging(Process): #cell aging process, cells age in a voxel
 
             if cell.vitality() > self.config.vitality_cycling_threshold:
                 cell.time_spent_cycling += self.dt
+
+            if cell.damage > 0:
+                cell.damage_repair(self.dt, self.repair_per_hour)
 
         for n_cell in voxel.list_of_necrotic_cells:
             if n_cell.time_before_death is not None:
@@ -630,24 +633,30 @@ class Irradiation(Process): #irradiation
             plt.show()
     def __call__(self, world: World):
         for voxel in world.voxel_list:
-            probability = self.doses[voxel.voxel_number]*self.irradiation_intensity
+            scaled_dose = self.doses[voxel.voxel_number]*self.irradiation_intensity
             if len(voxel.list_of_cells) > 0:
-                print('Probability: ', probability)
-            for cell in voxel.list_of_cells:
-                cell_probability = probability * cell.radiosensitivity()
-                print('Cell radiosensitivity: ', cell.radiosensitivity())
-                print('Cell oxygen: ', cell.oxygen)
-                print('Cell probability: ', cell_probability)
-                if random.random() < cell_probability:
-                    if cell.time_before_death is None:
-                        cell.time_before_death = random.lognormvariate(2, 1)
-                        print('Cell time before death: ', cell.time_before_death)
+                print('Scaled dose: ', scaled_dose)
+                for cell in voxel.list_of_cells:
+                    #assume all cells get damaged the same way
+                    damage = scaled_dose * cell.radiosensitivity()
+                    cell.damage += damage
+                    cell.damage = min(cell.damage, 1.0)
 
-            for n_cell in voxel.list_of_necrotic_cells:
-                cell_probability_n = probability * n_cell.radiosensitivity()
-                if random.random() < cell_probability_n:
-                    if n_cell.time_before_death is None:
-                        n_cell.time_before_death = random.lognormvariate(2, 1)
+
+            #     cell_probability = probability * cell.radiosensitivity()
+            #     print('Cell radiosensitivity: ', cell.radiosensitivity())
+            #     print('Cell oxygen: ', cell.oxygen)
+            #     print('Cell probability: ', cell_probability)
+            #     if random.random() < cell_probability:
+            #         if cell.time_before_death is None:
+            #             cell.time_before_death = random.lognormvariate(2, 1)
+            #             print('Cell time before death: ', cell.time_before_death)
+            #
+            # for n_cell in voxel.list_of_necrotic_cells:
+            #     cell_probability_n = probability * n_cell.radiosensitivity()
+            #     if random.random() < cell_probability_n:
+            #         if n_cell.time_before_death is None:
+            #             n_cell.time_before_death = random.lognormvariate(2, 1)
 
         for vessel in world.vasculature.list_of_vessels:
             path = vessel.path

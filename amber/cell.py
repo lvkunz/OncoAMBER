@@ -23,6 +23,7 @@ class Cell:
         self.time_before_death = None
         self.time_spent_cycling = self.random_time_spent_cycling() #new cells have already been cycling for a random amount of time
         self.pH = 7.4
+        self.damage = 0
     def duplicate(self):
         cell_class = type(self)  # Get the class of the current instance dynamically
         cell = cell_class(self.radius,
@@ -36,6 +37,14 @@ class Cell:
         cell.time_spent_cycling = 0  # The new cell has not been cycling yet
         return cell
 
+    def metabolic_rate(self):
+        if self.damage < 0.5:
+            return 1.0
+        elif self.damage < 0.8:
+            return 0.5
+        else:
+            return 0.0
+
     def vitality(self):
         factor = self.o2_to_vitality_factor
         vitality = self.oxygen * factor
@@ -48,6 +57,32 @@ class Cell:
         # if self.necrotic:
         #     value = self.intra_radiosensitivity * 0.1
         return value
+
+    def necrosis_probability(self, proba0, threshold, coeff_damage):
+        p = 0
+        r = proba0 - self.vitality() / threshold
+        if r < 0: r = 0
+        p += r
+        if self.damage > 0:
+            p += coeff_damage * self.damage
+        return p
+
+    def apoptosis_probability(self, proba0, threshold, coeff_damage):
+        p = 0
+        if self.vitality() < threshold:
+            p += proba0
+        if self.damage > 0:
+            p += coeff_damage * self.damage
+        return p
+
+    def damage_repair(self, dt, repair_per_hour):
+        def repair_amount(damage):
+            return max(repair_per_hour * (1 - damage), 0.0001)
+
+        for i in range(int(dt)):
+            self.damage -= repair_amount(self.damage)
+        if self.damage < 0:
+            self.damage = 0
 
     def random_doubling_time(self):
         return np.random.gamma(shape = self.gamma_shape, scale = self.gamma_scale)

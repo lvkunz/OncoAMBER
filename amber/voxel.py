@@ -134,6 +134,13 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                 cell_interaction_matrix = cell_interaction_matrix.tocsr()
                 return cell_interaction_matrix
 
+        def average_cell_damage(self):
+                if len(self.list_of_cells) == 0:
+                        return -1
+                damage = 0
+                for cell in self.list_of_cells:
+                        damage = damage + cell.damage
+                return damage / len(self.list_of_cells)
 
 
 

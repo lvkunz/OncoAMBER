@@ -20,7 +20,7 @@ rate_choice = 'volume' #volume or number
 local = 0
 param_to_plot = []
 
-repo = '20230711_lk001_Linux/CONFIG_vasculature_irrad_updowns_example.py_130144'
+repo = '20230713_lk001_Linux/CONFIG_growth_maturation_example.py_101945'
 repo = repo + '/'
 
 csv_file = ''
