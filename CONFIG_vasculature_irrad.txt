@@ -7,8 +7,8 @@ running_on_cluster: False               #don't touch, the bash script changes it
 
 #Initialisation
 vessel_number: 0.3                     #initial number of vessels for healthy tissue per mm^2
-initial_number_tumor_cells: 1000         #initial total number of tumor cells
-tumor_initial_radius: 0.5 #mm
+initial_number_tumor_cells: 50000         #initial total number of tumor cells
+tumor_initial_radius: 1.5 #mm
 doubling_time_tumor: 15  #hours
 doubling_time_sd: 5
 radius_tumor_cells: 0.033 #mm
@@ -18,7 +18,7 @@ save_world_every: 100000                   #save the world every x hours
 
 #Radiation parameters
 topas_file: TOPAS_gamma6MeV
-first_irradiation_time: 800             #time at which radiation is applied
+first_irradiation_time: 200             #time at which radiation is applied
 number_fractions: 5                     #number of fractions of radiation
 time_between_fractions: 24              #time between fractions of radiation
 irradiation_intensity: 1               #duration of radiation
@@ -60,8 +60,8 @@ radius_pressure_sensitive: True         #if True, radius of vessels is pressure 
 o2_to_vitality_factor: 1.0              #factor for the conversion of capillaries to vitality
 vessel_step_size: 0.05 #mm              #step size for vasculature growth
 growth_step_stop_threshold: 0.03 #mm    #threshold for step size for vasculature growth, under which growth stops
-vessel_time_to_maturity: 12 #hours      #time for a vessel to mature
-maturity_new_vessels: 0.6               #maturity of new vessels
+vessel_time_to_maturity: 24 #hours      #time for a vessel to mature
+maturity_new_vessels: 0.7               #maturity of new vessels
 new_vessels_per_hour: 0.0002            #number of new vessels per hour*mm3
 
 # Graphics parameters

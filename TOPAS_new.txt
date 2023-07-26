@@ -1,0 +1,29 @@
+
+I:Ts/NumberOfThreads = 0
+
+sv:Ph/Default/Modules = 1 "g4em-standard_opt0"
+
+s:Ge/Tumor/Type     = "TsBox"
+s:Ge/Tumor/Material = "G4_WATER"
+s:Ge/Tumor/Parent   = "World"
+
+s:Sc/MyScorer/Quantity = "DoseToMedium"
+s:Sc/MyScorer/Component = "Tumor"
+s:Sc/MyScorer/IfOutputFileAlreadyExists = "Overwrite"
+
+i:So/Demo/NumberOfHistoriesInRun = 1000000
+S:So/Demo/BeamParticle = "gamma"
+D:So/Demo/BeamEnergy = 6 MeV
+
+d:Ge/Tumor/HLX      = 10. mm  #the parameters of the box will be overriden by world size etc
+d:Ge/Tumor/HLY      = 10. mm
+d:Ge/Tumor/HLZ      = 10. mm
+d:Ge/Tumor/TransX   = 0. m
+d:Ge/Tumor/TransY   = 0. m
+d:Ge/Tumor/TransZ   = 0. m
+d:Ge/Tumor/RotX     = 0. deg
+d:Ge/Tumor/RotY     = 0. deg
+d:Ge/Tumor/RotZ     = 0. deg
+i:Ge/Tumor/ZBins = 10
+i:Ge/Tumor/XBins = 10
+i:Ge/Tumor/YBins = 10

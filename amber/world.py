@@ -355,18 +355,18 @@ class World:
         file = open(repo_path + '/' + name + '_geom.txt', 'w')
         print('file = ', file)
         file.write('IncludeFile = '+ repo_path + '/' + name + '.txt \n' +
-                                                'd:Ge/MyBox/HLX      = ' + str(self.half_length*2) +' mm \n' +
-                                                'd:Ge/MyBox/HLY      = ' + str(self.half_length*2) +' mm \n' +
-                                                'd:Ge/MyBox/HLZ      = ' + str(self.half_length*2) +' mm \n' +
-                                                'd:Ge/MyBox/TransX   = 0. m \n' +
-                                                'd:Ge/MyBox/TransY   = 0. m \n' +
-                                                'd:Ge/MyBox/TransZ   = 0. m \n' +
-                                                'd:Ge/MyBox/RotX     = 0. deg \n' +
-                                                'd:Ge/MyBox/RotY     = 0. deg \n' +
-                                                'd:Ge/MyBox/RotZ     = 0. deg \n' +
-                                                'i:Ge/MyBox/ZBins = ' + str(self.number_of_voxels) +' \n' +
-                                                'i:Ge/MyBox/XBins = ' + str(self.number_of_voxels) +' \n' +
-                                                'i:Ge/MyBox/YBins = ' + str(self.number_of_voxels))
+                                                'd:Ge/Tumor/HLX      = ' + str(self.half_length*2) +' mm \n' +
+                                                'd:Ge/Tumor/HLY      = ' + str(self.half_length*2) +' mm \n' +
+                                                'd:Ge/Tumor/HLZ      = ' + str(self.half_length*2) +' mm \n' +
+                                                'd:Ge/Tumor/TransX   = 0. m \n' +
+                                                'd:Ge/Tumor/TransY   = 0. m \n' +
+                                                'd:Ge/Tumor/TransZ   = 0. m \n' +
+                                                'd:Ge/Tumor/RotX     = 0. deg \n' +
+                                                'd:Ge/Tumor/RotY     = 0. deg \n' +
+                                                'd:Ge/Tumor/RotZ     = 0. deg \n' +
+                                                'i:Ge/Tumor/ZBins = ' + str(self.number_of_voxels) +' \n' +
+                                                'i:Ge/Tumor/XBins = ' + str(self.number_of_voxels) +' \n' +
+                                                'i:Ge/Tumor/YBins = ' + str(self.number_of_voxels))
         file.close()
         print('-- File saved as ' + name + '_geom')
         return name + '_geom'
@@ -495,6 +495,16 @@ class World:
             contour = ax.tricontourf(triangulation, z, cmap=cmap, alpha=0.7, vmin=vmin, vmax=vmax, norm=norm, extend = extend)
         else:
             contour = ax.tricontourf(triangulation, z, cmap=cmap, alpha=0.7, levels=levels, norm=norm, extend = extend)
+
+        # #add a line for scale bar in the bottom right corner
+        # hf = self.half_length
+        # bar_length = self.half_length/self.number_of_voxels * 5
+        # text = int(bar_length * 1000)
+        #
+        # ax.plot([-hf, -hf], [hf-bar_length, hf], color='black', linewidth=1)
+        # ax.text(hf - bar_length/2, hf - bar_length/2, str(text) + ' $\mu$m', fontsize=10)
+
+
         #add a point at the center of mass
         if self.config.slice == 'x':
             ax.scatter(self.center_of_mass[0], self.center_of_mass[1], color='black', s=10)

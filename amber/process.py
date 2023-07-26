@@ -389,7 +389,7 @@ class CellAging(Process): #cell aging process, cells age in a voxel
                 if cell.time_before_death < 0:
                     voxel.remove_cell(cell)
 
-            if cell.vitality() > self.config.vitality_cycling_threshold:
+            if cell.is_cycling(self.config.vitality_cycling_threshold, 0.0):
                 cell.time_spent_cycling += self.dt
 
             if cell.damage > 0:

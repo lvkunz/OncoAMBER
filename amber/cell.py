@@ -93,9 +93,15 @@ class Cell:
 
     def VEGF_secretion(self):
         if self.vitality() < self.VEGF_threshold:
-            return self.VEGF_rate * (1 - self.vitality())
+            return self.VEGF_rate * (1 - self.vitality()) * self.metabolic_rate()
         else:
             return 0
+
+    def is_cycling(self, vitality_threshold, damage_threshold):
+        vit = self.vitality() > vitality_threshold
+        dmg = self.damage > damage_threshold
+        return vit and not dmg
+
 
     def probability_of_interaction(self, cell, dt):
         return 0.0
