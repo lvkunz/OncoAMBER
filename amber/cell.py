@@ -53,7 +53,7 @@ class Cell:
 
     def radiosensitivity(self):
         coeff_pH = 7.4 / self.pH
-        value = self.intra_radiosensitivity * (0.5 + 0.5*self.oxygen) * coeff_pH
+        value = self.intra_radiosensitivity * (0.5 + 0.5 * self.oxygen) * coeff_pH
         # if self.necrotic:
         #     value = self.intra_radiosensitivity * 0.1
         return value
@@ -77,7 +77,10 @@ class Cell:
 
     def damage_repair(self, dt, repair_per_hour):
         def repair_amount(damage):
-            return max(repair_per_hour * (1 - damage), 0.0001)
+            if damage == 0:
+                return 0
+            else:
+                return max(repair_per_hour * (1 - damage), 0.0001)
 
         for i in range(int(dt)):
             self.damage -= repair_amount(self.damage)

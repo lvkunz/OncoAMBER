@@ -660,17 +660,23 @@ class Irradiation(Process): #irradiation
 
         for vessel in world.vasculature.list_of_vessels:
             path = vessel.path
-            list_voxels = []
-            list_doses = [0]
+            total_dose = 0
+
             for point in path:
                 current_voxel = world.find_voxel_number(point)
-                if current_voxel not in list_voxels:
-                    list_voxels.append(current_voxel)
-                    list_doses.append(world.voxel_list[current_voxel].dose)
+                total_dose += world.voxel_list[current_voxel].dose
 
-            max_dose = max(list_doses)
-            probability_vessel = max_dose * self.irradiation_intensity * vessel.radiosensitivity()
-            if random.random() < probability_vessel:
-                if vessel.time_before_death is None:
-                    vessel.time_before_death = random.lognormvariate(1, 1)
+            if len(path) > 0:
+                mean_dose = total_dose / len(path)
+                vessel.must_be_updated = True
+            else:
+                mean_dose = 0
+
+            damage_vessel = mean_dose * self.irradiation_intensity * vessel.radiosensitivity()
+            print('Mean dose: ', mean_dose)
+            print('Damage vessel: ', damage_vessel)
+            vessel.maturity -= damage_vessel
+            if vessel.maturity < 0:
+                vessel.maturity = 0
+
         return

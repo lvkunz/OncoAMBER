@@ -21,14 +21,14 @@ show_necro = 1
 show_quiet_cycling = 1
 show_vessels = False
 local = 0
-irradiation = [796, 24, 5]
+irradiation = [796, 24, 0] #first, frequence, number of fractions
 
 def plot_outliners(ax, x, y, y_min, y_max, color='black'):
     for i in range(len(x)):
         if y[i] < y_min[i] or y[i] > y_max[i]:
             ax.plot(x[i], y[i], '.', color=color)
 
-repo = '20230711_lk001_Linux/CONFIG_vasculature_irrad_updowns_example.py_130144'
+repo = '20230627_lk001_Linux/CONFIG_growth_example.py_160329'
 
 csv_file = ''
 #all repositories in repo:
@@ -331,21 +331,21 @@ def func_holling(x, a, b, k):
 def func_holling_(x, t, a, b, k):
     return (a * x)/(k + x) - b * x
 
-
 param0 = np.array([1.0, 1.0, 1.0])
+param0_log = np.array([1.0, 100.0])
 param0_ = np.array([1.0, 1.0])
 #add a random component to the initial guess
 # param0 = np.array(param0) * (1 + 1.0 * np.random.random(len(param0)) - 0.1)
 weights = np.zeros(len(number_cells_average))
 for i in range(len(number_cells_average)):
-    if number_cells_average[i] < 2e5:
-        weights[i] = 1
+    if number_cells_average[i] < 400000:
+        weights[i] = 0.2
     else:
         weights[i] = 1
 
-popt_g, pcov_g = curve_fit(func_gompertz, number_cells_average, rates_average, p0=param0_, maxfev=100000, sigma=weights)
-popt_l, pcov_l = curve_fit(func_logistic, number_cells_average, rates_average, p0=param0_, maxfev=100000, sigma=weights)
-popt_h, pcov_h = curve_fit(func_holling, number_cells_average, rates_average, p0=param0, maxfev=100000,sigma=weights)
+popt_g, pcov_g = curve_fit(func_gompertz, number_cells_average, rates_average, p0=param0_, maxfev=100000)
+popt_l, pcov_l = curve_fit(func_logistic, number_cells_average, rates_average, p0=param0_log, maxfev=100000, sigma=weights)
+popt_h, pcov_h = curve_fit(func_holling, number_cells_average, rates_average, p0=param0, maxfev=100000)
 print('Fitted parameters Gompertz: ', popt_g)
 print('Fitted parameters Logistic: ', popt_l)
 print('Fitted parameters Holling: ', popt_h)

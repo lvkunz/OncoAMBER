@@ -139,6 +139,7 @@ class World:
         self.vasculature.update_vessels_radius_from_last(self.config.radius_root_vessels, False, pressure)
         for vessel in self.vasculature.list_of_vessels:
             vessel.in_growth = False
+            vessel.maturity = 1
             vessel.visible = self.config.visible_original_vessels
         return
 

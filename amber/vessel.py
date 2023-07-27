@@ -113,8 +113,8 @@ class Vessel:
             return np.mean([pressure(point) for point in self.path])
 
     def radiosensitivity(self):
-        radius = self.radius
-        radiosensitivity = self.intra_radiosensitivity/radius
+        # radius = self.radius
+        radiosensitivity = self.intra_radiosensitivity
         return radiosensitivity
 class VasculatureNetwork:
     def __init__(self, config, list_of_vessels=None):
