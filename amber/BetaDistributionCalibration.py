@@ -132,20 +132,20 @@ def run_calibration(side = 6, a = -7, b = 1, max_n = 100):
             all_o2_values = np.array(all_o2_values)
             alpha_all, beta_param_all, _, _ = beta.fit(all_o2_values)
             # alpha_all, beta_param_all, loc, scale = betaprime.fit(all_o2_values)
-            r_all = beta.rvs(alpha_all, beta_param_all, size = 50000)
-            # r_avg = beta.rvs(alpha_mean, beta_param_mean, size = 50000)
-            plt.figure()
-            plt.hist(all_o2_values, bins=100, alpha=0.5, label='Data', color='green', density=True)
-            # plt.hist(r_avg, bins=100, alpha=0.5, label='Beta_avg', color='blue', density=True)
-            plt.hist(r_all, bins=100, alpha=0.5, label='Beta_all', color='red', density=True)
-            plt.title('n = ' + str(n) + ', side = ' + str(side) + ', pressure = ' + str(pressure))#+ '\n fitted alpha = ' + str(round(alpha_mean,4)) + ', fitted beta = ' + str(round(beta_param_mean,4)))#+ ', modelled alpha ' + str(round(modelled_alpha,4)) + 'modelled beta ' + str(round(modelled_beta,4)), fontsize=8)
-            # plt.title('n = ' + str(n) + ', side = ' + str(side) + ', pressure = ' + str(
-            #     pressure) + '\n fitted alpha = ' + str(round(alpha_all, 4)) + ', fitted beta = ' + str(round(beta_param_all,
-            #                                                                                              4)))  # + ', modelled alpha ' + str(round(modelled_alpha,4)) + 'modelled beta ' + str(round(modelled_beta,4)), fontsize=8)
-            plt.xlabel('O2')
-            plt.ylabel('Frequency')
-            plt.legend()
-            plt.show()
+            # r_all = beta.rvs(alpha_all, beta_param_all, size = 50000)
+            # # r_avg = beta.rvs(alpha_mean, beta_param_mean, size = 50000)
+            # plt.figure()
+            # plt.hist(all_o2_values, bins=100, alpha=0.5, label='Data', color='green', density=True)
+            # # plt.hist(r_avg, bins=100, alpha=0.5, label='Beta_avg', color='blue', density=True)
+            # plt.hist(r_all, bins=100, alpha=0.5, label='Beta_all', color='red', density=True)
+            # plt.title('n = ' + str(n) + ', side = ' + str(side) + ', pressure = ' + str(pressure))#+ '\n fitted alpha = ' + str(round(alpha_mean,4)) + ', fitted beta = ' + str(round(beta_param_mean,4)))#+ ', modelled alpha ' + str(round(modelled_alpha,4)) + 'modelled beta ' + str(round(modelled_beta,4)), fontsize=8)
+            # # plt.title('n = ' + str(n) + ', side = ' + str(side) + ', pressure = ' + str(
+            # #     pressure) + '\n fitted alpha = ' + str(round(alpha_all, 4)) + ', fitted beta = ' + str(round(beta_param_all,
+            # #                                                                                              4)))  # + ', modelled alpha ' + str(round(modelled_alpha,4)) + 'modelled beta ' + str(round(modelled_beta,4)), fontsize=8)
+            # plt.xlabel('O2')
+            # plt.ylabel('Frequency')
+            # plt.legend()
+            # plt.show()
 
 
 
@@ -154,8 +154,8 @@ def run_calibration(side = 6, a = -7, b = 1, max_n = 100):
             # # # print('alpha all', alpha_all)
             # # # print('beta all', beta_param_all)
             # #
-            # alpha_values = np.append(alpha_values, alpha_mean)
-            # beta_values = np.append(beta_values, beta_param_mean)
+            alpha_values = np.append(alpha_values, alpha_all)
+            beta_values = np.append(beta_values, beta_param_all)
             all_side_values = np.append(all_side_values, side)
             all_n_values = np.append(all_n_values, n)
             all_pressure_values = np.append(all_pressure_values, pressure)

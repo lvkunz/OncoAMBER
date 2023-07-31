@@ -364,12 +364,14 @@ class CellDeath(Process): #cell necrosis process, cells die in a voxel if they h
             p_necro = (1 - ((1-cell.necrosis_probability(self.necrosis_probability,self.necrosis_threshold, self.necrosis_damage_coeff))**self.dt))
             p_apopt = (1 - ((1-cell.apoptosis_probability(self.apoptosis_probability, self.apoptosis_threshold, self.apoptosis_damage_coeff))**self.dt))
             if self.config.verbose: print('probability necro:', p_necro, 'probability apopto:', p_apopt)
-            n = p_necro
-            a = p_necro + p_apopt
-            if sample < n:
+            p_tot = p_necro + p_apopt
+            if p_tot > 1:
+                p_necro = p_necro/p_tot; p_apopt = p_apopt/p_tot
+
+            if sample < p_necro:
                 #necrosis
                 voxel.cell_becomes_necrotic(cell)
-            elif sample < a:
+            elif sample < p_necro + p_apopt:
                 #apoptosis
                 voxel.remove_cell(cell)
         for necro in voxel.list_of_necrotic_cells:

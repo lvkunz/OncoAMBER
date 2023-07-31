@@ -45,23 +45,18 @@ repo = ''
 
 # paths = [f'{repo}iter{i}/DataOutput/' for i in range(0, number_of_iterations)]
 # paths = [f'{repo}iter{i}/DataOutput/' for i in [0,1,2,3]]
-parameter = 'hetrogenous '
-param = ['yes', 'yes','yes','yes','yes','yes','no','no','no','no','no']
-list_color = ['red','red','red','red','red','red','blue','blue','blue','blue','blue']
+parameter = 'number of fractions '
+param = [1, 1, 1, 5, 5, 5]
+list_color = ['red','red','red','blue','blue','blue']
 #remove paths 4
 
-paths = ['20230711_lk001_Linux/CONFIG_vasculature_irrad_example_heterognty.py_130236/iter0/DataOutput/',
-         '20230711_lk001_Linux/CONFIG_vasculature_irrad_example_heterognty.py_130236/iter1/DataOutput/',
-         '20230711_lk001_Linux/CONFIG_vasculature_irrad_example_heterognty.py_130236/iter2/DataOutput/',
-         '20230711_lk001_Linux/CONFIG_vasculature_irrad_example_heterognty.py_130236/iter3/DataOutput/',
-         '20230711_lk001_Linux/CONFIG_vasculature_irrad_example_heterognty.py_130236/iter4/DataOutput/',
-         '20230711_lk001_Linux/CONFIG_vasculature_irrad_example_heterognty.py_130236/iter5/DataOutput/',
-         '20230705_lk001_Linux/CONFIG_vasculature_irrad_example.py_162607/iter0/DataOutput/',
-         '20230705_lk001_Linux/CONFIG_vasculature_irrad_example.py_162607/iter1/DataOutput/',
-            '20230705_lk001_Linux/CONFIG_vasculature_irrad_example.py_162607/iter2/DataOutput/',
-            '20230705_lk001_Linux/CONFIG_vasculature_irrad_example.py_162607/iter3/DataOutput/',
-        '20230705_lk001_Linux/CONFIG_vasculature_irrad_example.py_162607/iter4/DataOutput/',
-         ]
+paths = ['20230727_lk001_Linux/CONFIG_vasculature_irrad_example.py_160837/iter0/DataOutput/',
+            '20230727_lk001_Linux/CONFIG_vasculature_irrad_example.py_160837/iter1/DataOutput/',
+            '20230727_lk001_Linux/CONFIG_vasculature_irrad_example.py_160837/iter2/DataOutput/',
+            '20230727_lk001_Linux/CONFIG_vasculature_irrad_example.py_160837/iter3/DataOutput/',
+            '20230727_lk001_Linux/CONFIG_vasculature_irrad_example.py_160837/iter4/DataOutput/',
+            '20230727_lk001_Linux/CONFIG_vasculature_irrad_example.py_160837/iter5/DataOutput/'
+  ]
 
 
 
@@ -80,6 +75,7 @@ tumor_size_free_list = []
 number_vessels_list = []
 rates_list = []
 times_list = []
+
 
 for path in paths:
     number_cells = np.load(f'{path}number_tumor_cells.npy',allow_pickle=True)
@@ -128,7 +124,6 @@ for path in paths:
     number_vessels_list.append(number_vessels)
     rates_list.append(rates)
     times_list.append(times)
-
 
 # Fit the data to an exponential curve for each simulation and get the doubling time
 doubling_times_number_cells = []
@@ -258,7 +253,7 @@ if show_vessels:
         if len(param_to_plot) > 0:
             if param[i] not in param_to_plot:
                 continue
-        axes.plot(times_list[i], number_vessels_list[i], 'o', markersize=5, alpha=0.5, label=parameter+': '+str(param[i]))
+        axes.plot(times_list[i], number_vessels_list[i],'o', color = list_color[i], markersize=5, alpha=0.8, label=parameter+': '+str(param[i]))
     axes.set_title('Number of Vessels Evolution')
     axes.set_xlabel('Time')
     axes.set_ylabel('Number of Vessels')

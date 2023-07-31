@@ -11,7 +11,7 @@ tmin = 0  # Minimum time
 tmax = 5001 # Maximum time
 show_fits = 0  # Show the exponential fits
 fit = 'exp' #gompertz or exp
-show_necro = 0
+show_necro = 1
 show_quiet_cycling = 0
 show_vessels = True
 show_rates = False
@@ -20,7 +20,7 @@ rate_choice = 'volume' #volume or number
 local = 0
 param_to_plot = []
 
-repo = '20230725_lk001_Linux/CONFIG_vasculature_irrad_example.py_094116'
+repo = '20230727_lk001_Linux/CONFIG_vasculature_irrad_example.py_160837'
 repo = repo + '/'
 
 csv_file = ''
@@ -36,7 +36,7 @@ print(param_space)
 
 print(param_space.columns)
 print(param_space.columns[1])
-parameter = param_space.columns[1]
+parameter = param_space.columns[2]
 
 param = np.array(param_space[parameter])
 number_of_iterations = len(param_space['Iteration'])

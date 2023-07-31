@@ -65,6 +65,7 @@ class Cell:
         p += r
         if self.damage > 0:
             p += coeff_damage * self.damage
+        p = min(p, 1.0)
         return p
 
     def apoptosis_probability(self, proba0, threshold, coeff_damage):
@@ -73,6 +74,7 @@ class Cell:
             p += proba0
         if self.damage > 0:
             p += coeff_damage * self.damage
+        p = min(p, 1.0)
         return p
 
     def damage_repair(self, dt, repair_per_hour):
