@@ -318,6 +318,7 @@ class Simulator: #this class is used to run the whole simulation
 
             for i, process in enumerate(self.list_of_process):
                 execution_times[i].append(process.time_spent_doing_process)
+                process.time_spent_doing_process = 0
             plt.figure()
             for i, process in enumerate(self.list_of_process):
                 plt.plot(times, execution_times[i], label = process.name)
