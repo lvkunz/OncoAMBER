@@ -1,8 +1,8 @@
 half_length_world: 7.5 #mm
 voxel_per_side: 25
-dt: 5 #hours
-endtime: 4000 #hours
-seed: -1                           #seed for random number generator. -1 for random seed
+dt: 4 #hours
+endtime: 2000 #hours
+seed: 0                           #seed for random number generator. -1 for random seed
 running_on_cluster: False               #don't touch, the bash script changes it automatically
 
 #Initialisation
@@ -31,8 +31,8 @@ apoptosis_damage_coeff: 1.0            #rate of apoptosis due to damage
 
 # Parameters for the simulation
 max_occupancy: 0.68                     #max pressure at which cells can't enter a voxel through migration or other means
-vitality_cycling_threshold: 0.7         #threshold in vitality for cells to start cycling
-vitality_apoptosis_threshold: 0.7       #threshold in vitality for cells to start apoptosis. DO NOT SET TO 0
+vitality_cycling_threshold: 0.8         #threshold in vitality for cells to start cycling
+vitality_apoptosis_threshold: 0.8       #threshold in vitality for cells to start apoptosis. DO NOT SET TO 0
 vitality_necrosis_threshold: 0.1        #threshold in vitality for cells to start necrosis
 probability_apoptosis: 0.02             #probability of apoptosis under the threshold. you can set it to 0
 probability_necrosis: 0.03              #probability of necrosis under the threshold
@@ -63,16 +63,18 @@ growth_step_stop_threshold: 0.03 #mm    #threshold for step size for vasculature
 vessel_time_to_maturity: 24 #hours      #time for a vessel to mature
 maturity_new_vessels: 0.7               #maturity of new vessels
 new_vessels_per_hour: 0.0002            #number of new vessels per hour*mm3
-file_prefix_alpha_beta_maps: newfunction #prefix for the alpha and beta maps
+file_prefix_alpha_beta_maps: newfunction       #prefix for the alpha and beta maps (save is sigmoid, newfunction is quadratic)
+metabolic_damage_threshold: 0.5         #threshold in damage for metabolism to be non-zero
+
 # Graphics parameters
 show_time_steps: True                   #if True, show the time during the simulation
 show_final: False                       #if True, show the final state of the simulation
 show_slices: True                       #if True, show a slice of the tumor during the simulation
 slice: x                                #what direction to slice the tumor (x or z
-show_o2_vitality_histograms: True       #if True, show a histogram of capillaries and vitality during the simulation
+show_o2_vitality_histograms: False       #if True, show a histogram of capillaries and vitality during the simulation
 show_tumor_and_vessels_3D: True         #if True, show the vasculature in 3D during the simulation with tumor cells
 visible_original_vessels: True         #if True, show the original vasculature in 3D during the simulation
-show_alpha_beta_maps: True             #if True, show the distribution of the parameters beta and gamma
+show_alpha_beta_maps: False             #if True, show the distribution of the parameters beta and gamma
 show_cell_and_tumor_volume: True        #if True, show the volume of tumor cells and healthy cells during the simulation
 verbose: False
 show_angiogenesis_metrics: True         #if True, show the metrics for angiogenesis
