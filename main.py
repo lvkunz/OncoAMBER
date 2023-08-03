@@ -49,12 +49,12 @@ if config.new_world:
 
     #add cells to the voxels (tumor cells)
     points = amber.Sphere(config.tumor_initial_radius, [0, 0, 0]).generate_random_points(config.initial_number_tumor_cells)
-    factor = [1, 1.5, 0.5]
+    factor = [1]
     for i, point in enumerate(points):
-        doubling = factor[random.randint(0, len(factor) - 1)] * config.doubling_time_tumor
-        radio_sensitivity = factor[random.randint(0, len(factor) - 1)] * config.intra_radiosensitivity
         if i % 10000 == 0: print('Adding tumor cells ', i, ' out of ', config.initial_number_tumor_cells)
         voxel = world.find_voxel(point)
+        doubling = factor[random.randint(0, len(factor) - 1)] * config.doubling_time_tumor
+        radio_sensitivity = factor[random.randint(0, len(factor) - 1)] * config.intra_radiosensitivity
         voxel.add_cell(amber.TumorCell(config.radius_tumor_cells,
                                        cycle_hours=doubling,
                                        cycle_std=config.doubling_time_sd,
@@ -79,7 +79,7 @@ if config.new_world:
     print('Area of vasculature: ', 10*(world.measure_vasculature_area()/(world.half_length*2)**3), 'mm^2/mm^3')
     world.update_capillaries(n_capillaries_per_VVD=config.n_capillaries_per_VVD, capillary_length=config.capillary_length)
 
-    world.save(str(config.world_file) + str(config.seed) + '.pkl')
+    # world.save(str(config.world_file) + str(config.seed) + '.pkl')
 
 else:
     world = amber.load(str(config.world_file)+'.pkl')
@@ -107,14 +107,17 @@ celldeath = amber.CellDeath(config, 'cell_death', dt,
                                         apoptosis_probability=config.probability_apoptosis,
                                         necrosis_threshold=config.vitality_necrosis_threshold,
                                         necrosis_probability=config.probability_necrosis,
-                                        necrosis_removal_probability=config.probability_necrosis_removal)
+                                        necrosis_removal_probability=config.probability_necrosis_removal,
+                                        necrosis_damage_coeff=config.necrosis_damage_coeff,
+                                        apoptosis_damage_coeff=config.apoptosis_damage_coeff)
 
-cellaging = amber.CellAging(config, 'cell_aging', dt)
+cellaging = amber.CellAging(config, 'cell_aging', dt, repair_per_hour=config.repair_per_hour)
 
 cellmigration = amber.CellMigration(config, 'cell_migration', dt)
 
 update_cell_state = amber.UpdateCellOxygen(config, 'update_cell_state', dt,
-                                        voxel_half_length=(config.half_length_world/config.voxel_per_side))
+                                        voxel_half_length=(config.half_length_world/config.voxel_per_side),
+                                        file_prefix_alpha_beta_maps=config.file_prefix_alpha_beta_maps)
 
 update_molecules = amber.UpdateVoxelMolecules(config, 'update_molecules', dt)
 
@@ -151,6 +154,6 @@ print('simulation time: ', simulation_end - simulation_start, ' seconds')
 print('total time: ', time.time() - start_time, ' seconds')
 
 
-world.save('final' + str(config.world_file) + str(config.seed) + '.pkl')
+# world.save('final' + str(config.world_file) + str(config.seed) + '.pkl')
 if config.show_3D_mesh:
     amber.show_tumor_3D_solid(world, 0)

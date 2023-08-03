@@ -47,14 +47,14 @@ amber.World(-)
 amber.Cell(-)
 amber.Voxel(-)
 amber.Vessel(-)
-amber.VesselNetwork(-)
+amber.VasculatureNetwork(-)
 amber.Simulator(-)
 etc
 ```
 
 ## Running the example locally
 
-The example.py file is explained in further details in the Tutorial.ipnyb notebook.
+The main.py file is explained in further details in the Tutorial.ipnyb notebook.
 However, you need to know that amber needs a CONFIG file to be run. This file contains all the parameters needed to run the simulation.
 
 you need to use the following terminal command to run the example:

@@ -7,8 +7,6 @@ import pandas as pd
 from PIL import Image
 import amber
 
-
-
 def create_gif(image_dir, output_path, image_suffix, image_step=1):
     images = []
     t = 0

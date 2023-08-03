@@ -233,7 +233,7 @@ class Simulator: #this class is used to run the whole simulation
         process_global = [process for process in self.list_of_process if process.is_global] #list of global processes
 
         #create an array of execution times for each process (local and global)
-        execution_times = [[] for _ in range(len(self.list_of_process))]
+        execution_times = [[] for _ in range(len(self.list_of_process))] #list of execution times for each process (local and global)
 
         irradiations_times = [self.config.first_irradiation_time + i * self.config.time_between_fractions for i in
                               range(self.config.number_fractions)] #list of irradiation times
@@ -306,7 +306,7 @@ class Simulator: #this class is used to run the whole simulation
             np.save('DataOutput/center_of_mass.npy', center_of_mass)
             np.save('DataOutput/times.npy', times)
 
-            if self.time % self.config.save_world_every == 0:
+            if self.time % self.config.save_world_every == 0 and self.time != 0:
                 world.save('t'+str(self.time)+str(self.config.world_file) + str(self.config.seed) + '.pkl')
 
             if self.config.show_cell_and_tumor_volume:
@@ -319,6 +319,8 @@ class Simulator: #this class is used to run the whole simulation
             for i, process in enumerate(self.list_of_process):
                 execution_times[i].append(process.time_spent_doing_process)
                 process.time_spent_doing_process = 0
+
+            #print('Time spent doing processes:', execution_times)
             plt.figure()
             for i, process in enumerate(self.list_of_process):
                 plt.plot(times, execution_times[i], label = process.name)
@@ -350,7 +352,7 @@ class Process: #abstract class, represents all the processes that can happen in 
     def __call__(self, voxel):
         pass
 
-    @classmethod
+    @classmethod #decorator to measure the time spent doing a process
     def timeit(cls, process_func):
         def wrapped_process(self, voxel):
             start_time = current_time()
@@ -401,6 +403,7 @@ class CellDeath(Process): #cell necrosis process, cells die in a voxel if they h
     def __call__(self, voxel):
         for cell in voxel.list_of_cells:
             sample = np.random.uniform(0, 1)
+            #probability of necrosis and apoptosis. use math to get sampling every hour
             p_necro = (1 - ((1-cell.necrosis_probability(self.necrosis_probability,self.necrosis_threshold, self.necrosis_damage_coeff))**self.dt))
             p_apopt = (1 - ((1-cell.apoptosis_probability(self.apoptosis_probability, self.apoptosis_threshold, self.apoptosis_damage_coeff))**self.dt))
             if self.config.verbose: print('probability necro:', p_necro, 'probability apopto:', p_apopt)
@@ -414,11 +417,10 @@ class CellDeath(Process): #cell necrosis process, cells die in a voxel if they h
             elif sample < p_necro + p_apopt:
                 #apoptosis
                 voxel.remove_cell(cell)
-        for necro in voxel.list_of_necrotic_cells:
+        for necro in voxel.list_of_necrotic_cells: #remove necrotic cells with a certain probability
             proba = (1 - ((1-self.necrosis_removal_probability)**self.dt))
             if random.random() < proba:
                 voxel.remove_necrotic_cell(necro)
-
 
 class CellAging(Process): #cell aging process, cells age in a voxel
     def __init__(self, config, name, dt, repair_per_hour):
@@ -428,22 +430,13 @@ class CellAging(Process): #cell aging process, cells age in a voxel
     @Process.timeit
     def __call__(self, voxel):
         for cell in voxel.list_of_cells:
-            if cell.time_before_death is not None:
-                cell.time_before_death -= self.dt
-                if cell.time_before_death < 0:
-                    voxel.remove_cell(cell)
 
-            if cell.is_cycling(self.config.vitality_cycling_threshold, 0.0):
+            if cell.is_cycling(self.config.vitality_cycling_threshold, 0.0): #cell aging towards duplication
                 cell.time_spent_cycling += self.dt
 
-            if cell.damage > 0:
+            if cell.damage > 0: #cell being repaired
                 cell.damage_repair(self.dt, self.repair_per_hour)
 
-        for n_cell in voxel.list_of_necrotic_cells:
-            if n_cell.time_before_death is not None:
-                n_cell.time_before_death -= self.dt
-                if n_cell.time_before_death < 0:
-                    voxel.remove_necrotic_cell(n_cell)
         pass
 
 class CellInteraction(Process):
@@ -453,15 +446,16 @@ class CellInteraction(Process):
         self.dt = dt
 
     @Process.timeit
-    def __call__(self, voxel):
+    def __call__(self, voxel): #cell interaction process, cells interact in a voxel
         matrix = voxel.compute_cell_interaction_matrix(self.dt)
         number_cells = len(voxel.list_of_cells)
         #find non zero elements of the sparse matrix
         idd = matrix.nonzero()
         for i in range(len(idd[0])):
-            cell1 = voxel.list_of_cells[idd[0][i]]
-            cell2 = voxel.list_of_cells[idd[1][i]]
-            cell1.interact(cell2, self.dt)
+            if np.random.random() < matrix[idd[0][i], idd[1][i]]:
+                cell1 = voxel.list_of_cells[idd[0][i]]
+                cell2 = voxel.list_of_cells[idd[1][i]]
+                cell1.interact(cell2, self.dt) #do the interaction between the two cells
 
 class CellMigration(Process): #cell migration process, cells migrate in the world
     def __init__(self, config, name, dt):
@@ -469,7 +463,7 @@ class CellMigration(Process): #cell migration process, cells migrate in the worl
         self.is_global = True #run on the whole world, after the other processes
     @Process.timeit
     def __call__(self, world: World):
-        exchange_matrix = world.compute_exchange_matrix(self.dt)
+        exchange_matrix = world.compute_exchange_matrix(self.dt) #compute the exchange matrix for the time step
         for voxel in world.voxel_list:
             voxel_num = voxel.voxel_number
             if voxel_num % 10000 == 0: print('voxel number = ', voxel_num)
@@ -479,8 +473,8 @@ class CellMigration(Process): #cell migration process, cells migrate in the worl
                 n_events = exchange_matrix[voxel_num, neighbor.voxel_number] #number of expected events in the time step
                 n_moving_cells = np.random.poisson(n_events)
                 n_moving_cells = min(n_moving_cells, int(round(len(voxel.list_of_cells))))
-                list_of_moving_cells = np.random.choice(voxel.list_of_cells, n_moving_cells, replace=False)
-                for cell in list_of_moving_cells:
+                list_of_moving_cells = np.random.choice(voxel.list_of_cells, n_moving_cells, replace=False) #choose the cells to move randomly
+                for cell in list_of_moving_cells: #move the cells
                     if neighbor.add_cell(cell, self.config.max_occupancy):
                         voxel.remove_cell(cell)
 
@@ -490,6 +484,7 @@ class UpdateCellOxygen(Process):
         super().__init__(config, 'UpdateState', dt)
         self.voxel_side = int(voxel_half_length*20) #um/100
 
+        #read alpha and beta maps from csv files
         amber_dir = os.path.abspath(os.path.dirname(__file__))
         alpha_file_name = str(file_prefix_alpha_beta_maps) + '_alpha_dataframe'+str(self.voxel_side)+'.csv'
         beta_file_name = str(file_prefix_alpha_beta_maps) + '_beta_dataframe'+str(self.voxel_side)+'.csv'
@@ -504,7 +499,7 @@ class UpdateCellOxygen(Process):
 
         alpha_dataframe = pd.read_csv(alpha_file_name, index_col=0)
         beta_dataframe = pd.read_csv(beta_file_name, index_col=0)
-        # Read the saved dataframes from the CSV files
+
         pressure_column = alpha_dataframe.index.values
         n_column = alpha_dataframe.columns.values.astype(float)
 
@@ -556,10 +551,10 @@ class UpdateCellOxygen(Process):
         n_cells = voxel.number_of_alive_cells()
         pressure = voxel.pressure()
         if n_vessels == 0:
-            o2_values = np.zeros(n_cells)
+            o2_values = np.zeros(n_cells) #if there are no vessels, all cells have 0 oxygen
 
         elif n_vessels > 100:
-            o2_values = np.ones(n_cells)
+            o2_values = np.ones(n_cells) #if there are too many vessels, all cells have 1 oxygen
 
         else:
             alpha_ = self.alpha_map.evaluate((pressure, n_vessels))
@@ -569,21 +564,21 @@ class UpdateCellOxygen(Process):
                 print('pressure', pressure, 'n_vessels', n_vessels)
                 print('alpha_', alpha_, 'beta_', beta_)
 
-            o2_values = np.random.beta(alpha_, beta_, size=n_cells)
+            o2_values = np.random.beta(alpha_, beta_, size=n_cells) #sample from beta distribution
         for i in range(n_cells):
             voxel.list_of_cells[i].oxygen = o2_values[i]
 class UpdateVoxelMolecules(Process): #update the molecules in the voxel (VEGF), other not implemented yet
     def __init__(self, config, name, dt):
         super().__init__(config, 'UpdateMolecules', dt)
 
-    def update_VEGF(self, voxel: Voxel):
+    def update_VEGF(self, voxel: Voxel): #update the VEGF concentration in the voxel
         VEGF = 0.0
-        for cell in voxel.list_of_cells:
+        for cell in voxel.list_of_cells: #sum the VEGF secreted by each cell. Oxygen and and damage play a role in the secretion
             VEGF += cell.VEGF_secretion(self.config.metabolic_damage_threshold)
         VEGF = min(VEGF, 1.0)
         voxel.molecular_factors['VEGF'] = VEGF
         return
-    def update_fiber_density(self, voxel: Voxel):
+    def update_fiber_density(self, voxel: Voxel): #update the fiber density in the voxel
         fiber_density = 0.0
         for cell in voxel.list_of_cells:
             fiber_density += cell.fiber_secretion
@@ -593,7 +588,7 @@ class UpdateVoxelMolecules(Process): #update the molecules in the voxel (VEGF), 
 
     @Process.timeit
     def __call__(self, voxel: Voxel):
-        self.update_VEGF(voxel)
+        self.update_VEGF(voxel) #update the VEGF concentration
         # self.update_fiber_density(voxel)
         return
 class UpdateVasculature(Process): #update the vasculature
@@ -615,40 +610,34 @@ class UpdateVasculature(Process): #update the vasculature
     @Process.timeit
     def __call__(self, world: World):
         #print in separate thread
-        n_killed = world.vessels_killed(self.killing_radius_threshold)
+        n_killed = world.vessels_killed(self.killing_radius_threshold) #kill vessels that have a radius smaller than the threshold
 
-        for vessel in world.vasculature.list_of_vessels:
-            # if vessel.time_before_death is not None:
-            #     vessel.time_before_death -= self.dt
-            #     if vessel.time_before_death < 0:
-            #         world.vasculature.kill_vessel(vessel.id)
+        for vessel in world.vasculature.list_of_vessels: #update the maturity of the vessels
             if vessel.maturity < 1.0:
                 vessel.maturity += self.dt / self.config.vessel_time_to_maturity
                 vessel.maturity = min(vessel.maturity, 1.0)
 
         print('Killed vessels: ', n_killed)
         print('Growing vessels')
-        total_VEGF = 0
-        for voxel in world.voxel_list:
-            total_VEGF += voxel.molecular_factors['VEGF']
-        print('Total VEGF: ', total_VEGF)
+
         vessels = world.vasculature.list_of_vessels
         volume_world = 8*world.half_length**3
         n_new_vessels = int(self.config.new_vessels_per_hour * self.dt * volume_world)
-        n_new_vessels = min(n_new_vessels, len(vessels))
-        vegf = world.vegf_map(step_gradient= self.config.vegf_map_step_gradient)
-        def vegf_gradient(point): return vegf.gradient(point)
+        n_new_vessels = min(n_new_vessels, len(vessels)) #the number of new vessels cannot be larger than the number of existing vessels
+        vegf = world.vegf_map(step_gradient= self.config.vegf_map_step_gradient) #compute the gradient of the VEGF map
+        def vegf_gradient(point): return vegf.gradient(point) #define the gradient of the VEGF map
 
-        for _ in range(n_new_vessels):
+        for _ in range(n_new_vessels): #create a tEC on some vessels randomly
             random_vessel = random.choice(vessels)
             if len(random_vessel.path) > 2:
                 point = random_vessel.choose_random_point(self.config.seed)
-                if np.linalg.norm(vegf_gradient(point)) > self.config.vegf_gradient_threshold:
+                if np.linalg.norm(vegf_gradient(point)) > self.config.vegf_gradient_threshold: #if the gradient of the VEGF map is large enough, tEC starts growing
                     world.vasculature.branching(random_vessel.id, point)
 
+        #grow the vessels and update the volume occupied by the vessels
         world.vasculature_growth(self.dt, self.splitting_rate, self.macro_steps, self.micro_steps, self.weight_direction, self.weight_vegf, self.weight_pressure, self.radius_pressure_sensitive)
         world.update_volume_occupied_by_vessels()
-        # world.vasculature.print_vessel_tree()
+        #update the capillary map
         world.update_capillaries(n_capillaries_per_VVD= self.n_capillaries_per_VVD, capillary_length = self.capillary_length)
 
 class Irradiation(Process): #irradiation
@@ -659,16 +648,17 @@ class Irradiation(Process): #irradiation
 
         #check if the file exists
         if not os.path.isfile(topas_file + '.csv'):
+            #if it does not exist, run the simulation
             print('Running Topas simulation')
             print('Topas file: ', topas_file)
             file_with_geom = world.topas_param_file(topas_file)
             print('Topas param file: ', file_with_geom)
             term.RunTopasSimulation(file_with_geom, cluster=self.config.running_on_cluster)
-            # rename the file
-
             os.rename('MyScorer.csv', topas_file + '.csv')
+
+        #read the dose from the file
         _, self.doses = rw.DoseOnWorld(topas_file + '.csv')
-        world.update_dose(self.doses)
+        world.update_dose(self.doses) #update the dose on the world
 
         # plot the simulation
         fig, ax = plt.subplots(1, 1, figsize=(8, 6))
@@ -687,31 +677,15 @@ class Irradiation(Process): #irradiation
                 print('Scaled dose: ', scaled_dose)
                 for cell in voxel.list_of_cells:
                     #assume all cells get damaged the same way
-                    damage = scaled_dose * cell.radiosensitivity()
+                    damage = scaled_dose * cell.radiosensitivity() #compute the damage
                     cell.damage += damage
                     cell.damage = min(cell.damage, 1.0)
-
-
-            #     cell_probability = probability * cell.radiosensitivity()
-            #     print('Cell radiosensitivity: ', cell.radiosensitivity())
-            #     print('Cell oxygen: ', cell.oxygen)
-            #     print('Cell probability: ', cell_probability)
-            #     if random.random() < cell_probability:
-            #         if cell.time_before_death is None:
-            #             cell.time_before_death = random.lognormvariate(2, 1)
-            #             print('Cell time before death: ', cell.time_before_death)
-            #
-            # for n_cell in voxel.list_of_necrotic_cells:
-            #     cell_probability_n = probability * n_cell.radiosensitivity()
-            #     if random.random() < cell_probability_n:
-            #         if n_cell.time_before_death is None:
-            #             n_cell.time_before_death = random.lognormvariate(2, 1)
 
         for vessel in world.vasculature.list_of_vessels:
             path = vessel.path
             total_dose = 0
 
-            for point in path:
+            for point in path: #compute the mean dose on the vessel
                 current_voxel = world.find_voxel_number(point)
                 total_dose += world.voxel_list[current_voxel].dose
 
