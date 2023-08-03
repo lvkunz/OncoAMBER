@@ -13,6 +13,7 @@ class Simulator: #this class is used to run the whole simulation
 
     def __init__(self, config, list_of_process : list, finish_time, dt):
         self.list_of_process = list_of_process
+        self.list_of_process_names = [process.name for process in list_of_process]
         self.finish_time = finish_time
         self.dt = dt
         self.time = 0
@@ -24,7 +25,7 @@ class Simulator: #this class is used to run the whole simulation
         if not os.path.exists('Plots/'):
             os.makedirs('Plots/')
 
-    def show_center_of_mass(self, center_of_mass, times):
+    def show_center_of_mass(self, center_of_mass, times): #3D plot of the center of mass
         #3D plot of the center of mass
         #set dpi to 300 for high quality
         size = self.config.half_length_world
@@ -43,12 +44,12 @@ class Simulator: #this class is used to run the whole simulation
         ax.set_title('Center of mass path')
         ax.legend()
         plt.savefig('Plots/Center_of_mass.png', dpi=100)
-        if self.config.running_on_cluster:
+        if self.config.running_on_cluster: #if running on cluster, save plot to file and do not show
             plt.close()
         else:
             plt.show()
 
-    def show_cell_and_tumor_volume(self, number_tumor_cells, number_necrotic_cells, number_quiescent_cells, number_cycling_cells, tumor_size, tumor_size_free, number_vessels, times):
+    def show_cell_and_tumor_volume(self, number_tumor_cells, number_necrotic_cells, number_quiescent_cells, number_cycling_cells, tumor_size, tumor_size_free, number_vessels, times): #plot the number of cells and tumor volume
         # plot number of cells evolution
         fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(8, 12))
         #change font size
@@ -97,12 +98,12 @@ class Simulator: #this class is used to run the whole simulation
 
         size = world.half_length
 
-        if self.config.show_angiogenesis_metrics:
+        if self.config.show_angiogenesis_metrics: #if angiogenesis metrics are to be shown, show them
             print('Showing angiogenesis metrics')
             world.show_angiogenesis_metrics(t, self.config.true_vasculature)
 
-            # fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(40, 20))
             #
+            # fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(40, 20))
             # axes[0].set_xlim(-size, size)
             # axes[0].set_ylim(-size, size)
             # world.show_tumor_slice(axes[0], fig, 'vessel_length_density', levels= np.linspace(0, 200, 20), refinement_level=3, cmap='jet')
@@ -223,27 +224,32 @@ class Simulator: #this class is used to run the whole simulation
             else:
                 plt.show()
 
-
         end = current_time()
         print('Time elapsed for showing graphs: ' + str(end - start) + ' seconds')
-    def run(self, world: World, video=False):
+    def run(self, world: World, video=False): #run the simulation! (the main function)
+
         print(f'Running simulation for {self.finish_time} hours with dt={self.dt}')
-        process_local = [process for process in self.list_of_process if not process.is_global]
-        process_global = [process for process in self.list_of_process if process.is_global]
+        process_local = [process for process in self.list_of_process if not process.is_global] #list of local processes
+        process_global = [process for process in self.list_of_process if process.is_global] #list of global processes
+
+        #create an array of execution times for each process (local and global)
+        execution_times = [[] for _ in range(len(self.list_of_process))]
 
         irradiations_times = [self.config.first_irradiation_time + i * self.config.time_between_fractions for i in
-                              range(self.config.number_fractions)]
-        applied_fractions = 0
+                              range(self.config.number_fractions)] #list of irradiation times
+        applied_fractions = 0 #number of applied fractions
 
         number_cycling_cells = []; number_quiescent_cells = []; number_necrotic_cells = [];
         tumor_size = []; tumor_size_free = []; times = []; number_tumor_cells = []; number_vessels = [];
         center_of_mass = []
 
-        while self.time < self.finish_time:
+        while self.time < self.finish_time: #while the simulation is running
             print(f'\033[1;31;47mTime: {self.time} hours / {self.finish_time} hours\033[0m')
+            #show the simulation
             if video:
-                self.show(world, self.time)
+                self.show(world, self.time) #show the simulation
 
+            #do irradiation if needed
             if applied_fractions < self.config.number_fractions and self.time >= irradiations_times[applied_fractions]:
                 irrad = Irradiation(self.config, 'irrad', self.dt, self.config.topas_file, self.config.first_irradiation_time,
                                     self.config.irradiation_intensity, world)
@@ -254,10 +260,10 @@ class Simulator: #this class is used to run the whole simulation
             start = current_time()
             for voxel in world.voxel_list:
                 for process in process_local:
-                    process(voxel)
+                    process(voxel) #run local processes on each voxel
             end = current_time()
             print('Time for locals processes:', end - start)
-            for process in process_global:
+            for process in process_global: #run global processes on the whole world
                 print('Currently running global process:', process.name)
                 start = current_time()
                 process(world)
@@ -267,7 +273,8 @@ class Simulator: #this class is used to run the whole simulation
             cycling_cells = 0
             quiescent_cells = 0
             necrotic_cells = 0
-            for voxel in world.voxel_list:
+            start = current_time()
+            for voxel in world.voxel_list: #count the number of cells in each state
                 necrotic_cells += voxel.number_of_necrotic_cells()
                 for cell in voxel.list_of_cells:
                     if cell.type == 'TumorCell':
@@ -275,6 +282,8 @@ class Simulator: #this class is used to run the whole simulation
                             cycling_cells += 1
                         else:
                             quiescent_cells += 1
+            end = current_time()
+            print('Time for counting cells:', end - start)
 
             number_cycling_cells.append(cycling_cells)
             number_quiescent_cells.append(quiescent_cells)
@@ -307,6 +316,21 @@ class Simulator: #this class is used to run the whole simulation
             if self.config.show_center_of_mass:
                 self.show_center_of_mass(center_of_mass, times)
 
+            for i, process in enumerate(self.list_of_process):
+                execution_times[i].append(process.time_spent_doing_process)
+            plt.figure()
+            for i, process in enumerate(self.list_of_process):
+                plt.plot(times, execution_times[i], label = process.name)
+            plt.legend()
+            plt.xlabel('Time (hours)')
+            plt.ylabel('Time spent doing process (s)')
+            plt.yscale('log')
+            plt.grid()
+            plt.savefig('Plots/execution_times.png')
+            plt.close()
+
+
+
         print('Simulation finished')
 
         if self.config.show_final:
@@ -314,13 +338,27 @@ class Simulator: #this class is used to run the whole simulation
         return
 
 class Process: #abstract class, represents all the processes that can happen in the simulation
+
+    time_spent_doing_process = 0
     def __init__(self, config, name, dt):
         self.name = name
         self.dt = dt
         self.is_global = False
         self.config = config
+
     def __call__(self, voxel):
         pass
+
+    @classmethod
+    def timeit(cls, process_func):
+        def wrapped_process(self, voxel):
+            start_time = current_time()
+            result = process_func(self, voxel)
+            end_time = current_time()
+            elapsed_time = end_time - start_time
+            self.time_spent_doing_process += elapsed_time
+            return result
+        return wrapped_process
 
 
 class CellDivision(Process): #cell division process, cells divide in a voxel if they have enough vitality
@@ -330,6 +368,7 @@ class CellDivision(Process): #cell division process, cells divide in a voxel if 
         self.cycling_threshold = cycling_threshold
         self.pressure_threshold = pressure_threshold
 
+    @Process.timeit
     def __call__(self, voxel):
         if len(voxel.list_of_cells) > 0:
             for cell in voxel.list_of_cells:
@@ -357,7 +396,7 @@ class CellDeath(Process): #cell necrosis process, cells die in a voxel if they h
         self.necrosis_removal_probability = necrosis_removal_probability
 
 
-
+    @Process.timeit
     def __call__(self, voxel):
         for cell in voxel.list_of_cells:
             sample = np.random.uniform(0, 1)
@@ -384,6 +423,8 @@ class CellAging(Process): #cell aging process, cells age in a voxel
     def __init__(self, config, name, dt, repair_per_hour):
         super().__init__(config,'CellAging', dt)
         self.repair_per_hour = repair_per_hour
+
+    @Process.timeit
     def __call__(self, voxel):
         for cell in voxel.list_of_cells:
             if cell.time_before_death is not None:
@@ -410,6 +451,7 @@ class CellInteraction(Process):
         super().__init__(config, 'CellInteraction', dt)
         self.dt = dt
 
+    @Process.timeit
     def __call__(self, voxel):
         matrix = voxel.compute_cell_interaction_matrix(self.dt)
         number_cells = len(voxel.list_of_cells)
@@ -424,7 +466,7 @@ class CellMigration(Process): #cell migration process, cells migrate in the worl
     def __init__(self, config, name, dt):
         super().__init__(config, 'CellMigration', dt)
         self.is_global = True #run on the whole world, after the other processes
-
+    @Process.timeit
     def __call__(self, world: World):
         exchange_matrix = world.compute_exchange_matrix(self.dt)
         for voxel in world.voxel_list:
@@ -443,19 +485,20 @@ class CellMigration(Process): #cell migration process, cells migrate in the worl
 
 
 class UpdateCellOxygen(Process):
-    def __init__(self, config, name, dt, voxel_half_length):
+    def __init__(self, config, name, dt, voxel_half_length, file_prefix_alpha_beta_maps):
         super().__init__(config, 'UpdateState', dt)
         self.voxel_side = int(voxel_half_length*20) #um/100
 
         amber_dir = os.path.abspath(os.path.dirname(__file__))
-
-        alpha_file_name = 'save_alpha_dataframe' + str(self.voxel_side) + '.csv'
-        beta_file_name = 'save_beta_dataframe' + str(self.voxel_side) + '.csv'
+        alpha_file_name = str(file_prefix_alpha_beta_maps) + '_alpha_dataframe'+str(self.voxel_side)+'.csv'
+        beta_file_name = str(file_prefix_alpha_beta_maps) + '_beta_dataframe'+str(self.voxel_side)+'.csv'
         alpha_file_name = os.path.join(amber_dir, alpha_file_name)
         beta_file_name = os.path.join(amber_dir, beta_file_name)
 
         if not os.path.isfile(alpha_file_name) or not os.path.isfile(beta_file_name):
             print('voxel side', self.voxel_side)
+            print('alpha file name is ', alpha_file_name)
+            print('beta file name is ', beta_file_name)
             raise ValueError('alpha/beta file not found! It might be in the wrong directory or information for chosen voxel size is not stored. Check "BetaDistributionCalibration.py" to generate the file for the chosen voxel size.')
 
         alpha_dataframe = pd.read_csv(alpha_file_name, index_col=0)
@@ -505,7 +548,7 @@ class UpdateCellOxygen(Process):
                 plt.close()
             else:
                 plt.show()
-
+    @Process.timeit
     def __call__(self, voxel: Voxel):
 
         n_vessels = voxel.n_capillaries
@@ -535,7 +578,7 @@ class UpdateVoxelMolecules(Process): #update the molecules in the voxel (VEGF), 
     def update_VEGF(self, voxel: Voxel):
         VEGF = 0.0
         for cell in voxel.list_of_cells:
-            VEGF += cell.VEGF_secretion()
+            VEGF += cell.VEGF_secretion(self.config.metabolic_damage_threshold)
         VEGF = min(VEGF, 1.0)
         voxel.molecular_factors['VEGF'] = VEGF
         return
@@ -546,6 +589,8 @@ class UpdateVoxelMolecules(Process): #update the molecules in the voxel (VEGF), 
         fiber_density = min(fiber_density, 1.0)
         voxel.molecular_factors['fiber_density'] = fiber_density
         return
+
+    @Process.timeit
     def __call__(self, voxel: Voxel):
         self.update_VEGF(voxel)
         # self.update_fiber_density(voxel)
@@ -566,16 +611,16 @@ class UpdateVasculature(Process): #update the vasculature
         self.weight_pressure = weight_pressure
         self.radius_pressure_sensitive = radius_pressure_sensitive
 
-
+    @Process.timeit
     def __call__(self, world: World):
         #print in separate thread
         n_killed = world.vessels_killed(self.killing_radius_threshold)
 
         for vessel in world.vasculature.list_of_vessels:
-            if vessel.time_before_death is not None:
-                vessel.time_before_death -= self.dt
-                if vessel.time_before_death < 0:
-                    world.vasculature.kill_vessel(vessel.id)
+            # if vessel.time_before_death is not None:
+            #     vessel.time_before_death -= self.dt
+            #     if vessel.time_before_death < 0:
+            #         world.vasculature.kill_vessel(vessel.id)
             if vessel.maturity < 1.0:
                 vessel.maturity += self.dt / self.config.vessel_time_to_maturity
                 vessel.maturity = min(vessel.maturity, 1.0)
@@ -633,6 +678,7 @@ class Irradiation(Process): #irradiation
             plt.close()
         else:
             plt.show()
+    @Process.timeit
     def __call__(self, world: World):
         for voxel in world.voxel_list:
             scaled_dose = self.doses[voxel.voxel_number]*self.irradiation_intensity

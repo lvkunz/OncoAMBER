@@ -33,11 +33,11 @@ def create_gif(image_dir, output_path, image_suffix, image_step=1):
         print("No images found to create the GIF.")
 
 
-local = False
+local = True
 repo = '20230705_lk001_Linux/CONFIG_vasculature_irrad_single_example.py_162736'
 
 iter = [3]
-image_step = 4
+image_step = 5
 
 
 csv_file = ''
@@ -56,7 +56,7 @@ paths = [f'{repo}/iter{i}/DataOutput/' for i in range(0, number_of_iterations)]
 print(paths)
 
 
-if local: paths = ['DataOutput/']
+if local: paths = ['']
 
 
 for i in iter:

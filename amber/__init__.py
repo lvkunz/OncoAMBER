@@ -1,4 +1,4 @@
-__version__ = '1.6.2'
+__version__ = '1.6.3' #the version of the package
 from .config import *
 from .ReadAndWrite import *
 from .config import Config

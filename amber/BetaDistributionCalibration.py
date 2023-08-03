@@ -1,18 +1,17 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import beta
-from scipy.stats import alpha as alpha_dist
-from scipy.stats import betaprime
 import pandas as pd
-import seaborn as sns
 
+#file for running subsimulations of oxygen distribution. Not executed in the main script.
+#based on Espinoza 2013. doi: 10.1118/1.4812431
 class Vessel_:
     def __init__(self, origin, radius, length):
         self.origin = (origin[0], origin[1], 0)
         self.end = (origin[0], origin[1], length)
         self.radius = radius
 
-    def closest_distance(self, point):
+    def closest_distance(self, point): # computes closest distance between a point and a vessel
 
         # Compute the direction vector of the vessel segment
         vessel_dir = (self.end[0] - self.origin[0], self.end[1] - self.origin[1], self.end[2] - self.origin[2])
@@ -37,53 +36,41 @@ class Vessel_:
         return distance
 
 
-def run_calibration(side = 6, a = -7, b = 1, max_n = 100):
+def run_calibration(side = 6, a = -7, b = 1, max_n = 100): #side is the length of the cube, a and b are the parameters of the sigmoid function, max_n is the maximum number of capillaries to be simulated
 
-    radius = 0.1
-    R0 = b
+    radius = 0.1 #radius of capillaries, useless. In place if needed in the future
+    R0 = b       #oxygen diffusion limit for square function
 
-    def sigmoid(x, a=1, b=0.8):
+    def sigmoid(x, a=1, b=0.8): #sigmoid function
         return 1 / (1 + np.exp(-a*(x-b)))
 
-    def square(x, R = 1.0):
+    def square(x, R = 1.0): #quadratic function
         if x > R:
             return 0
         else:
             return (x/R - 1)**2
 
-    def model(n, A, B, C, D):
-        return A * np.exp(B * n) + C * n + D
-
-    alpha_values = []
-    beta_values = []
     all_n_values = []
     all_side_values = []
     all_pressure_values = []
 
     max = max_n + 1
     n_values = list(range(1, max, 1))
-    #start with n = 50
-    # n_values = [1,10,50,100]
 
-    for p in range(8):
-        pressure = 0.1 * p
+    for p in range(8): #loop over different pressures
+        pressure = 0.1 * p  # pressure is a number between 0 and 0.7 (0.7 is the max crowding for hard spheres piling)
+                            # pressure reduces oxygen diffusion limit
         pressure = round(pressure, 3)
         print('pressure', pressure)
-        for n_idx, n in enumerate(n_values):
+        for n_idx, n in enumerate(n_values): #loop over different number of capillaries in the cube
             print('n =', n)
             print('side =', side)
-            # sampler = qmc.Halton(2)
-            multiple_alpha_values = []
-            multiple_beta_values = []
             all_o2_values = []
-            for _ in range(50):
+            for _ in range(50): #number of iterations for each n and pressure (50 is enough to have a good estimate of the mean)
                 print('iteration', _)
 
-                # points_x = sampler.random(n)[:,0] * side #quasi random to have a distribution mimicking distance between vessels
-                # points_y = sampler.random(n)[:,1] * side
-                points_x = np.random.uniform(0, side, n) #pseudo random
+                points_x = np.random.uniform(0, side, n) #random. Best according to Espinoza 2013. doi: 10.1118/1.4812431
                 points_y = np.random.uniform(0, side, n)
-
 
                 vessels = []
                 for i in range(len(points_x)):
@@ -98,62 +85,32 @@ def run_calibration(side = 6, a = -7, b = 1, max_n = 100):
                     points.append(min(distances))
 
                 # o2_values = []
-                for point in points:
+                for point in points: #TODO: if function needs to be changed by sigmoid or other. Do it here.
                     # b_ = b*(1 - pressure)
                     R = R0*(1 - pressure)
                     o2 = square(point, R = R)
                     # o2_values.append(o2)
                     all_o2_values.append(o2)
 
-                # Fit a beta distribution to the data
-                # alpha, beta_param, _, _ = beta.fit(o2_values)
-                # print('alpha', alpha)
-                # print('beta', beta_param)
-                # multiple_alpha_values.append(alpha)
-                # multiple_beta_values.append(beta_param)
 
-                # r = np.random.beta(alpha, beta_param, 100000)
-                # # rbis = np.random.beta(modelled_alpha, modelled_beta, 5000)
-                # # #
-                # plt.figure()
-                # plt.hist(o2_values, bins=100, alpha=0.5, label='Data', color='blue', density=True)
-                # plt.hist(r, bins=100, alpha=0.5, label='Beta', color='red', density=True)
-                # # plt.hist(rbis, bins=100, alpha=0.5, label='Modelled Beta', color='green', density=True)
-                # # plt.plot(np.linspace(0, 1, 100), beta.pdf(np.linspace(0, 1, 100), alpha, beta_param))
-                # plt.title('n = ' + str(n) + ', side = ' + str(side) + ', pressure = ' + str(pressure))
-                # # plt.title('n = ' + str(n) + ', side = ' + str(side) + ', pressure = ' + str(pressure) + '\n fitted alpha = ' + str(round(alpha,4)) + ', fitted beta = ' + str(round(beta_param,4)))#+ ', modelled alpha ' + str(round(modelled_alpha,4)) + 'modelled beta ' + str(round(modelled_beta,4)), fontsize=8)
-                # plt.xlabel('O2')
-                # plt.ylabel('Frequency')
-                # plt.legend()
-                # plt.show()
 
-            # alpha_mean = np.mean(multiple_alpha_values)
-            # beta_param_mean = np.mean(multiple_beta_values)
+            #save and show outputs from here to end
             all_o2_values = np.array(all_o2_values)
             alpha_all, beta_param_all, _, _ = beta.fit(all_o2_values)
-            # alpha_all, beta_param_all, loc, scale = betaprime.fit(all_o2_values)
-            # r_all = beta.rvs(alpha_all, beta_param_all, size = 50000)
-            # # r_avg = beta.rvs(alpha_mean, beta_param_mean, size = 50000)
-            # plt.figure()
-            # plt.hist(all_o2_values, bins=100, alpha=0.5, label='Data', color='green', density=True)
-            # # plt.hist(r_avg, bins=100, alpha=0.5, label='Beta_avg', color='blue', density=True)
-            # plt.hist(r_all, bins=100, alpha=0.5, label='Beta_all', color='red', density=True)
-            # plt.title('n = ' + str(n) + ', side = ' + str(side) + ', pressure = ' + str(pressure))#+ '\n fitted alpha = ' + str(round(alpha_mean,4)) + ', fitted beta = ' + str(round(beta_param_mean,4)))#+ ', modelled alpha ' + str(round(modelled_alpha,4)) + 'modelled beta ' + str(round(modelled_beta,4)), fontsize=8)
-            # # plt.title('n = ' + str(n) + ', side = ' + str(side) + ', pressure = ' + str(
-            # #     pressure) + '\n fitted alpha = ' + str(round(alpha_all, 4)) + ', fitted beta = ' + str(round(beta_param_all,
-            # #                                                                                              4)))  # + ', modelled alpha ' + str(round(modelled_alpha,4)) + 'modelled beta ' + str(round(modelled_beta,4)), fontsize=8)
-            # plt.xlabel('O2')
-            # plt.ylabel('Frequency')
-            # plt.legend()
-            # plt.show()
 
+            r_all = beta.rvs(alpha_all, beta_param_all, size = 50000)
+            plt.figure()
+            plt.hist(all_o2_values, bins=100, alpha=0.5, label='Data', color='green', density=True)
+            plt.hist(r_all, bins=100, alpha=0.5, label='Beta_all', color='red', density=True)
+            plt.title('n = ' + str(n) + ', side = ' + str(side) + ', pressure = ' + str(pressure)+ '\n fitted alpha = ' + str(round(alpha_all,4)) + ', fitted beta = ' + str(round(beta_param_all,4)))
+            plt.xlabel('O2')
+            plt.ylabel('Frequency')
+            plt.legend()
+            plt.show()
 
+            print('alpha all', alpha_all)
+            print('beta all', beta_param_all)
 
-            # print('alpha mean', alpha_mean)
-            # print('beta mean', beta_param_mean)
-            # # # print('alpha all', alpha_all)
-            # # # print('beta all', beta_param_all)
-            # #
             alpha_values = np.append(alpha_values, alpha_all)
             beta_values = np.append(beta_values, beta_param_all)
             all_side_values = np.append(all_side_values, side)
@@ -175,9 +132,5 @@ def run_calibration(side = 6, a = -7, b = 1, max_n = 100):
     alpha_dataframe.to_csv('alpha_dataframe' + str(side) + '.csv')
     beta_dataframe.to_csv('beta_dataframe' + str(side) + '.csv')
 
-    sns.heatmap(alpha_dataframe, cmap='viridis')
-    plt.show()
 
-    sns.heatmap(beta_dataframe, cmap='viridis')
-    plt.show()
 

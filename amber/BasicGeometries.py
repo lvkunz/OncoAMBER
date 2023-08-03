@@ -1,5 +1,5 @@
 import numpy as np
-
+#file for basic geometries (sphere and cube)
 class Shape(object):
     def __init__(self, name: str = "Shape"):
         self.name = name
@@ -12,7 +12,7 @@ class Sphere(Shape):
         self.radius = radius
         self.center = center
         self.volume = 4/3 * np.pi * self.radius**3
-    def generate_random_points(self, n):
+    def generate_random_points(self, n): #returns n random points inside the sphere
         if n <= 0:
             return np.array([])
         # generate n random points within the tumor
@@ -30,7 +30,7 @@ class Sphere(Shape):
         points = points[:n]
         return points
 
-    def generate_random_points_on_surface(sphere, n):
+    def generate_random_points_on_surface(sphere, n):# returns n random points on the surface of the sphere
         points = []
         for i in range(n):
             # generate a random point on a unit sphere
@@ -52,7 +52,7 @@ class Cube(Shape):
         self.side = 2*half_side
         self.center = center
         self.volume = self.side**3
-    def generate_random_points(self, n):
+    def generate_random_points(self, n): #returns n random points inside the cube
         # generate n random points within the cube
         # the points are generated in a cube of side side
         points = np.random.uniform(-self.half_side, self.half_side, (n, 3))

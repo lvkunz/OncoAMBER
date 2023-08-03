@@ -1,11 +1,8 @@
 import numpy as np
-
 from amber.voxel import *
 from amber.vessel import *
 from amber.ScalarField import *
 from amber.BasicGeometries import *
-#np.set_printoptions(threshold=sys.maxsize)
-# from scipy.stats import qmc
 import matplotlib.tri as mtri
 import matplotlib.pyplot as plt
 import scipy.sparse as sparse
@@ -14,18 +11,18 @@ import os
 from time import time as current_time
 
 
-class World:
+class World: # class that contains the voxels and the vasculature
     def __init__(self, config):
         print('Initializing world')
         print(config.voxel_per_side, config.half_length_world)
-        self.half_length = config.half_length_world
-        self.voxel_list = []
-        self.number_of_voxels = config.voxel_per_side
-        self.total_number_of_voxels = self.number_of_voxels ** 3
-        self.config = config
-        voxel_length = 2 * self.half_length / self.number_of_voxels
+        self.half_length = config.half_length_world #half length of the world
+        self.voxel_list = [] #list of voxels in the world
+        self.number_of_voxels = config.voxel_per_side #number of voxels per side
+        self.total_number_of_voxels = self.number_of_voxels ** 3 #total number of voxels
+        self.config = config #configuration class
+        voxel_length = 2 * self.half_length / self.number_of_voxels #length of the voxels
 
-        for i in range(self.number_of_voxels):
+        for i in range(self.number_of_voxels): #creates the voxels
             for j in range(self.number_of_voxels):
                 for k in range(self.number_of_voxels):
                     position = np.array([
@@ -34,27 +31,25 @@ class World:
                         k * voxel_length - self.half_length + voxel_length / 2
                     ])
                     self.voxel_list.append(Voxel(position, self.half_length / self.number_of_voxels, viscosity= self.config.viscosity, voxel_number=i * self.number_of_voxels ** 2 + j * self.number_of_voxels + k))
-        self.vasculature = VasculatureNetwork(self.config)
-        self.o_diameters = []
-        self.o_length_values = []
-        self.o_bifurcation_values = []
-        self.o_VSL_values = []
-        self.center_of_mass = np.array([0.0, 0.0, 0.0])
+        self.vasculature = VasculatureNetwork(self.config) #creates the vasculature
+        self.o_diameters = []; self.o_length_values = []; self.o_bifurcation_values = []; self.o_VSL_values = [] #lists to store the values of the vasculature at beginning of the simulation
+        self.center_of_mass = np.array([0.0, 0.0, 0.0]) #center of mass of the tumor
 
-    def initiate_vasculature(self, list_of_mother_vessels):
-        self.vasculature = VasculatureNetwork(self.config, list_of_mother_vessels)
-        for vessel in self.vasculature.list_of_vessels:
-            vessel.must_be_updated = True
+    def initiate_vasculature(self, list_of_mother_vessels): #initiates the vasculature
+        self.vasculature = VasculatureNetwork(self.config, list_of_mother_vessels) #creates the vasculature
+        for vessel in self.vasculature.list_of_vessels: #for each vessel in the vasculature
+            vessel.must_be_updated = True #the vessel must be updated
         return
 
     def vasculature_growth(self, dt, splitting_rate, macro_steps=1, micro_steps=10, weight_direction=0.5, weight_vegf=0.5, weight_pressure=0.5, radius_pressure_sensitive = False):
         print('Vasculature growth')
-        pressure_map = self.pressure_map(step_gradient=5)
-        def pressure(point): return pressure_map.evaluate(point)
-        vegf = self.vegf_map(step_gradient= self.config.vegf_map_step_gradient)
+        pressure_map = self.pressure_map(step_gradient=5) #creates the pressure map
+        def pressure(point): return pressure_map.evaluate(point) #defines the pressure function
+        vegf = self.vegf_map(step_gradient= self.config.vegf_map_step_gradient) #creates the vegf map
 
-        def vegf_gradient(point): return vegf.gradient(point)
+        def vegf_gradient(point): return vegf.gradient(point) #defines the vegf gradient function
 
+        #grows the vasculature and updates the radius of the vessels
         self.vasculature.grow_and_split(dt = dt,
                                         splitting_rate = splitting_rate,
                                         macro_steps = macro_steps,
@@ -68,12 +63,13 @@ class World:
         return
 
     def generate_healthy_vasculature(self, initial_vessel_number, splitting_rate =0.3, mult_macro_steps=1, micro_steps=8, weight_direction=3.0, weight_vegf=1.0, weight_pressure=0.0, extra_step = True):
-        initial_vessel_number = int(initial_vessel_number * 4 * self.half_length ** 2)
-        points_z = np.random.uniform(-self.half_length, self.half_length, initial_vessel_number)
-        points_y = np.random.uniform(-self.half_length, self.half_length, initial_vessel_number)
-        points_x = -self.half_length * np.ones(initial_vessel_number)
-        points = []
-        points_bis = []
+        #generates the healthy vasculature at the beginning of the simulation
+        initial_vessel_number = int(initial_vessel_number * 4 * self.half_length ** 2) #number of vessels depending on area
+        points_z = np.random.uniform(-self.half_length, self.half_length, initial_vessel_number) #z coordinates of the vessels
+        points_y = np.random.uniform(-self.half_length, self.half_length, initial_vessel_number) #y coordinates of the vessels
+        points_x = -self.half_length * np.ones(initial_vessel_number) #x coordinates of the vessels
+        points = [] #list of points
+        points_bis = [] #list of points of the other face
         for i in range(len(points_x)):
             points.append([points_x[i], points_y[i], points_z[i]])
             points_bis.append([-points_x[i], points_y[i], points_z[i]])
@@ -91,7 +87,7 @@ class World:
         print('Initial vessels other face: ', points_bis[0], points2_bis[0])
         list_of_vessels = []
         list_of_vessels_bis = []
-        for j in range(len(points)):
+        for j in range(len(points)): #creates the vessels on both opposite side of the world
             list_of_vessels.append(Vessel([points[j], points2[j]], radius = 0.01, step_size=self.config.vessel_step_size, parent_id=None, children_ids=None, in_growth=True, intra_radiosensitivity= self.config.vessel_radiosensitivity))
             list_of_vessels_bis.append(Vessel([points_bis[j], points2_bis[j]], radius = 0.01, step_size=self.config.vessel_step_size, parent_id=None, children_ids=None, in_growth=True, intra_radiosensitivity= self.config.vessel_radiosensitivity))
 
@@ -100,16 +96,17 @@ class World:
         for vessel in vasculature_bis.list_of_vessels:
             vessel.must_be_updated = True
 
-        def pressure(point):
+        def pressure(point): #defines the pressure function for the healthy vasculature growth
             return (self.half_length - abs(point[0]))*0.06
-        def pressure_bis(point):
+        def pressure_bis(point): #defines the pressure function for the healthy vasculature growth on the other face
             return (-self.half_length + abs(point[0]))*0.06
-        def vegf_gradient(point):
+        def vegf_gradient(point): #defines the vegf gradient function for the healthy vasculature growth
             return np.array([1,0,0])
 
-        def vegf_gradient_bis(point):
+        def vegf_gradient_bis(point): #defines the vegf gradient function for the healthy vasculature growth on the other face
             return np.array([-1,0,0])
 
+        #growth of the healthy vasculature on both opposite faces
         vasculature_bis.grow_and_split(
             dt=1,
             splitting_rate=splitting_rate,
@@ -134,79 +131,52 @@ class World:
             weight_pressure=weight_pressure
         )
 
+        #merge the two vasculatures
         self.vasculature.add_multiple_vessels(vasculature_bis.list_of_vessels)
 
+        #update the radius of the vessels
         self.vasculature.update_vessels_radius_from_last(self.config.radius_root_vessels, False, pressure)
         for vessel in self.vasculature.list_of_vessels:
             vessel.in_growth = False
-            vessel.maturity = 1
+            vessel.maturity = 1.0
             vessel.visible = self.config.visible_original_vessels
         return
 
-    def random_points_for_voxels_concentration(self, num_points, molecule : str):
-        if num_points == 0:
-            return []
-        if num_points % 1000 == 0:
-            print('-- Generating ' + str(num_points) + ' random points for ' + molecule + ' concentration, if no progress is shown, VEGF concentration might be too low')
-        points = []
-        copy = self.voxel_list.copy()
-        while len(points) < num_points:
-            copy = [voxel for voxel in copy if voxel.molecular_factors[molecule] > 0]
-            if len(copy) == 0:
-                print('No more voxels with ' + molecule + ' concentration')
-                return []
-            copy = np.array(copy)
-            np.random.shuffle(copy)
-            for voxel in copy:
-                mol = voxel.molecular_factors[molecule]
-                if np.random.random() < mol:
-                    points.append(voxel.random_points_in_voxel(1)[0])
-        points = points[0:num_points]
-        points = np.array(points)
-        np.random.shuffle(points)
-        return points
-
-    def update_volume_occupied_by_vessels(self):
-        volume_score = np.zeros(self.total_number_of_voxels)
-        bifurcation_score = np.zeros(self.total_number_of_voxels)
-        length_score = np.zeros(self.total_number_of_voxels)
+    def update_volume_occupied_by_vessels(self): #updates the volume occupied by the vessels in each voxel
+        volume_score = np.zeros(self.total_number_of_voxels) #volume occupied by the vessels in each voxel
+        bifurcation_score = np.zeros(self.total_number_of_voxels) #number of bifurcations in each voxel
+        length_score = np.zeros(self.total_number_of_voxels) #length of the vessels in each voxel
         print('-- Computing volume and length occupied by vessels in each voxel')
-        for vessel in self.vasculature.list_of_vessels:
-            if len(vessel.path) > 0:
-                voxel_n_ = self.find_voxel_number(vessel.path[0])
-                bifurcation_score[voxel_n_] += 1
-            for i in range(1, len(vessel.path)):
-                start_point = vessel.path[i - 1]
-                end_point = vessel.path[i]
-                start_voxel = self.find_voxel_number(start_point)
-                if start_voxel == -1:
+        for vessel in self.vasculature.list_of_vessels: #for each vessel
+            if len(vessel.path) > 0: #if the vessel has a path
+                voxel_n_ = self.find_voxel_number(vessel.path[0]) #find the voxel number of the first point of the vessel
+                bifurcation_score[voxel_n_] += 1 #add 1 to the bifurcation score of the voxel
+            for i in range(1, len(vessel.path)): #for each point of the vessel
+                start_point = vessel.path[i - 1] #start point of the line segment
+                end_point = vessel.path[i] #end point of the line segment
+                start_voxel = self.find_voxel_number(start_point) #find the voxel number of the start point
+                if start_voxel == -1: #if the voxel number is -1, the point is outside the domain
                     continue
-                line_segment = end_point - start_point
-                line_segment_length = np.linalg.norm(line_segment)
-                length_score[start_voxel] += line_segment_length
-                volume_score[start_voxel] += vessel.volume_per_point()
+                line_segment = end_point - start_point #line segment between the two points
+                line_segment_length = np.linalg.norm(line_segment) #length of the line segment
+                length_score[start_voxel] += line_segment_length #add the length of the line segment to the length score of the voxel
+                volume_score[start_voxel] += vessel.volume_per_point() * line_segment_length #add the volume of the line segment to the volume score of the voxel
         print('-- Finishing up')
-        for voxel in self.voxel_list:
-            voxel.vessel_volume = volume_score[voxel.voxel_number]
-            voxel.bifurcation_density = bifurcation_score[voxel.voxel_number]
-            voxel.vessel_length = length_score[voxel.voxel_number]
+        for voxel in self.voxel_list: #for each voxel
+            voxel.vessel_volume = volume_score[voxel.voxel_number] #update the volume occupied by the vessels in the voxel
+            voxel.bifurcation_density = bifurcation_score[voxel.voxel_number] #update the bifurcation density in the voxel
+            voxel.vessel_length = length_score[voxel.voxel_number] #update the length of the vessels in the voxel
         return
 
 
-    def update_biology_after_RT(self):
-        print('-- Updating biology after RT')
-        for voxel in self.voxel_list:
-            voxel.update_cells_afterRT()
-        #self.vessels_killed_by_dose()
-        #self.update_capillaries()
-    def vessels_killed(self, radius_threshold):
+    def vessels_killed(self, radius_threshold): #kills the vessels with a radius below a threshold
         for vessel in self.vasculature.list_of_vessels:
             if vessel.radius < radius_threshold:
                 self.vasculature.kill_vessel(vessel.id)
                 print('vessel ' + str(vessel.id) + ' killed by radius')
         return
 
-    def find_voxel_number(self, position):
+    def find_voxel_number(self, position): #finds the voxel number of a position
         # doesn't handle the case where the position is outside the world
         num_voxels = self.number_of_voxels
         voxel_length = 2 * self.half_length / num_voxels
@@ -219,11 +189,11 @@ class World:
             return -1
         return n
 
-    def find_voxel(self, position):
+    def find_voxel(self, position): #finds the voxel of a position
         voxel_number = self.find_voxel_number(position)
         return self.voxel_list[voxel_number]
 
-    def find_moor_neighbors(self, voxel):
+    def find_moor_neighbors(self, voxel): #finds the Moore's neighbors of a voxel (26 neighbors)
         # finds the Moore's neighbors of a voxel
         voxel_number = voxel.voxel_number
         num_voxels = self.number_of_voxels
@@ -241,10 +211,11 @@ class World:
                         neighbors.append((i + di) * num_voxels ** 2 + (j + dj) * num_voxels + (k + dk))
 
         neighbors_voxels = [self.voxel_list[n] for n in neighbors]
+        # print('Moore neighbors found, number of neighbors = ' + str(len(neighbors_voxels)) + ' (should be 26)')
         return neighbors_voxels
 
 
-    def find_neighbors(self, voxel):
+    def find_neighbors(self, voxel): #finds the direct neighbors of a voxel (6 neighbors)
         #finds the neighbors of a voxel
         voxel_number = voxel.voxel_number
         num_voxels = self.number_of_voxels
@@ -270,20 +241,20 @@ class World:
         neighbors_voxels = [self.voxel_list[n] for n in neighbors]
         return neighbors_voxels
 
-    def compute_exchange_matrix(self, dt):
+    def compute_exchange_matrix(self, dt): #computes the exchange matrix
         print('-- Computing exchange matrix')
         start = current_time()
-        V = self.voxel_list[0].volume
-        side = self.voxel_list[0].half_length * 2
-        total_voxels = self.total_number_of_voxels
+        V = self.voxel_list[0].volume #volume of a voxel
+        side = self.voxel_list[0].half_length * 2 #length of a voxel
+        total_voxels = self.total_number_of_voxels #total number of voxels
         # Extract pressure and viscosity values for all voxels
-        pressures = np.array([voxel.pressure() for voxel in self.voxel_list])
-        viscosities = np.array([voxel.viscosity for voxel in self.voxel_list])
+        pressures = np.array([voxel.pressure() for voxel in self.voxel_list]) #pressure of each voxel
+        viscosities = np.array([voxel.viscosity for voxel in self.voxel_list]) #viscosity of each voxel
         # Initialize migration matrix with zeros
-        migration_matrix = sparse.lil_matrix((total_voxels, total_voxels), dtype=np.float32)
+        migration_matrix = sparse.lil_matrix((total_voxels, total_voxels), dtype=np.float32) #migration matrix
 
         #find center of mass of the tumor
-        center_of_mass = np.array([0.0,0.0,0.0])
+        center_of_mass = np.array([0.0,0.0,0.0]) #center of mass
         total_cells = 0
         for voxel in self.voxel_list:
             cells = voxel.number_of_tumor_cells()
@@ -293,14 +264,14 @@ class World:
             center_of_mass = np.array([0.0,0.0,0.0])
         else:
             center_of_mass /= total_cells
-        print('center of mass real', center_of_mass)
+        print('center of mass real', center_of_mass) #center of mass
         #we don't let the tumor move too far from the center
         if np.linalg.norm(center_of_mass) > self.half_length/3:
-            center_of_mass = center_of_mass / np.linalg.norm(center_of_mass) * self.half_length/3
-        print('center of mass moved', center_of_mass)
+            center_of_mass = center_of_mass / np.linalg.norm(center_of_mass) * self.half_length/3 #center of mass
+        print('center of mass moved', center_of_mass) #new center of mass
         self.center_of_mass = center_of_mass
 
-        for i in range(total_voxels):
+        for i in range(total_voxels): #for each voxel
             voxel_i = self.voxel_list[i]
             voxel_pressure = pressures[i]
             viscosity = viscosities[i]
@@ -309,10 +280,10 @@ class World:
             neighbors = self.find_moor_neighbors(voxel_i)
             for neighbor in neighbors:
                 j = neighbor.voxel_number
-                pressure_diff = voxel_pressure - pressures[j]
-                distance = np.linalg.norm(voxel_i.position - neighbor.position)
+                pressure_diff = voxel_pressure - pressures[j] #pressure difference between the current voxel and its neighbor
+                distance = np.linalg.norm(voxel_i.position - neighbor.position) #distance between the current voxel and its neighbor
                 coeff = (side/distance) * dt
-                if pressure_diff > 0:
+                if pressure_diff > 0: #if the pressure of the current voxel is higher than the pressure of the neighbor
                     t_res = (V / pressure_diff) * viscosity
                     if self.config.verbose:
                         print('V, pressure diff, viscosity ', V, pressure_diff, viscosity)
@@ -322,8 +293,8 @@ class World:
 
             # pressure pushing cells to move towards the center of the tumor\
 
-            vector_to_center = voxel_i.position - center_of_mass
-            distance = np.linalg.norm(vector_to_center)
+            vector_to_center = voxel_i.position - center_of_mass #vector from the center of the tumor to the current voxel
+            distance = np.linalg.norm(vector_to_center) #distance between the center of the tumor and the current voxel
             if distance > 0:
                 neighbor_towards_center = self.find_voxel_number(voxel_i.position - (side/distance) * vector_to_center)
                 migration_matrix[i, neighbor_towards_center] += self.config.pressure_coefficient_central_migration * dt * (distance**2)
@@ -349,8 +320,8 @@ class World:
     def topas_param_file(self, name : str):
         print('-- Creating parameter file for topas simulation, file :', name)
 
-        #returns a txt file that can be used as a parameter file for topas
-        #the file is saved in the TopasSimulation folder
+        #returns a txt file that can be used as a parameter file for topas. Gets most of the parameters from TOPAS file specified in the config file
+        #the tumor geometry is added to the file
         repo_path = self.config.working_directory
         print('repo_path = ', repo_path)
         file = open(repo_path + '/' + name + '_geom.txt', 'w')
@@ -372,7 +343,7 @@ class World:
         print('-- File saved as ' + name + '_geom')
         return name + '_geom'
 
-    def update_dose(self, doses):
+    def update_dose(self, doses): #updates the dose in each voxel
         #updates the dose in each voxel
         if len(doses) != self.total_number_of_voxels:
             raise ValueError('Error: the number of doses is not equal to the number of voxels, Probably due to a unmatching Topas simulation')
@@ -380,19 +351,19 @@ class World:
             voxel.dose = doses[voxel.voxel_number]
         return
 
-    def update_capillaries(self, n_capillaries_per_VVD=1, capillary_length=5):
+    def update_capillaries(self, n_capillaries_per_VVD=1, capillary_length=5): #updates the number of capillaries in each voxel
         print('-- Computing capillaries map')
         side = self.voxel_list[0].half_length * 2
         for voxel in self.voxel_list:
-            voxel.n_capillaries = int((voxel.vessel_volume / side ** 3) * n_capillaries_per_VVD)
+            voxel.n_capillaries = int((voxel.vessel_volume / side ** 3) * n_capillaries_per_VVD) #vessel volume density in voxel * number of capillaries per VVD
             # voxel.bifurcation_density += voxel.capillaries
-        diffusion_number = int(capillary_length / side)
-        for i in range(diffusion_number):
+        diffusion_number = int(capillary_length / side) #number of diffusion steps to reach the capillary length
+        for i in range(diffusion_number): # "diffusion" of the capillaries
             new_oxygen_map = np.zeros(self.total_number_of_voxels)
             print('--- o2 map computing', i, 'out of', diffusion_number)
-            for voxel in self.voxel_list:
-                sum = voxel.n_capillaries
-                list_neighbors = self.find_moor_neighbors(voxel)
+            for voxel in self.voxel_list: #for each voxel, compute the average number of capillaries in neighbors
+                sum = voxel.n_capillaries  # the voxel itself is taken into account
+                list_neighbors = self.find_moor_neighbors(voxel) #list of the 6 neighbors of the voxel
                 for neighbor in list_neighbors:
                     sum += neighbor.n_capillaries
                 new_oxygen_map[voxel.voxel_number] = sum / (1 + len(list_neighbors))
@@ -408,10 +379,10 @@ class World:
             positions.append(voxel.position)
 
         step = self.half_length*2/self.number_of_voxels
-        o2_map = ScalarField3D(positions, values, step)
+        o2_map = ScalarField3D(positions, values, step) #creates a scalar field with the oxygen values
         return o2_map
 
-    def pressure_map(self, step_gradient = 3):
+    def pressure_map(self, step_gradient = 3): #creates a scalar field with the pressure values
         values = []
         positions = []
         for voxel in self.voxel_list:
@@ -422,7 +393,7 @@ class World:
         pressure_map = ScalarField3D(positions, values, step)
         return pressure_map
 
-    def vegf_map(self, step_gradient = 3):
+    def vegf_map(self, step_gradient = 3): #creates a scalar field with the vegf values
         values = []
         positions = []
         for voxel in self.voxel_list:
@@ -433,7 +404,7 @@ class World:
         vegf_map = ScalarField3D(positions, values, step)
         return vegf_map
 
-    def dose_map(self):
+    def dose_map(self): #creates a scalar field with the dose values
         values = []
         positions = []
         for voxel in self.voxel_list:
@@ -446,7 +417,7 @@ class World:
 
 
     def show_tumor_slice(self, ax, fig, voxel_attribute, factor=None, cmap='viridis', vmin=None, vmax=None, norm=None,
-                         levels=None, refinement_level=0, extend = 'both'):
+                         levels=None, refinement_level=0, extend = 'both'): #plots a slice of the tumor with the voxel_attribute as color
         print('-- Plotting Tumor Slice')
 
         middle_slice = self.number_of_voxels // 2
@@ -516,7 +487,7 @@ class World:
 
         return fig, ax
 
-    def show_tumor_3D(self, ax, fig, voxel_attribute, factor=None, cmap='viridis', vmin=None, vmax=None):
+    def show_tumor_3D(self, ax, fig, voxel_attribute, factor=None, cmap='viridis', vmin=None, vmax=None): #plots the tumor in 3D with the voxel_attribute as color
         print('-- Plotting Cell Population 3D')
 
         #central z slice of world first voxel is at z = 0
@@ -568,7 +539,7 @@ class World:
     #
     #     return
 
-    def is_inside(self, point, cube_half_length = None):
+    def is_inside(self, point, cube_half_length = None): #checks if a point is inside the tumor
         if cube_half_length == None:
             cube_half_length = self.half_length
         if point[0] < cube_half_length and point[0] > -cube_half_length and point[1] < cube_half_length and point[1] > -cube_half_length and point[2] < cube_half_length and point[2] > -cube_half_length:
@@ -576,21 +547,21 @@ class World:
         else:
             return False
 
-    def measure_vasculature_length(self):
+    def measure_vasculature_length(self): #measures the length of the vasculature inside the tumor
         length = 0
         for vessel in self.vasculature.list_of_vessels:
             for point in vessel.path:
                 if self.is_inside(point): #add condition for some specific regions
                     length += vessel.step_size
         return length
-    def measure_vasculature_area(self):
+    def measure_vasculature_area(self): #measures the area of the vasculature inside the tumor
         area = 0
         for vessel in self.vasculature.list_of_vessels:
             for point in vessel.path:
                 if self.is_inside(point):
                     area += 2*np.pi*vessel.radius*vessel.step_size
         return area
-    def measure_vasculature_volume(self):
+    def measure_vasculature_volume(self): #measures the volume of the vasculature inside the tumor
         volume = 0
         for vessel in self.vasculature.list_of_vessels:
             for point in vessel.path:
@@ -598,17 +569,17 @@ class World:
                     volume += vessel.volume_per_point()
         return volume
 
-    def measure_tumor_volume(self):
+    def measure_tumor_volume(self): #measures the volume of the tumor
         volume_necrotic_free = 0
         volume_total = 0
         for voxel in self.voxel_list:
-            if voxel.number_of_tumor_cells() > 50:
+            if voxel.number_of_tumor_cells() > 50: #threshold to be considered tumor
                 volume_necrotic_free += voxel.volume
             if voxel.number_of_tumor_cells() > 50 or voxel.number_of_necrotic_cells() > 50:
                 volume_total += voxel.volume
         return volume_total, volume_necrotic_free
 
-    def show_angiogenesis_metrics(self, t, real=True):
+    def show_angiogenesis_metrics(self, t, real=True): #plots the angiogenesis metrics
         # Extract the voxel values for each parameter
         volume = self.voxel_list[0].volume
         side = self.voxel_list[0].half_length * 2
@@ -735,13 +706,13 @@ class World:
         else:
             print('Vessel segment length: No data available.')
 
-    def save(self, path):
+    def save(self, path): #save the world object to a file
         print('Saving world object to file: ' + path)
         # Save the tumor object to a file
         with open(path, 'wb') as f:
             pickle.dump(self, f)
 
-def load(path):
+def load(path): #load the world object from a file
     # Load the tumor object from a file
     with open(path, 'rb') as f:
         world = pickle.load(f)

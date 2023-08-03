@@ -113,7 +113,8 @@ cellaging = amber.CellAging(config, 'cell_aging', dt, repair_per_hour=config.rep
 cellmigration = amber.CellMigration(config, 'cell_migration', dt)
 
 update_cell_state = amber.UpdateCellOxygen(config, 'update_cell_state', dt,
-                                        voxel_half_length=(config.half_length_world/config.voxel_per_side))
+                                        voxel_half_length=(config.half_length_world/config.voxel_per_side),
+                                        file_prefix_alpha_beta_maps=config.file_prefix_alpha_beta_maps)
 
 update_molecules = amber.UpdateVoxelMolecules(config, 'update_molecules', dt)
 

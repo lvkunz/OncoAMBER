@@ -15,9 +15,9 @@ def DoseOnWorld(file_path : str):
         doses = doses / np.max(doses)
     return nn, doses
 
-def show_tumor_3D_solid(world, t):
+def show_tumor_3D_solid(world, t): #show the tumor in 3D using the pyvista library
 
-    import pyvista as pv
+    import pyvista as pv #import the pyvista library here so there is no error if the library is not installed and the function is not used
 
     grid_shape = (world.number_of_voxels, world.number_of_voxels, world.number_of_voxels)
     cell_counts = np.empty(grid_shape)
@@ -44,7 +44,7 @@ def show_tumor_3D_solid(world, t):
     grid.point_data['tumor'] = cell_counts.flatten(order="F")  # Flatten the array!
     grid2.point_data['necro'] = necro_counts.flatten(order="F")  # Flatten the array!
 
-    contour_values = [1,200]
+    contour_values = [1,200] #cell count limit for the contours for tumor cells
     opacities = [0.2, 0.5]
     max = np.max(cell_counts)
     #remove values below max from contour_values
@@ -56,7 +56,7 @@ def show_tumor_3D_solid(world, t):
     plotter.subplot(0, 0)
     plotter.add_mesh(grid.outline_corners(), color='k')
 
-    necro_lim = min(max_necro, 500)
+    necro_lim = min(max_necro, 500) #cell count limit for the contours for necrotic cells
     if necro_lim > 0:
         contour_necro = grid2.contour([necro_lim])
         plotter.add_mesh(contour_necro, cmap='Reds', opacity=0.9, scalars='necro', clim=[0, 500])
@@ -66,7 +66,7 @@ def show_tumor_3D_solid(world, t):
         contour = grid.contour([value])
         plotter.add_mesh(contour, cmap='Greens', opacity= opacities[i], scalars='tumor', clim=[0, 500])
 
-    # for vessel in world.vasculature.list_of_vessels:
+    # for vessel in world.vasculature.list_of_vessels: #plot the vessels. only as straight lines between origin and end not curved
     #     if vessel.visible:
     #         path = vessel.path
     #         if len(path) > 1:

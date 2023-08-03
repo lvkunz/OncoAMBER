@@ -2,44 +2,44 @@ import numpy as np
 import scipy.sparse as sparse
 
 
-def sigmoid(L, x, x0, k):
+def sigmoid(L, x, x0, k): #sigmoid function
     return L/(1 + np.exp(-k*(x-x0)))
 
 class Voxel(object): #extra parameters are max_occupancy, viscosity
         def __init__(self, position, half_length, viscosity, list_of_cells_in=None, n_capillaries = 0, voxel_number = 0):
                 if list_of_cells_in is None:
                         list_of_cells_in = np.array([])
-                self.position = position
-                self.half_length = half_length
-                self.list_of_cells = list_of_cells_in
-                self.list_of_necrotic_cells = np.array([])
-                self.n_capillaries = n_capillaries
-                self.volume = 8*half_length**3
-                self.voxel_number = voxel_number
-                self.dose = 0
-                self.molecular_factors = {'VEGF': 0}
-                self.viscosity = viscosity
-                self.vessel_volume = 0
-                self.vessel_length = 0
-                self.bifurcation_density = 0
-                self.pH = 7.4
+                self.position = position #position is a 3D vector
+                self.half_length = half_length #half_length is a scalar
+                self.list_of_cells = list_of_cells_in #list of cells in the voxel
+                self.list_of_necrotic_cells = [] #list of necrotic cells in the voxel
+                self.n_capillaries = n_capillaries #number of capillaries in the voxel
+                self.volume = 8*half_length**3 #volume of the voxel
+                self.voxel_number = voxel_number #id of the voxel
+                self.dose = 0 #dose in the voxel from last irradiation
+                self.molecular_factors = {'VEGF': 0} #molecular factors in the voxel. Only VEGF is implemented
+                self.viscosity = viscosity #viscosity of the voxel
+                self.vessel_volume = 0 #volume of the vessels in the voxel
+                self.vessel_length = 0 #length of the vessels in the voxel
+                self.bifurcation_density = 0 #bifurcation density in the voxel
+                self.pH = 7.4 #pH in the voxel
 
-        def number_of_tumor_cells(self):
+        def number_of_tumor_cells(self): #returns the number of tumor cells in the voxel
                 number = 0
                 for cell in self.list_of_cells:
                         if cell.type == 'TumorCell':
                                 number = number + 1
                 return number
 
-        def number_of_necrotic_cells(self):
+        def number_of_necrotic_cells(self): #returns the number of necrotic cells in the voxel
                 number = 0
                 for cell in self.list_of_necrotic_cells:
                         if cell.type == 'TumorCell':
                                 number = number + 1
                 return number
-        def number_of_alive_cells(self):
+        def number_of_alive_cells(self): #returns the number of alive cells in the voxel
                 return len(self.list_of_cells)
-        def occupied_volume(self):
+        def occupied_volume(self): #returns the volume occupied by the cells in the voxel
                 volume = 0.0
                 for cell in self.list_of_cells:
                         volume = volume + cell.volume
@@ -47,25 +47,25 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                         volume = volume + cell.volume
                 return volume
 
-        def vessel_volume_density(self):
+        def vessel_volume_density(self): #returns the vessel volume density in the voxel
                 side = 2*self.half_length
                 capillary_volume = side * np.pi * 0.002 ** 2
                 vessel_volume_density = ((self.vessel_volume + self.n_capillaries * capillary_volume) / self.volume)*100
                 return vessel_volume_density
-        def vessel_length_density(self):
+        def vessel_length_density(self): #returns the vessel length density in the voxel
                 side = 2*self.half_length
                 vessel_length_density = (self.vessel_length + self.n_capillaries * side) / self.volume
                 return vessel_length_density
 
-        def pressure(self):
+        def pressure(self): #returns the pressure in the voxel
                 packing_density = (self.occupied_volume() /self.volume)
                 return packing_density
 
-        def random_points_in_voxel(self, n):
+        def random_points_in_voxel(self, n): #returns n random points in the voxel
                 points = np.random.uniform(-self.half_length, self.half_length, (n,3))
                 points = points + self.position
                 return points
-        def add_cell(self, cell, max_occupancy):
+        def add_cell(self, cell, max_occupancy): #try to add a cell to the voxel
                 if self.pressure() > max_occupancy:
                         #print('Voxel is full, pressure is', self.pressure(), ' number of cells is', self.number_of_alive_cells(), ' and number of necrotic cells is', self.number_of_necrotic_cells())
                         return False
@@ -73,23 +73,23 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                         self.list_of_cells = np.append(cell, self.list_of_cells)
                         return True
 
-        def remove_cell(self, cell):
+        def remove_cell(self, cell): #remove a cell from the voxel
                 id = np.where(self.list_of_cells == cell)
                 self.list_of_cells = np.delete(self.list_of_cells, id)
                 return True
 
-        def remove_necrotic_cell(self, cell):
+        def remove_necrotic_cell(self, cell): #remove a necrotic cell from the voxel
                 id = np.where(self.list_of_necrotic_cells == cell)
                 self.list_of_necrotic_cells = np.delete(self.list_of_necrotic_cells, id)
                 return True
 
-        def cell_becomes_necrotic(self, cell):
+        def cell_becomes_necrotic(self, cell): #remove a cell from the voxel and add it to the list of necrotic cells
                 self.list_of_cells = np.delete(self.list_of_cells, np.where(self.list_of_cells == cell))
                 cell.necrotic = True
                 self.list_of_necrotic_cells = np.append(cell, self.list_of_necrotic_cells)
                 return True
 
-        def oxygen_histogram(self, ax, fig):
+        def oxygen_histogram(self, ax, fig): #plot the oxygen histogram of the voxel
                 oxygen = []
                 for cell in self.list_of_cells:
                         oxygen = np.append(oxygen, cell.capillaries)
@@ -99,7 +99,7 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                 ax.set_title('Oxygen histogram')
                 return ax, fig
 
-        def vitality_histogram(self, ax, fig):
+        def vitality_histogram(self, ax, fig): #plot the vitality histogram of the voxel
                 vitality = []
                 for cell in self.list_of_cells:
                         vitality.append(cell.vitality())
@@ -111,7 +111,7 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                 ax.set_title('Vitality histogram')
                 return ax, fig
 
-        def cycling_time_and_age_histogram(self, ax, fig):
+        def cycling_time_and_age_histogram(self, ax, fig): #plot the cycling time and age histogram of the voxel
                 cycling_time = []
                 age = []
                 for cell in self.list_of_cells:
@@ -125,7 +125,7 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                 ax.legend()
                 return ax, fig
 
-        def compute_cell_interaction_matrix(self, dt):
+        def compute_cell_interaction_matrix(self, dt): #compute the cell interaction matrix in the voxel
                 cell_interaction_matrix = sparse.lil_matrix((len(self.list_of_cells), len(self.list_of_cells)), dtype=np.float32)
                 for i in range(len(self.list_of_cells)):
                         for j in range(len(self.list_of_cells)):
@@ -134,7 +134,7 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                 cell_interaction_matrix = cell_interaction_matrix.tocsr()
                 return cell_interaction_matrix
 
-        def average_cell_damage(self):
+        def average_cell_damage(self): #returns the average damage of the cells in the voxel
                 if len(self.list_of_cells) == 0:
                         return -1
                 damage = 0
