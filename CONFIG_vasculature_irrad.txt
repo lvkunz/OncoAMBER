@@ -1,13 +1,13 @@
 half_length_world: 7.5 #mm
 voxel_per_side: 25
 dt: 4 #hours
-endtime: 2000 #hours
+endtime: 400 #hours
 seed: 0                           #seed for random number generator. -1 for random seed
 running_on_cluster: False               #don't touch, the bash script changes it automatically
 
 #Initialisation
 vessel_number: 0.3                     #initial number of vessels for healthy tissue per mm^2
-initial_number_tumor_cells: 1000         #initial total number of tumor cells
+initial_number_tumor_cells: 200         #initial total number of tumor cells
 tumor_initial_radius: 0.5 #mm
 doubling_time_tumor: 15  #hours
 doubling_time_sd: 5
@@ -17,7 +17,7 @@ world_file: double             #name of the world file to create or load
 save_world_every: 100000                   #save the world every x hours
 
 #Radiation parameters
-topas_file: TOPAS_gamma6MeV
+topas_file: TOPAS_new
 first_irradiation_time: 800             #time at which radiation is applied
 number_fractions: 4                     #number of fractions of radiation
 time_between_fractions: 24              #time between fractions of radiation
@@ -68,17 +68,17 @@ metabolic_damage_threshold: 0.5         #threshold in damage for metabolism to b
 
 # Graphics parameters
 show_time_steps: True                   #if True, show the time during the simulation
-show_final: False                       #if True, show the final state of the simulation
-show_slices: True                       #if True, show a slice of the tumor during the simulation
+show_final: True                       #if True, show the final state of the simulation
+show_slices: False                       #if True, show a slice of the tumor during the simulation
 slice: x                                #what direction to slice the tumor (x or z
 show_o2_vitality_histograms: False       #if True, show a histogram of capillaries and vitality during the simulation
-show_tumor_and_vessels_3D: True         #if True, show the vasculature in 3D during the simulation with tumor cells
+show_tumor_and_vessels_3D: False         #if True, show the vasculature in 3D during the simulation with tumor cells
 visible_original_vessels: True         #if True, show the original vasculature in 3D during the simulation
 show_alpha_beta_maps: False             #if True, show the distribution of the parameters beta and gamma
 show_cell_and_tumor_volume: True        #if True, show the volume of tumor cells and healthy cells during the simulation
 verbose: False
-show_angiogenesis_metrics: True         #if True, show the metrics for angiogenesis
+show_angiogenesis_metrics: False         #if True, show the metrics for angiogenesis
 true_vasculature: False
 show_3D_mesh: False                     #if True, show the 3D mesh of the tumor
 show_center_of_mass: True               #if True, show the center of mass of the tumor
-show_cell_damage: True                  #if True, show the damage of the cells
+show_cell_damage: False                  #if True, show the damage of the cells

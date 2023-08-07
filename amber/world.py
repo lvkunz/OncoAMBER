@@ -160,14 +160,13 @@ class World: # class that contains the voxels and the vasculature
                 line_segment = end_point - start_point #line segment between the two points
                 line_segment_length = np.linalg.norm(line_segment) #length of the line segment
                 length_score[start_voxel] += line_segment_length #add the length of the line segment to the length score of the voxel
-                volume_score[start_voxel] += vessel.volume_per_point() * line_segment_length #add the volume of the line segment to the volume score of the voxel
+                volume_score[start_voxel] += vessel.volume_per_point() #add the volume of the line segment to the volume score of the voxel
         print('-- Finishing up')
         for voxel in self.voxel_list: #for each voxel
             voxel.vessel_volume = volume_score[voxel.voxel_number] #update the volume occupied by the vessels in the voxel
             voxel.bifurcation_density = bifurcation_score[voxel.voxel_number] #update the bifurcation density in the voxel
             voxel.vessel_length = length_score[voxel.voxel_number] #update the length of the vessels in the voxel
         return
-
 
     def vessels_killed(self, radius_threshold): #kills the vessels with a radius below a threshold
         for vessel in self.vasculature.list_of_vessels:
@@ -417,8 +416,12 @@ class World: # class that contains the voxels and the vasculature
 
 
     def show_tumor_slice(self, ax, fig, voxel_attribute, factor=None, cmap='viridis', vmin=None, vmax=None, norm=None,
-                         levels=None, refinement_level=0, extend = 'both'): #plots a slice of the tumor with the voxel_attribute as color
+                         levels=None, refinement_level=0, extend = 'both', slice = None): #plots a slice of the tumor with the voxel_attribute as color
         print('-- Plotting Tumor Slice')
+
+        if slice == None:
+            slice = self.config.slice
+
 
         middle_slice = self.number_of_voxels // 2
         first_voxel = middle_slice * self.number_of_voxels ** 2
@@ -427,16 +430,27 @@ class World: # class that contains the voxels and the vasculature
 
         middle_slice_x = self.number_of_voxels // 2
         voxel_list_x = []
-
         for i in range(self.number_of_voxels):
             for j in range(self.number_of_voxels):
                 index = middle_slice_x + j * self.number_of_voxels + i * self.number_of_voxels ** 2
                 voxel_list_x.append(self.voxel_list[index])
 
-        if self.config.slice == 'x':
+        middle_slice_y = self.number_of_voxels // 2
+        voxel_list_y = []
+        for i in range(self.number_of_voxels):
+            for j in range(self.number_of_voxels):
+                index = j + middle_slice_y * self.number_of_voxels + i * self.number_of_voxels ** 2
+                voxel_list_y.append(self.voxel_list[index])
+
+        if slice == 'x':
             voxel_list = voxel_list_x
-        else:
+        elif slice == 'z':
             voxel_list = voxel_list_z
+        elif slice == 'y':
+            voxel_list = voxel_list_y
+        else:
+            raise ValueError('Slice must be x, y or z')
+
         values = []
         positions = []
         for voxel in voxel_list:
@@ -448,12 +462,16 @@ class World: # class that contains the voxels and the vasculature
             values.append(value)
             positions.append(voxel.position)
 
-        if self.config.slice == 'x':
+        if slice == 'x':
             x = np.array([p[0] for p in positions])
             y = np.array([p[1] for p in positions])
             z = np.array(values)
-        else:
+        elif slice == 'z':
             x = np.array([p[1] for p in positions])
+            y = np.array([p[2] for p in positions])
+            z = np.array(values)
+        elif slice == 'y':
+            x = np.array([p[0] for p in positions])
             y = np.array([p[2] for p in positions])
             z = np.array(values)
         # Create a triangulation of the data
@@ -478,10 +496,12 @@ class World: # class that contains the voxels and the vasculature
 
 
         #add a point at the center of mass
-        if self.config.slice == 'x':
+        if slice == 'x':
             ax.scatter(self.center_of_mass[0], self.center_of_mass[1], color='black', s=10)
-        else:
+        elif slice == 'z':
             ax.scatter(self.center_of_mass[1], self.center_of_mass[2], color='black', s=10)
+        elif slice == 'y':
+            ax.scatter(self.center_of_mass[0], self.center_of_mass[2], color='black', s=10)
 
         fig.colorbar(contour, ax=ax, shrink=0.5)
 

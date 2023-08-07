@@ -660,10 +660,13 @@ class Irradiation(Process): #irradiation
         _, self.doses = rw.DoseOnWorld(topas_file + '.csv')
         world.update_dose(self.doses) #update the dose on the world
 
+
+
         # plot the simulation
-        fig, ax = plt.subplots(1, 1, figsize=(8, 6))
-        world.show_tumor_slice(ax, fig, 'dose', cmap='jet',refinement_level=2)
-        ax.set_title('Dose (arb. units)', fontsize=20)
+        fig, ax = plt.subplots(1, 2, figsize=(12, 6))
+        world.show_tumor_slice(ax[0], fig, 'dose', cmap='jet',refinement_level=2, slice='x')
+        world.show_tumor_slice(ax[1], fig, 'dose', cmap='jet',refinement_level=2, slice='y')
+        fig.suptitle('Dose (arb. units)', fontsize=20)
         plt.savefig('dose.png', dpi=300)
         if self.config.running_on_cluster:
             plt.close()

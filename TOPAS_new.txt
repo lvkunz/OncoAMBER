@@ -11,9 +11,11 @@ s:Sc/MyScorer/Quantity = "DoseToMedium"
 s:Sc/MyScorer/Component = "Tumor"
 s:Sc/MyScorer/IfOutputFileAlreadyExists = "Overwrite"
 
-i:So/Demo/NumberOfHistoriesInRun = 1000000
+i:So/Demo/NumberOfHistoriesInRun = 1000000000
 S:So/Demo/BeamParticle = "gamma"
-D:So/Demo/BeamEnergy = 6 MeV
+D:So/Demo/BeamEnergy = 10 MeV
+s:So/Demo/BeamPositionDistribution = "Flat"
+# s:So/Demo/BeamPositionCutoffShape = "Rectangle"
 
 d:Ge/Tumor/HLX      = 10. mm  #the parameters of the box will be overriden by world size etc
 d:Ge/Tumor/HLY      = 10. mm
