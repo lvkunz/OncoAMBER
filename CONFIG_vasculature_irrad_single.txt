@@ -17,7 +17,7 @@ world_file: double             #name of the world file to create or load
 save_world_every: 100000                   #save the world every x hours
 
 #Radiation parameters
-topas_file: TOPAS_new
+topas_file: TOPAS_gamma6MeV
 first_irradiation_time: 800             #time at which radiation is applied
 number_fractions: 1                     #number of fractions of radiation
 time_between_fractions: 24              #time between fractions of radiation
