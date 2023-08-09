@@ -393,6 +393,21 @@ class World: # class that contains the voxels and the vasculature
         return pressure_map
 
     def vegf_map(self, step_gradient = 3): #creates a scalar field with the vegf values
+
+        diffusion_number = 3  # number of diffusion steps to reach the capillary length
+        for i in range(diffusion_number):  # "diffusion" of the capillaries
+            new_vegf_map = np.zeros(self.total_number_of_voxels)
+            print('--- vegf diffusion computing', i, 'out of', diffusion_number)
+            for voxel in self.voxel_list:  # for each voxel, compute the average number of capillaries in neighbors
+                sum = voxel.molecular_factors['VEGF'] # the voxel itself is taken into account
+                list_neighbors = self.find_moor_neighbors(voxel)  # list of the 6 neighbors of the voxel
+                for neighbor in list_neighbors:
+                    sum += neighbor.molecular_factors['VEGF']
+                new_vegf_map[voxel.voxel_number] = sum / (1 + len(list_neighbors))
+            for voxel in self.voxel_list:
+                voxel.molecular_factors['VEGF'] = new_vegf_map[voxel.voxel_number]
+
+
         values = []
         positions = []
         for voxel in self.voxel_list:
@@ -414,6 +429,11 @@ class World: # class that contains the voxels and the vasculature
         dose_map = ScalarField3D(positions, values, step)
         return dose_map
 
+    def vegf_total(self):
+        total = 0
+        for voxel in self.voxel_list:
+            total += voxel.molecular_factors['VEGF']
+        return total
 
     def show_tumor_slice(self, ax, fig, voxel_attribute, factor=None, cmap='viridis', vmin=None, vmax=None, norm=None,
                          levels=None, refinement_level=0, extend = 'both', slice = None): #plots a slice of the tumor with the voxel_attribute as color

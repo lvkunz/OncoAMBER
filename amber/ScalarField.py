@@ -26,7 +26,7 @@ class ScalarField3D: #this class is used to interpolate a scalar field in 3D fro
             vmin = self.values.min()
         if vmax is None:
             vmax = self.values.max()
-        ax.scatter(self.points[:, 0], self.points[:, 1], self.points[:, 2], c=self.values, cmap=cmap, s=15, vmin=vmin, vmax=vmax, alpha=0.5)
+        ax.scatter(self.points[:, 0], self.points[:, 1], self.points[:, 2], c=self.values, cmap=cmap, vmin=vmin, vmax=vmax, alpha=0.5)
         return fig, ax
 
     def show_gradient(self, fig, ax, length_scale=1, color='black'): #show gradient as a quiver plot

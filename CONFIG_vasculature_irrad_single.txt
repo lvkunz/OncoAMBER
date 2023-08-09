@@ -64,7 +64,7 @@ vessel_time_to_maturity: 24 #hours      #time for a vessel to mature
 maturity_new_vessels: 0.7               #maturity of new vessels
 new_vessels_per_hour: 0.0002            #number of new vessels per hour*mm3
 file_prefix_alpha_beta_maps: save       #prefix for the alpha and beta maps (save is sigmoid, newfunction is quadratic)
-metabolic_damage_threshold: 0.5         #threshold in damage for metabolism to be non-zero
+metabolic_damage_threshold: 0.0         #threshold in damage for metabolism to be non-zero
 
 # Graphics parameters
 show_time_steps: True                   #if True, show the time during the simulation

@@ -83,8 +83,12 @@ class Cell:
             else:
                 return max(repair_per_hour * (1 - damage), 0.0001)
 
+        if dt < 1:
+            raise ValueError("dt must be greater than 1")
+        
         for i in range(int(dt)):
             self.damage -= repair_amount(self.damage)
+
         if self.damage < 0:
             self.damage = 0
 

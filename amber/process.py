@@ -625,14 +625,21 @@ class UpdateVasculature(Process): #update the vasculature
         n_new_vessels = int(self.config.new_vessels_per_hour * self.dt * volume_world)
         n_new_vessels = min(n_new_vessels, len(vessels)) #the number of new vessels cannot be larger than the number of existing vessels
         vegf = world.vegf_map(step_gradient= self.config.vegf_map_step_gradient) #compute the gradient of the VEGF map
+
+        # figure = plt.figure()
+        # ax = figure.add_subplot(111)
+        # vegf.show_values(figure,ax, 'viridis', 0.0, 1.0)
+        # plt.show()
+
         def vegf_gradient(point): return vegf.gradient(point) #define the gradient of the VEGF map
 
         for _ in range(n_new_vessels): #create a tEC on some vessels randomly
             random_vessel = random.choice(vessels)
             if len(random_vessel.path) > 2:
                 point = random_vessel.choose_random_point(self.config.seed)
-                if np.linalg.norm(vegf_gradient(point)) > self.config.vegf_gradient_threshold: #if the gradient of the VEGF map is large enough, tEC starts growing
-                    world.vasculature.branching(random_vessel.id, point)
+                if vegf.evaluate(point) > self.config.vegf_scalar_threshold: #if the VEGF concentration is too low, tEC does not start growing
+                    if np.linalg.norm(vegf_gradient(point)) > self.config.vegf_gradient_threshold: #if the gradient of the VEGF map is large enough, tEC starts growing
+                        world.vasculature.branching(random_vessel.id, point)
 
         #grow the vessels and update the volume occupied by the vessels
         world.vasculature_growth(self.dt, self.splitting_rate, self.macro_steps, self.micro_steps, self.weight_direction, self.weight_vegf, self.weight_pressure, self.radius_pressure_sensitive)
@@ -663,10 +670,11 @@ class Irradiation(Process): #irradiation
 
 
         # plot the simulation
-        fig, ax = plt.subplots(1, 2, figsize=(12, 6))
-        world.show_tumor_slice(ax[0], fig, 'dose', cmap='jet',refinement_level=2, slice='x')
-        world.show_tumor_slice(ax[1], fig, 'dose', cmap='jet',refinement_level=2, slice='y')
+        fig, ax = plt.subplots(1, 2, figsize=(12, 5))
+        world.show_tumor_slice(ax[0], fig, 'dose', cmap='RdPu',refinement_level=2, slice='x')
+        world.show_tumor_slice(ax[1], fig, 'dose', cmap='RdPu',refinement_level=2, slice='y')
         fig.suptitle('Dose (arb. units)', fontsize=20)
+        plt.tight_layout()
         plt.savefig('dose.png', dpi=300)
         if self.config.running_on_cluster:
             plt.close()
