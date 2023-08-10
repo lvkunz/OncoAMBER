@@ -21,7 +21,7 @@ class Vessel: #class for vessels
         self.step_size = step_size #step size when growing the vessel
         self.in_growth = in_growth #boolean to indicate if the vessel is still growing
         self.visible = True #boolean to indicate if the vessel is visible when plotting
-        self.must_be_updated = False #boolean to indicate if the vessel radius must be updated
+        self.must_be_updated = True #boolean to indicate if the vessel radius must be updated
         self.maturity = 1.0 # 1.0 is fully mature, changes vessels radius and increases slowly over time
         self.intra_radiosensitivity = intra_radiosensitivity #intra_radiosensitivity is the radiosensitivity of the vessel
     def __iter__(self): #iterator for the vessel
@@ -94,9 +94,11 @@ class Vessel: #class for vessels
     def plot(self,fig, ax, color='crimson'): #plots the vessel
         if self.visible:
             if self.in_growth:
-                ax.plot(self.path[:, 0], self.path[:, 1], self.path[:, 2], color=color, alpha=0.7, linewidth= self.radius*100)
-            else:
+                ax.plot(self.path[:, 0], self.path[:, 1], self.path[:, 2], color='green', alpha=0.9, linewidth= self.radius*15)
+            elif self.must_be_updated:
                 ax.plot(self.path[:, 0], self.path[:, 1], self.path[:, 2], color='crimson', alpha=0.9, linewidth= self.radius*15)
+            else :
+                ax.plot(self.path[:, 0], self.path[:, 1], self.path[:, 2], color='blue', alpha=0.9, linewidth= self.radius*15)
         return fig, ax
 
     def choose_random_point(self, seed):
@@ -216,13 +218,13 @@ class VasculatureNetwork: #class that contains the list of vessels
 
         # Find all root vessels with parent_id=None
         root_vessels = [v for v in self.list_of_vessels if v.parent_id is None] #get the root vessels
-        root_vessels = [v for v in root_vessels if v.must_be_updated is True] #get the root vessels that need to be updated
+        # root_vessels = [v for v in root_vessels if v.must_be_updated is True] #get the root vessels that need to be updated TODO: bugs with this, but it would improve efficiency
         print("Number of root vessels to update: ", len(root_vessels))
 
         # Call update_radius_recursive for each root vessel
         for root_vessel in root_vessels: #update the radius of each root vessel
             update_radius_recursive(root_vessel.id) #recursive call
-            root_vessel.must_be_updated = False #the root vessel does not need to be updated anymore
+            root_vessel.must_be_updated = True
 
         print("Updating for pressure") #update the radius of the vessels from the first to the last
         pow = self.config.radius_decrease_exponent #the exponent of the radius decrease

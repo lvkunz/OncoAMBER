@@ -68,5 +68,5 @@ class ScalarField2D: #this class is used to interpolate a scalar field in 2D fro
         for i in range(len(x)):
             for j in range(len(x[0])):
                 z[i, j] = self.evaluate((x[i, j], y[i, j]))
-        ax.plot_surface(x, y, z, cmap='plasma', alpha=0.8, vmin=0, vmax=5)
+        ax.plot_surface(x, y, z, cmap='gray', alpha=0.9, vmin=0, vmax=15)
         return fig, ax

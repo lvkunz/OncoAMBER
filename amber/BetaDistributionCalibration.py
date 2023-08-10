@@ -57,6 +57,7 @@ def run_calibration(side = 6, a = -7, b = 1, max_n = 100): #side is the length o
         if o2_level > threshold:
             o2_level = threshold
         return o2_level/threshold
+
     def square2(x, R = 1.0): #quadratic function
         o2_level = 1
         if x > R:
@@ -132,9 +133,10 @@ def run_calibration(side = 6, a = -7, b = 1, max_n = 100): #side is the length o
                     points.append(min(distances))
 
                 for i, point in enumerate(points): #TODO: if function needs to be changed by sigmoid or other. Do it here.
-                    # b_ = b*(1 - pressure)
-                    R = R0*(1 - pressure)
-                    o2 = square(point, R = R)
+                    b_ = b*(1 - pressure)
+                    # R = R0*(1 - pressure)
+                    # o2 = square(point, R = R)
+                    o2 = sigmoid(point, a, b_)
                     all_o2_values.append(o2)
                     if plot3D: ax.scatter(plottings[i][0], plottings[i][1], plottings[i][2], c = o2, cmap = 'turbo', vmin = 0, vmax = 1, s =1, alpha = 0.5)
 

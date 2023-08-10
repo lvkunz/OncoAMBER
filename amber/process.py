@@ -162,18 +162,18 @@ class Simulator: #this class is used to run the whole simulation
             axes[0,0].set_facecolor('whitesmoke')
             axes[0, 0].set_title('Number of Cells', fontsize=font)
 
-            norm = TwoSlopeNorm(vmin=0, vcenter=5, vmax=100)
+            norm = TwoSlopeNorm(vmin=0, vcenter=10, vmax=110)
 
             axes[0, 1].set_xlim(-size, size)
             axes[0, 1].set_ylim(-size, size)
-            world.show_tumor_slice(axes[0, 1], fig, 'n_capillaries', cmap = 'RdBu', norm = norm, levels= np.linspace(0, 110, 16))
+            world.show_tumor_slice(axes[0, 1], fig, 'n_capillaries', cmap = 'RdBu', norm = norm, levels= np.linspace(0, 100, 11), round_n = 0)
             axes[0, 1].grid(True)
             axes[0, 1].set_facecolor('whitesmoke')
             axes[0, 1].set_title('Number of Capillaries', fontsize=font)
 
             axes[1, 0].set_xlim(-size, size)
             axes[1, 0].set_ylim(-size, size)
-            world.show_tumor_slice(axes[1, 0], fig, 'molecular_factors', factor='VEGF', levels= np.linspace(0.001, 1.0, 11), cmap='Oranges')
+            world.show_tumor_slice(axes[1, 0], fig, 'molecular_factors', factor='VEGF', levels= np.linspace(0.001, 1.0, 11), cmap='Oranges', round_n = 2)
             axes[1, 0].grid(True)
             axes[1, 0].set_facecolor('whitesmoke')
             axes[1, 0].set_title('VEGF concentration', fontsize=font)
@@ -523,11 +523,12 @@ class UpdateCellOxygen(Process):
             # Plot the alpha and beta maps
             fig = plt.figure(dpi=300)
             ax = fig.add_subplot(111, projection='3d')
-            ax.figure.set_dpi(100)
+            ax.view_init(azim=45, elev=30)
             self.alpha_map.show_extra(fig, ax, [min(pressure_column), max(pressure_column)], [min(n_column), max(n_column)])
-            ax.axes.set_xlabel('Pressure')
-            ax.axes.set_ylabel('Number of vessels')
+            ax.axes.set_xlabel('Cell density')
+            ax.axes.set_ylabel('Number of capillaries')
             ax.title.set_text('Alpha map')
+            plt.savefig('alpha_map.png', dpi=300)
             if self.config.running_on_cluster:
                 plt.close()
             else:
@@ -535,11 +536,12 @@ class UpdateCellOxygen(Process):
 
             fig = plt.figure(dpi=300)
             ax = fig.add_subplot(111, projection='3d')
-            ax.figure.set_dpi(100)
+            ax.view_init(azim=135, elev=30)
             self.beta_map.show_extra(fig, ax, [min(pressure_column), max(pressure_column)], [min(n_column), max(n_column)])
-            ax.axes.set_xlabel('Pressure')
-            ax.axes.set_ylabel('Number of vessels')
+            ax.axes.set_xlabel('Cell density')
+            ax.axes.set_ylabel('Number of capillaries')
             ax.title.set_text('Beta map')
+            plt.savefig('beta_map.png', dpi=300)
             if self.config.running_on_cluster:
                 plt.close()
             else:
@@ -613,6 +615,7 @@ class UpdateVasculature(Process): #update the vasculature
         n_killed = world.vessels_killed(self.killing_radius_threshold) #kill vessels that have a radius smaller than the threshold
 
         for vessel in world.vasculature.list_of_vessels: #update the maturity of the vessels
+
             if vessel.maturity < 1.0:
                 vessel.maturity += self.dt / self.config.vessel_time_to_maturity
                 vessel.maturity = min(vessel.maturity, 1.0)
@@ -709,7 +712,9 @@ class Irradiation(Process): #irradiation
             damage_vessel = mean_dose * self.irradiation_intensity * vessel.radiosensitivity()
             print('Mean dose: ', mean_dose)
             print('Damage vessel: ', damage_vessel)
+            print('Vessel maturity before: ', vessel.maturity)
             vessel.maturity -= damage_vessel
+            print('Vessel maturity after: ', vessel.maturity)
             if vessel.maturity < 0:
                 vessel.maturity = 0
 

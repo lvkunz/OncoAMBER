@@ -11,7 +11,7 @@ tmin = 0  # Minimum time
 tmax = 5003 # Maximum time
 show_fits = 0  # Show the exponential fits
 fit = 'exp' #gompertz or exp
-show_necro = 1
+show_necro = 0
 show_quiet_cycling = 0
 show_vessels = True
 show_rates = False
@@ -20,7 +20,7 @@ rate_choice = 'volume' #volume or number
 local = 0
 param_to_plot = []
 
-repo = '20230808_lk001_Linux/CONFIG_new_o2_example.py_123016'
+repo = '20230809_lk001_Linux/CONFIG_vasculature_irrad_example.py_161509'
 repo = repo + '/'
 
 csv_file = ''

@@ -5,6 +5,7 @@ from amber.ScalarField import *
 from amber.BasicGeometries import *
 import matplotlib.tri as mtri
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 import scipy.sparse as sparse
 import pickle
 import os
@@ -93,8 +94,6 @@ class World: # class that contains the voxels and the vasculature
 
         self.initiate_vasculature(list_of_vessels)
         vasculature_bis = VasculatureNetwork(self.config, list_of_vessels_bis)
-        for vessel in vasculature_bis.list_of_vessels:
-            vessel.must_be_updated = True
 
         def pressure(point): #defines the pressure function for the healthy vasculature growth
             return (self.half_length - abs(point[0]))*0.06
@@ -135,11 +134,15 @@ class World: # class that contains the voxels and the vasculature
         self.vasculature.add_multiple_vessels(vasculature_bis.list_of_vessels)
 
         #update the radius of the vessels
-        self.vasculature.update_vessels_radius_from_last(self.config.radius_root_vessels, False, pressure)
+
         for vessel in self.vasculature.list_of_vessels:
+            vessel.must_be_updated = True
             vessel.in_growth = False
             vessel.maturity = 1.0
             vessel.visible = self.config.visible_original_vessels
+
+        self.vasculature.update_vessels_radius_from_last(self.config.radius_root_vessels, True, pressure)
+
         return
 
     def update_volume_occupied_by_vessels(self): #updates the volume occupied by the vessels in each voxel
@@ -240,6 +243,9 @@ class World: # class that contains the voxels and the vasculature
         neighbors_voxels = [self.voxel_list[n] for n in neighbors]
         return neighbors_voxels
 
+
+    #this function needs to be changed into something that is consistant for different voxel sizes and different dt
+    #Use PhysiCell to find the dependencies?
     def compute_exchange_matrix(self, dt): #computes the exchange matrix
         print('-- Computing exchange matrix')
         start = current_time()
@@ -436,7 +442,7 @@ class World: # class that contains the voxels and the vasculature
         return total
 
     def show_tumor_slice(self, ax, fig, voxel_attribute, factor=None, cmap='viridis', vmin=None, vmax=None, norm=None,
-                         levels=None, refinement_level=0, extend = 'both', slice = None): #plots a slice of the tumor with the voxel_attribute as color
+                         levels=None, refinement_level=0, extend = 'both', slice = None, round_n = None): #plots a slice of the tumor with the voxel_attribute as color
         print('-- Plotting Tumor Slice')
 
         if slice == None:
@@ -502,8 +508,14 @@ class World: # class that contains the voxels and the vasculature
         triangulation, z = refiner.refine_field(z, subdiv=refinement_level)
 
         if levels is None:
+            if vmin is None: vmin = np.min(z)
+            if vmax is None: vmax = np.max(z)
+            ticks = np.linspace(vmin, vmax, 11)
+            if round_n is not None: ticks = np.round(ticks, round_n)
             contour = ax.tricontourf(triangulation, z, cmap=cmap, alpha=0.7, vmin=vmin, vmax=vmax, norm=norm, extend = extend)
         else:
+            ticks = np.linspace(levels[0], levels[-1], 11)
+            if round_n is not None: ticks = np.round(ticks, round_n)
             contour = ax.tricontourf(triangulation, z, cmap=cmap, alpha=0.7, levels=levels, norm=norm, extend = extend)
 
         # #add a line for scale bar in the bottom right corner
@@ -523,7 +535,8 @@ class World: # class that contains the voxels and the vasculature
         elif slice == 'y':
             ax.scatter(self.center_of_mass[0], self.center_of_mass[2], color='black', s=10)
 
-        fig.colorbar(contour, ax=ax, shrink=0.5)
+
+        fig.colorbar(contour, ax=ax, shrink=0.5, ticks = ticks)
 
         return fig, ax
 
