@@ -112,15 +112,24 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                 return ax, fig
 
         def cycling_time_and_age_histogram(self, ax, fig): #plot the cycling time and age histogram of the voxel
+
+                if self.number_of_tumor_cells() == 0:
+                        return ax, fig
+
+                from scipy.stats import gamma
+                gamma_scale = self.list_of_cells[0].gamma_scale
+                gamma_shape = self.list_of_cells[0].gamma_shape
                 cycling_time = []
                 age = []
                 for cell in self.list_of_cells:
                         cycling_time.append(cell.doubling_time)
                         age.append(cell.time_spent_cycling)
-                ax.hist(cycling_time, bins=30, color='green', alpha=0.5, label='Cycling time')
-                ax.hist(age, bins=30, color='red', alpha=0.5, label='time_spent_cycling')
-                ax.set_xlabel('Cycling time')
-                ax.set_ylabel('Number of cells')
+                ax.hist(cycling_time, bins=20, color='green', alpha=0.5, label='Time before next division', density=True)
+                x = np.linspace(0, 70, 100)
+                ax.hist(age, bins=20, color='red', alpha=0.5, label='Time spent cycling', density=True)
+                ax.plot(x, gamma.pdf(x, gamma_shape, scale=gamma_scale), linestyle = 'dashed', color = 'black', lw=4, alpha=1.0, label='Gamma distribution')
+                ax.set_xlabel('Time [h]')
+                ax.set_ylabel('Frequency')
                 ax.set_title('Cycling time histogram')
                 ax.legend()
                 return ax, fig

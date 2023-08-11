@@ -39,7 +39,7 @@ def LQ_wo_exp(dose, alpha, beta):
     return -alpha * dose - beta * dose * dose
 
 
-def run_experiment(dose,repair_rate, radiosensitivity,n0):
+def run_experiment(dose,repair_rate, radiosensitivity,n0, n_fractions):
     list_of_cells = []
     for i in range(n0):
         cell = amber.TumorCell(config.radius_tumor_cells,
@@ -82,16 +82,17 @@ def run_experiment(dose,repair_rate, radiosensitivity,n0):
     n_necrotic_cells = []
 
     first_irradiation = 24
-    n_fractions = 5
     time_between_fractions = 24
     fractions = [first_irradiation + i * time_between_fractions for i in range(n_fractions)]
     fractions.append(1000000)
+
+    dose_f = dose / n_fractions
 
     i = 0
     for t in range(500):
         celldeath(voxel)
         if t == fractions[i]:
-            irradiation(voxel, dose)
+            irradiation(voxel, dose_f)
             i += 1
             #show histogram of cell damage
         cellaging(voxel)
@@ -99,20 +100,21 @@ def run_experiment(dose,repair_rate, radiosensitivity,n0):
         n_cells.append(len(voxel.list_of_cells))
         n_necrotic_cells.append(len(voxel.list_of_necrotic_cells))
 
-    fig, ax = plt.subplots(1, 1, figsize=(6, 4), dpi=200)
-    ax.plot(n_cells, label='Cells')
-    ax.plot(n_necrotic_cells, label='Necrotic cells')
-    ax.set_xlabel('Time (hours)')
-    ax.set_ylabel('Number of cells')
-    ax.legend()
-    plt.show()
+    # fig, ax = plt.subplots(1, 1, figsize=(6, 4), dpi=200)
+    # ax.plot(n_cells, label='Cells')
+    # ax.plot(n_necrotic_cells, label='Necrotic cells')
+    # ax.set_xlabel('Time (hours)')
+    # ax.set_ylabel('Number of cells')
+    # ax.legend()
+    # plt.show()
 
     return n_cells[-1]
 
-write = True
+write = False
 fit = True
-repair_rates = [ 0.03]
-doses = [0.0, 0.03, 0.05, 0.07, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.5, 2.0]
+
+repair_rates = [1, 3, 5]
+doses = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.5, 2.0]
 
 # doses = [0.0, 0.5, 1.0, 1.5, 2.0]
 radio_sensitivities = []
@@ -125,7 +127,7 @@ if write:
         surviving_cells_array = []
         for i in doses:
             print('Dose = ', i)
-            surviving_cells = run_experiment(i, repair, 0.3, n0)
+            surviving_cells = run_experiment(i, 0.03, 0.3, n0, n_fractions=repair)
             print('----------------------------------')
             surviving_cells_array.append(surviving_cells/n0)
             np.save('LQ_tests/doses_array_repair='+str(repair)+'.npy', doses)
@@ -135,7 +137,7 @@ if write:
         surviving_cells_array = []
         for i in doses:
             print('Dose = ', i)
-            surviving_cells = run_experiment(i, 0.03, radiosensi,n0)
+            surviving_cells = run_experiment(i, 0.03, radiosensi,n0,n_fractions=1)
             print('----------------------------------')
             surviving_cells_array.append(surviving_cells/n0)
             np.save('LQ_tests/doses_array_radiosensi='+str(radiosensi)+'.npy', doses)
@@ -160,7 +162,7 @@ for repair in repair_rates:
     print('alpha/beta ratio = ', alpha_beta_ratio)
     doses_smooth = np.linspace(0, 2, 100)
     color = next(ax._get_lines.prop_cycler)['color']
-    ax.plot(finite_doses, finite_surviving_cells_array, 'x', label='Repair rate = ' + str(repair), color=color)
+    ax.plot(finite_doses, finite_surviving_cells_array, 'x', label='Number of fractions = ' + str(repair), color=color)
     if fit: ax.plot(doses_smooth, LQ_wo_exp(doses_smooth, *popt), color = color)#, label='LQ model, alpha = ' + str(round(popt[0],3)) + ', beta = ' + str(round(popt[1],3)))
 
 ax.set_xlabel('Dose (arb. units)')

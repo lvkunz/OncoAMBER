@@ -59,9 +59,11 @@ class Cell:
 
     def necrosis_probability(self, proba0, threshold, coeff_damage): #returns the probability of necrosis of the cell. This is a function of the vitality and the damage
         p = 0
-        r = proba0 - self.vitality() / threshold
-        if r < 0: r = 0
-        p += r
+
+        r = proba0
+        if self.vitality() < threshold:
+            p += r
+
         if self.damage > 0:
             p += coeff_damage * self.damage
         p = min(p, 1.0)
