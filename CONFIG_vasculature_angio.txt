@@ -6,7 +6,7 @@ seed: -1                           #seed for random number generator. -1 for ran
 running_on_cluster: False              #don't touch, the bash script changes it automatically
 
 #Initialisation
-vessel_number: 0.2                     #initial number of vessels for healthy tissue per mm^2
+vessel_number: 0.3                     #initial number of vessels for healthy tissue per mm^2
 initial_number_tumor_cells: 200         #initial total number of tumor cells
 tumor_initial_radius: 0.5 #mm
 doubling_time_tumor: 15  #hours
@@ -18,7 +18,7 @@ save_world_every: 100000                   #save the world every x hours
 
 #Radiation parameters
 topas_file: TOPAS_gamma6MeV
-first_irradiation_time: 8             #time at which radiation is applied
+first_irradiation_time: 800             #time at which radiation is applied
 number_fractions: 0                     #number of fractions of radiation
 time_between_fractions: 24              #time between fractions of radiation
 irradiation_intensity: 2.0               #duration of radiation

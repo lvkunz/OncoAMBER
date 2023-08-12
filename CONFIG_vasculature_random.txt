@@ -18,7 +18,7 @@ save_world_every: 100000                   #save the world every x hours
 
 #Radiation parameters
 topas_file: TOPAS_gamma6MeV
-first_irradiation_time: 8             #time at which radiation is applied
+first_irradiation_time: 800             #time at which radiation is applied
 number_fractions: 4                     #number of fractions of radiation
 time_between_fractions: 24              #time between fractions of radiation
 irradiation_intensity: 2.0               #duration of radiation
