@@ -108,6 +108,7 @@ celldeath = amber.CellDeath(config, 'cell_death', dt,
                                         necrosis_threshold=config.vitality_necrosis_threshold,
                                         necrosis_probability=config.probability_necrosis,
                                         necrosis_removal_probability=config.probability_necrosis_removal,
+                                        apoptosis_removal_probability=config.probability_apoptosis_removal,
                                         necrosis_damage_coeff=config.necrosis_damage_coeff,
                                         apoptosis_damage_coeff=config.apoptosis_damage_coeff)
 
@@ -130,8 +131,7 @@ update_vessels = amber.UpdateVasculature(config, 'update_vessels', dt,
                                         micro_steps=config.micro_steps,
                                         weight_direction=config.weight_direction,
                                         weight_vegf=config.weight_vegf,
-                                        weight_pressure=config.weight_pressure,
-                                        radius_pressure_sensitive=config.radius_pressure_sensitive)
+                                        weight_pressure=config.weight_pressure)
 
 cellinteraction = amber.CellInteraction(config, 'cell_interaction', dt)
 #not included in the simulation

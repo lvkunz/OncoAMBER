@@ -208,7 +208,7 @@ class VasculatureNetwork: #class that contains the list of vessels
         root_vessel.must_be_updated = True #the root vessel tree needs to be updated as we removed a vessel
         self.list_of_vessels.remove(vessel) #remove the vessel from the list of vessels
 
-    def update_vessels_radius_from_last(self, final_radius, pressure_sensitive, pressure):
+    def update_vessels_radius_from_last(self, final_radius):
         print("Updating vessels radius from last") #update the radius of the vessels from the last to the first
         def update_radius_recursive(vessel_id): #recursive function to update the radius of the vessels
             vessel = self.get_vessel(vessel_id) #get the vessel
@@ -235,7 +235,6 @@ class VasculatureNetwork: #class that contains the list of vessels
 
         for vessel in self.list_of_vessels: #update the radius of each vessel
             vessel.radius = vessel.radius * vessel.maturity #the radius is decreased by a factor that depends on the maturity
-
     def volume_occupied(self): #returns the total volume occupied by the vessels
         points = []
         volume = []
@@ -283,17 +282,16 @@ class VasculatureNetwork: #class that contains the list of vessels
                             self.branching(vessel.id, branching_point) #branch the vessel
                 j += 1
 
-    def update_maturity(self, dt):
+    def update_maturity(self, dt, pressure):
 
         pow_ = self.config.radius_decrease_exponent
         coeff = self.config.max_occupancy ** (-pow_)
 
         for vessel in self.list_of_vessels:  # update the maturity of the vessels
-            avg_pressure = vessel.mean_pressure()
+            avg_pressure = vessel.mean_pressure(pressure)
             max_maturity = vessel.max_maturity(coeff, pow_, avg_pressure)
-            if vessel.maturity < max_maturity:
-                vessel.maturity += dt / self.config.vessel_time_to_maturity
-                vessel.maturity = min(vessel.maturity, max_maturity)
+            vessel.maturity += dt / self.config.vessel_time_to_maturity
+            vessel.maturity = min(vessel.maturity, max_maturity)
 
 
     def print_vessel_tree_recursive(self, vessels, children_ids, indent): #used to print the tree of vessels for debugging

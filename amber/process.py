@@ -419,7 +419,7 @@ class CellDeath(Process): #cell necrosis process, cells die in a voxel if they h
                 voxel.cell_becomes_apoptotic(cell)
 
         for dead in voxel.list_of_dead_cells: #remove dead cells with a certain probability
-            if dead.is_necrotic: p = self.necrosis_removal_probability
+            if dead.necrotic: p = self.necrosis_removal_probability
             else: p = self.apoptosis_removal_probability
             proba = (1 - ((1-p)**self.dt))
             if random.random() < proba:
@@ -597,7 +597,7 @@ class UpdateVoxelMolecules(Process): #update the molecules in the voxel (VEGF), 
         # self.update_fiber_density(voxel)
         return
 class UpdateVasculature(Process): #update the vasculature
-    def __init__(self, config, name, dt, killing_radius_threshold, n_capillaries_per_VVD, capillary_length, splitting_rate, macro_steps, micro_steps, weight_direction, weight_vegf, weight_pressure, radius_pressure_sensitive):
+    def __init__(self, config, name, dt, killing_radius_threshold, n_capillaries_per_VVD, capillary_length, splitting_rate, macro_steps, micro_steps, weight_direction, weight_vegf, weight_pressure):
         super().__init__(config, 'UpdateVasculature', dt)
         self.is_global = True
         self.killing_radius_threshold = killing_radius_threshold
@@ -610,7 +610,6 @@ class UpdateVasculature(Process): #update the vasculature
         self.weight_direction = weight_direction
         self.weight_vegf = weight_vegf
         self.weight_pressure = weight_pressure
-        self.radius_pressure_sensitive = radius_pressure_sensitive
 
     @Process.timeit
     def __call__(self, world: World):
@@ -644,7 +643,7 @@ class UpdateVasculature(Process): #update the vasculature
                         world.vasculature.branching(random_vessel.id, point)
 
         #grow the vessels and update the volume occupied by the vessels
-        world.vasculature_growth(self.dt, self.splitting_rate, self.macro_steps, self.micro_steps, self.weight_direction, self.weight_vegf, self.weight_pressure, self.radius_pressure_sensitive)
+        world.vasculature_growth(self.dt, self.splitting_rate, self.macro_steps, self.micro_steps, self.weight_direction, self.weight_vegf, self.weight_pressure)
         world.update_volume_occupied_by_vessels()
         #update the capillary map
         world.update_capillaries(n_capillaries_per_VVD= self.n_capillaries_per_VVD, capillary_length = self.capillary_length)

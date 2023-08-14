@@ -42,7 +42,7 @@ class World: # class that contains the voxels and the vasculature
             vessel.must_be_updated = True #the vessel must be updated
         return
 
-    def vasculature_growth(self, dt, splitting_rate, macro_steps=1, micro_steps=10, weight_direction=0.5, weight_vegf=0.5, weight_pressure=0.5, radius_pressure_sensitive = False):
+    def vasculature_growth(self, dt, splitting_rate, macro_steps=1, micro_steps=10, weight_direction=0.5, weight_vegf=0.5, weight_pressure=0.5):
         print('Vasculature growth')
         pressure_map = self.pressure_map(step_gradient=5) #creates the pressure map
         def pressure(point): return pressure_map.evaluate(point) #defines the pressure function
@@ -61,8 +61,8 @@ class World: # class that contains the voxels and the vasculature
                                         pressure = pressure,
                                         vegf_gradient = vegf_gradient)
 
-        self.vasculature.update_maturity(dt)
-        self.vasculature.update_vessels_radius_from_last(self.config.radius_root_vessels, radius_pressure_sensitive, pressure)
+        self.vasculature.update_maturity(dt, pressure)
+        self.vasculature.update_vessels_radius_from_last(self.config.radius_root_vessels)
         return
 
     def generate_healthy_vasculature(self, initial_vessel_number, splitting_rate =0.3, mult_macro_steps=1, micro_steps=8, weight_direction=3.0, weight_vegf=1.0, weight_pressure=0.0, extra_step = True):
@@ -143,7 +143,7 @@ class World: # class that contains the voxels and the vasculature
             vessel.maturity = 1.0
             vessel.visible = self.config.visible_original_vessels
 
-        self.vasculature.update_vessels_radius_from_last(self.config.radius_root_vessels, True, pressure)
+        self.vasculature.update_vessels_radius_from_last(self.config.radius_root_vessels)
 
         return
 
