@@ -28,7 +28,7 @@ def plot_outliners(ax, x, y, y_min, y_max, color='black'):
         if y[i] < y_min[i] or y[i] > y_max[i]:
             ax.plot(x[i], y[i], '.', color=color)
 
-repo = '20230813_lk001_Linux/CONFIG_vasculature_random_example.py_221621'
+repo = '20230814_lk001_Linux/CONFIG_vasculature_irrad_example.py_134514'
 
 csv_file = ''
 #all repositories in repo:
