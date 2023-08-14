@@ -12,7 +12,7 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                 self.position = position #position is a 3D vector
                 self.half_length = half_length #half_length is a scalar
                 self.list_of_cells = list_of_cells_in #list of cells in the voxel
-                self.list_of_necrotic_cells = [] #list of necrotic cells in the voxel
+                self.list_of_dead_cells = [] #list of necrotic cells in the voxel
                 self.n_capillaries = n_capillaries #number of capillaries in the voxel
                 self.volume = 8*half_length**3 #volume of the voxel
                 self.voxel_number = voxel_number #id of the voxel
@@ -31,19 +31,30 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                                 number = number + 1
                 return number
 
-        def number_of_necrotic_cells(self): #returns the number of necrotic cells in the voxel
+        def number_of_dead_cells(self): #returns the number of necrotic cells in the voxel
+                return len(self.list_of_dead_cells)
+
+        def number_of_necrotic_cells(self): #returns the number of apoptotic cells in the voxel
                 number = 0
-                for cell in self.list_of_necrotic_cells:
-                        if cell.type == 'TumorCell':
+                for cell in self.list_of_dead_cells:
+                        if cell.necrotic == True:
                                 number = number + 1
                 return number
+
+        def number_of_apoptotic_cells(self): #returns the number of apoptotic cells in the voxel
+                number = 0
+                for cell in self.list_of_dead_cells:
+                        if cell.necrotic == False:
+                                number = number + 1
+                return number
+
         def number_of_alive_cells(self): #returns the number of alive cells in the voxel
                 return len(self.list_of_cells)
         def occupied_volume(self): #returns the volume occupied by the cells in the voxel
                 volume = 0.0
                 for cell in self.list_of_cells:
                         volume = volume + cell.volume
-                for cell in self.list_of_necrotic_cells:
+                for cell in self.list_of_dead_cells:
                         volume = volume + cell.volume
                 return volume
 
@@ -78,15 +89,22 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                 self.list_of_cells = np.delete(self.list_of_cells, id)
                 return True
 
-        def remove_necrotic_cell(self, cell): #remove a necrotic cell from the voxel
-                id = np.where(self.list_of_necrotic_cells == cell)
-                self.list_of_necrotic_cells = np.delete(self.list_of_necrotic_cells, id)
+        def remove_dead_cell(self, cell):
+                indices = np.nonzero(self.list_of_dead_cells == cell)[0]
+                if indices.size == 0:
+                        return False  # Cell not found in the list
+                self.list_of_dead_cells = np.delete(self.list_of_dead_cells, indices)
                 return True
 
         def cell_becomes_necrotic(self, cell): #remove a cell from the voxel and add it to the list of necrotic cells
                 self.list_of_cells = np.delete(self.list_of_cells, np.where(self.list_of_cells == cell))
                 cell.necrotic = True
-                self.list_of_necrotic_cells = np.append(cell, self.list_of_necrotic_cells)
+                self.list_of_dead_cells = np.append(cell, self.list_of_dead_cells)
+                return True
+
+        def cell_becomes_apoptotic(self, cell):
+                self.list_of_cells = np.delete(self.list_of_cells, np.where(self.list_of_cells == cell))
+                self.list_of_dead_cells = np.append(cell, self.list_of_dead_cells)
                 return True
 
         def oxygen_histogram(self, ax, fig): #plot the oxygen histogram of the voxel

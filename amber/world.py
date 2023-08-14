@@ -60,6 +60,8 @@ class World: # class that contains the voxels and the vasculature
                                         weight_pressure = weight_pressure,
                                         pressure = pressure,
                                         vegf_gradient = vegf_gradient)
+
+        self.vasculature.update_maturity(dt)
         self.vasculature.update_vessels_radius_from_last(self.config.radius_root_vessels, radius_pressure_sensitive, pressure)
         return
 

@@ -24,6 +24,7 @@ class Vessel: #class for vessels
         self.must_be_updated = True #boolean to indicate if the vessel radius must be updated
         self.maturity = 1.0 # 1.0 is fully mature, changes vessels radius and increases slowly over time
         self.intra_radiosensitivity = intra_radiosensitivity #intra_radiosensitivity is the radiosensitivity of the vessel
+
     def __iter__(self): #iterator for the vessel
         return self
 
@@ -118,6 +119,10 @@ class Vessel: #class for vessels
     def radiosensitivity(self): #returns the radiosensitivity of the vessel
         radiosensitivity = self.intra_radiosensitivity
         return radiosensitivity
+
+    def max_maturity(self, coeff, pow, avg_pressure):
+        return (1 - coeff * (avg_pressure**pow))
+
 class VasculatureNetwork: #class that contains the list of vessels
     def __init__(self, config, list_of_vessels=None):
         if list_of_vessels is None:
@@ -227,12 +232,9 @@ class VasculatureNetwork: #class that contains the list of vessels
             root_vessel.must_be_updated = True
 
         print("Updating for pressure") #update the radius of the vessels from the first to the last
-        pow = self.config.radius_decrease_exponent #the exponent of the radius decrease
-        coeff = self.config.max_occupancy ** (-pow) #the coefficient of the radius decrease
-        for vessel in self.list_of_vessels: #update the radius of each vessel
-            vessel.radius = vessel.radius * (1 - coeff * (vessel.mean_pressure(pressure)**pow)) #the radius is decreased by a factor that depends on the pressure
-            vessel.radius = vessel.radius * vessel.maturity #the radius is decreased by a factor that depends on the maturity
 
+        for vessel in self.list_of_vessels: #update the radius of each vessel
+            vessel.radius = vessel.radius * vessel.maturity #the radius is decreased by a factor that depends on the maturity
 
     def volume_occupied(self): #returns the total volume occupied by the vessels
         points = []
@@ -280,6 +282,20 @@ class VasculatureNetwork: #class that contains the list of vessels
                             branching_point = vessel.choose_random_point(self.config.seed) #choose a random point
                             self.branching(vessel.id, branching_point) #branch the vessel
                 j += 1
+
+    def update_maturity(self, dt):
+
+        pow_ = self.config.radius_decrease_exponent
+        coeff = self.config.max_occupancy ** (-pow_)
+
+        for vessel in self.list_of_vessels:  # update the maturity of the vessels
+            avg_pressure = vessel.mean_pressure()
+            max_maturity = vessel.max_maturity(coeff, pow_, avg_pressure)
+            if vessel.maturity < max_maturity:
+                vessel.maturity += dt / self.config.vessel_time_to_maturity
+                vessel.maturity = min(vessel.maturity, max_maturity)
+
+
     def print_vessel_tree_recursive(self, vessels, children_ids, indent): #used to print the tree of vessels for debugging
         for child_id in children_ids:
             child_vessel = next((v for v in vessels if v.id == child_id), None)

@@ -386,7 +386,7 @@ class CellDivision(Process): #cell division process, cells divide in a voxel if 
         return
 
 class CellDeath(Process): #cell necrosis process, cells die in a voxel if they have too low vitality
-    def __init__(self, config, name, dt, necrosis_threshold, necrosis_probability, apoptosis_threshold, apoptosis_probability,necrosis_removal_probability, necrosis_damage_coeff, apoptosis_damage_coeff):
+    def __init__(self, config, name, dt, necrosis_threshold, necrosis_probability, apoptosis_threshold, apoptosis_probability,necrosis_removal_probability, apoptosis_removal_probability, necrosis_damage_coeff, apoptosis_damage_coeff):
         super().__init__(config, 'CellNecrosis', dt)
         self.necrosis_threshold = necrosis_threshold
         self.necrosis_probability = necrosis_probability
@@ -397,7 +397,7 @@ class CellDeath(Process): #cell necrosis process, cells die in a voxel if they h
         if self.necrosis_threshold > self.apoptosis_threshold:
             raise ValueError('necrosis threshold must be smaller or equal to apoptosis threshold. you can set apoptosis probability to 0 if you want to avoid apoptosis.')
         self.necrosis_removal_probability = necrosis_removal_probability
-
+        self.apoptosis_removal_probability = apoptosis_removal_probability
 
     @Process.timeit
     def __call__(self, voxel):
@@ -416,11 +416,14 @@ class CellDeath(Process): #cell necrosis process, cells die in a voxel if they h
                 voxel.cell_becomes_necrotic(cell)
             elif sample < p_necro + p_apopt:
                 #apoptosis
-                voxel.remove_cell(cell)
-        for necro in voxel.list_of_necrotic_cells: #remove necrotic cells with a certain probability
-            proba = (1 - ((1-self.necrosis_removal_probability)**self.dt))
+                voxel.cell_becomes_apoptotic(cell)
+
+        for dead in voxel.list_of_dead_cells: #remove dead cells with a certain probability
+            if dead.is_necrotic: p = self.necrosis_removal_probability
+            else: p = self.apoptosis_removal_probability
+            proba = (1 - ((1-p)**self.dt))
             if random.random() < proba:
-                voxel.remove_necrotic_cell(necro)
+                voxel.remove_dead_cell(dead)
 
 class CellAging(Process): #cell aging process, cells age in a voxel
     def __init__(self, config, name, dt, repair_per_hour):
@@ -614,11 +617,7 @@ class UpdateVasculature(Process): #update the vasculature
         #print in separate thread
         n_killed = world.vessels_killed(self.killing_radius_threshold) #kill vessels that have a radius smaller than the threshold
 
-        for vessel in world.vasculature.list_of_vessels: #update the maturity of the vessels
 
-            if vessel.maturity < 1.0:
-                vessel.maturity += self.dt / self.config.vessel_time_to_maturity
-                vessel.maturity = min(vessel.maturity, 1.0)
 
         print('Killed vessels: ', n_killed)
         print('Growing vessels')
