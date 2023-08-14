@@ -21,7 +21,7 @@ topas_file: TOPAS_gamma6MeV
 first_irradiation_time: 8             #time at which radiation is applied
 number_fractions: 4                     #number of fractions of radiation
 time_between_fractions: 24              #time between fractions of radiation
-irradiation_intensity: 2.0               #duration of radiation
+irradiation_intensity: 1.5               #duration of radiation
 intra_radiosensitivity: 0.3             #damage rate of cells due to 1Gy of radiation
 vessel_radiosensitivity: 0.3          #death rate of vessels due to 1Gy of radiation
 repair_per_hour: 0.03                   #repair of cells per hour. For 0.03, cells with 50% damage are repaired after 24h
