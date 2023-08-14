@@ -54,7 +54,6 @@ class Cell:
 
         if self.necrotic == True: #if the cell is necrotic, it is not very radiosensitive. Might have to be modified
             value = 0.1
-
         return value
 
     def necrosis_probability(self, proba0, threshold, coeff_damage): #returns the probability of necrosis of the cell. This is a function of the vitality and the damage
