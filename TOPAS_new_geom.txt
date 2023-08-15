@@ -1,0 +1,13 @@
+IncludeFile = /Users/louiskunz/PycharmProjects/OncoAMBER/TOPAS_new.txt 
+d:Ge/Tumor/HLX      = 15.0 mm 
+d:Ge/Tumor/HLY      = 15.0 mm 
+d:Ge/Tumor/HLZ      = 15.0 mm 
+d:Ge/Tumor/TransX   = 0. m 
+d:Ge/Tumor/TransY   = 0. m 
+d:Ge/Tumor/TransZ   = 0. m 
+d:Ge/Tumor/RotX     = 0. deg 
+d:Ge/Tumor/RotY     = 0. deg 
+d:Ge/Tumor/RotZ     = 0. deg 
+i:Ge/Tumor/ZBins = 25 
+i:Ge/Tumor/XBins = 25 
+i:Ge/Tumor/YBins = 25
