@@ -234,7 +234,7 @@ class Simulator: #this class is used to run the whole simulation
 
         #create an array of execution times for each process (local and global)
         execution_times = [[] for _ in range(len(self.list_of_process))] #list of execution times for each process (local and global)
-
+        sums = []
 
         # if not self.config.skip_weekends:
         #     irradiations_times = [self.config.first_irradiation_time + i * self.config.time_between_fractions for i in
@@ -332,9 +332,12 @@ class Simulator: #this class is used to run the whole simulation
             if self.config.show_center_of_mass:
                 self.show_center_of_mass(center_of_mass, times)
 
+            sum = 0
             for i, process in enumerate(self.list_of_process):
+                sum += process.time_spent_doing_process
                 execution_times[i].append(process.time_spent_doing_process)
                 process.time_spent_doing_process = 0
+            sums.append(sum)
 
             if not can_irradiate and self.config.irradiation_cell_based and number_tumor_cells[-1] >= self.config.critical_n_cells:
                 can_irradiate = True
@@ -345,6 +348,7 @@ class Simulator: #this class is used to run the whole simulation
             plt.figure()
             for i, process in enumerate(self.list_of_process):
                 plt.plot(times, execution_times[i], label = process.name)
+            plt.plot(times, sums, label = 'Total')
             plt.legend()
             plt.xlabel('Time (hours)')
             plt.ylabel('Time spent doing process (s)')
@@ -687,15 +691,24 @@ class Irradiation(Process): #irradiation
             os.rename('MyScorer.csv', topas_file + '.csv')
 
         #read the dose from the file
-        _, self.doses = rw.DoseOnWorld(topas_file + '.csv')
+        _, read_doses = rw.DoseOnWorld(topas_file + '.csv')
+
+        #transform numpy aray into a list
+        read_doses = read_doses.tolist()
+
+        self.doses = np.zeros(len(read_doses)) #create an array of zeros
+
+        #added to compensate for some irregularities in the Topas simulation, TODO: fix this in the Topas simulation and remove this
+        for i in range(len(read_doses)):
+            self.doses[i] = 0.5*(read_doses[i] + read_doses[len(read_doses) - i - 1])
+
         world.update_dose(self.doses) #update the dose on the world
 
-
-
         # plot the simulation
-        fig, ax = plt.subplots(1, 2, figsize=(12, 5))
-        world.show_tumor_slice(ax[0], fig, 'dose', cmap='RdPu',refinement_level=2, slice='x')
-        world.show_tumor_slice(ax[1], fig, 'dose', cmap='RdPu',refinement_level=2, slice='y')
+        fig, ax = plt.subplots(1, 3, figsize=(18, 5))
+        world.show_tumor_slice(ax[0], fig, 'dose', cmap='RdPu',refinement_level=2, slice='x', round_n=2, vmin=0.2, vmax=0.7)
+        world.show_tumor_slice(ax[1], fig, 'dose', cmap='RdPu',refinement_level=2, slice='y', round_n=2, vmin=0.2, vmax=0.7)
+        world.show_tumor_slice(ax[2], fig, 'dose', cmap='RdPu',refinement_level=2, slice='z', round_n=2, vmin=0.2, vmax=0.7)
         fig.suptitle('Dose (arb. units)', fontsize=20)
         plt.tight_layout()
         plt.savefig('dose.png', dpi=300)

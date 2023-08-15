@@ -1,14 +1,14 @@
 half_length_world: 7.5 #mm
 voxel_per_side: 25
 dt: 4 #hours
-endtime: 2000 #hours
-seed: 167                           #seed for random number generator. -1 for random seed
-running_on_cluster: True              #don't touch, the bash script changes it automatically
+endtime: 3000 #hours
+seed: -1                           #seed for random number generator. -1 for random seed
+running_on_cluster: True              #don't touch, the bash script changes it automatically. decides if plots are shown or just saved
 
 #Initialisation
 vessel_number: 0.3                     #initial number of vessels for healthy tissue per mm^2
-initial_number_tumor_cells: 200         #initial total number of tumor cells
-tumor_initial_radius: 0.5 #mm
+initial_number_tumor_cells: 300000         #initial total number of tumor cells
+tumor_initial_radius: 2.5 #mm
 doubling_time_tumor: 15  #hours
 doubling_time_sd: 5
 radius_tumor_cells: 0.033 #mm
@@ -17,10 +17,10 @@ world_file: double             #name of the world file to create or load
 save_world_every: 100000                   #save the world every x hours
 
 #Radiation parameters
-topas_file: TOPAS_gamma6MeV
-irradiation_cell_based: True           #if True, irradiation is applied once the tumor reaches a certain number of cells, if False, irradiation is applied at a certain time
-first_irradiation_time: 800             #time at which radiation is applied if irradiation_cell_based is False
-critical_n_cells: 1000                  #number of cells above which radiation is applied if irradiation_cell_based is True
+topas_file: TOPAS_new
+irradiation_cell_based: False           #if True, irradiation is applied once the tumor reaches a certain number of cells, if False, irradiation is applied at a certain time
+first_irradiation_time: 800              #time at which radiation is applied if irradiation_cell_based is False
+critical_n_cells: 500000                  #number of cells above which radiation is applied if irradiation_cell_based is True
 fractionation_schedule: FRAC_25_frac_no_weekends.csv #fractionation scheme in Gy per fraction. Start with 0 to have irradiation at the first time decided by irradiation_cell_based
 irradiation_intensity: 2.0               #duration of radiation
 intra_radiosensitivity: 0.3             #damage rate of cells due to 1Gy of radiation

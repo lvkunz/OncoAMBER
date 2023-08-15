@@ -18,9 +18,9 @@ show_rates = False
 experimental = 0
 rate_choice = 'volume' #volume or number
 local = 0
-param_to_plot = []
+param_to_plot = [0.02,0.03]
 
-repo = '20230814_lk001_Linux/CONFIG_vasculature_irrad_example.py_190551'
+repo = '20230814_lk001_Linux/CONFIG_vasculature_irrad_example.py_190956'
 repo = repo + '/'
 
 csv_file = ''
