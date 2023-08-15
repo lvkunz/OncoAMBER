@@ -75,6 +75,7 @@ for (( COUNT=0; COUNT<$ITER; COUNT++ )); do
   cp ${CONFIG_NAME}.txt $DIR
 
   cp TOPAS* $DIR
+  cp FRAC* $DIR
 
   # Loop through each parameter name and prompt the user for a value
   declare -A param_values=()

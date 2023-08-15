@@ -21,7 +21,7 @@ show_necro = 1
 show_quiet_cycling = 1
 show_vessels = False
 local = 0
-irradiation = [796, 24, 0] #first, frequence, number of fractions
+irradiation = [796, 24, 5] #first, frequence, number of fractions
 
 def plot_outliners(ax, x, y, y_min, y_max, color='black'):
     for i in range(len(x)):
@@ -80,7 +80,7 @@ for path in paths:
     number_cells = cycling_cells + quiescent_cells + necrotic_cells
     tumor_size = np.load(f'{path}tumor_size.npy', allow_pickle=True)
     tumor_size_free = np.load(f'{path}tumor_size_free.npy', allow_pickle=True)
-    tumor_size_free = tumor_size - tumor_size_free
+    # tumor_size_free = tumor_size - tumor_size_free
     number_vessels = np.load(f'{path}number_vessels.npy', allow_pickle=True)
     times = np.load(f'{path}times.npy', allow_pickle=True)
 
@@ -229,12 +229,12 @@ if show_fits:
 # Fit tumor size
 if show_fits:
     popt, pcov = curve_fit(func_volume, times_average , tumor_size_average , p0=p2, maxfev=100000)
-axes[1].plot(times_average, tumor_size_average, '-', color = 'purple', markersize = 5, alpha=0.5, label='Tumor Volume')
-axes[1].fill_between(times_average, np.array(tumor_size_average) - np.array(tumor_size_sd), np.array(tumor_size_average) + np.array(tumor_size_sd), alpha=0.2, color='purple')
-axes[1].plot(times_average, tumor_size_free_average, '-', color = 'black', markersize = 5, alpha=0.5, label='Necrotic Core Volume')
-axes[1].fill_between(times_average, np.array(tumor_size_free_average) - np.array(tumor_size_free_sd), np.array(tumor_size_free_average) + np.array(tumor_size_free_sd), alpha=0.2, color='black')
+axes[1].plot(times_average, tumor_size_average, '-', color = 'black', markersize = 5, alpha=0.8, label='Total Tumor Volume')
+axes[1].fill_between(times_average, np.array(tumor_size_average) - np.array(tumor_size_sd), np.array(tumor_size_average) + np.array(tumor_size_sd), alpha=0.2, color='black')
+axes[1].plot(times_average, tumor_size_free_average, '-', color = 'purple', markersize = 5, alpha=0.8, label='Non-Necrotic Tumor Volume')
+axes[1].fill_between(times_average, np.array(tumor_size_free_average) - np.array(tumor_size_free_sd), np.array(tumor_size_free_average) + np.array(tumor_size_free_sd), alpha=0.2, color='purple')
 if show_fits:
-    axes[1].plot(times_list[i], func_volume(times_average, *popt), '--', color='purple')#, label='fit '+parameter+': '+str(param[i]))
+    axes[1].plot(times_list[i], func_volume(times_average, *popt), '--', color='black')#, label='fit '+parameter+': '+str(param[i]))
     doubling_time = np.log(2)/popt[1]
     doubling_times_tumor_size.append(doubling_time)
 

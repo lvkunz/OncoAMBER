@@ -18,9 +18,10 @@ save_world_every: 100000                   #save the world every x hours
 
 #Radiation parameters
 topas_file: TOPAS_gamma6MeV
-first_irradiation_time: 800             #time at which radiation is applied
-number_fractions: 4                     #number of fractions of radiation
-time_between_fractions: 24              #time between fractions of radiation
+irradiation_cell_based: True           #if True, irradiation is applied once the tumor reaches a certain number of cells, if False, irradiation is applied at a certain time
+first_irradiation_time: 800             #time at which radiation is applied if irradiation_cell_based is False
+critical_n_cells: 1000                  #number of cells above which radiation is applied if irradiation_cell_based is True
+fractionation_schedule: FRAC_25_frac_no_weekends.csv #fractionation scheme in Gy per fraction. Start with 0 to have irradiation at the first time decided by irradiation_cell_based
 irradiation_intensity: 2.0               #duration of radiation
 intra_radiosensitivity: 0.3             #damage rate of cells due to 1Gy of radiation
 vessel_radiosensitivity: 0.3          #death rate of vessels due to 1Gy of radiation

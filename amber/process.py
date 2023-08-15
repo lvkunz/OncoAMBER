@@ -235,8 +235,24 @@ class Simulator: #this class is used to run the whole simulation
         #create an array of execution times for each process (local and global)
         execution_times = [[] for _ in range(len(self.list_of_process))] #list of execution times for each process (local and global)
 
-        irradiations_times = [self.config.first_irradiation_time + i * self.config.time_between_fractions for i in
-                              range(self.config.number_fractions)] #list of irradiation times
+
+        # if not self.config.skip_weekends:
+        #     irradiations_times = [self.config.first_irradiation_time + i * self.config.time_between_fractions for i in
+        #                           range(self.config.number_fractions)] #list of irradiation times
+        #read the fractionation schedule from a file
+        irradiations_times = []
+        with open(str(self.config.fractionation_schedule), 'r') as f:
+            for line in f:
+                irradiations_times.append(float(line))
+
+        print('Irradiation times: ' + str(irradiations_times))
+        can_irradiate = False
+        if not self.config.irradiation_cell_based:
+            can_irradiate = True
+            for i in range(len(irradiations_times)):
+                irradiations_times[i] = irradiations_times[i] + self.config.first_irradiation_time
+
+        number_of_fractions = len(irradiations_times) #number of fractions
         applied_fractions = 0 #number of applied fractions
 
         number_cycling_cells = []; number_quiescent_cells = []; number_necrotic_cells = [];
@@ -250,8 +266,8 @@ class Simulator: #this class is used to run the whole simulation
                 self.show(world, self.time) #show the simulation
 
             #do irradiation if needed
-            if applied_fractions < self.config.number_fractions and self.time >= irradiations_times[applied_fractions]:
-                irrad = Irradiation(self.config, 'irrad', self.dt, self.config.topas_file, self.config.first_irradiation_time,
+            if can_irradiate and applied_fractions < number_of_fractions and self.time >= irradiations_times[applied_fractions]:
+                irrad = Irradiation(self.config, 'irrad', self.dt, self.config.topas_file,
                                     self.config.irradiation_intensity, world)
                 irrad(world)
                 applied_fractions += 1
@@ -311,7 +327,7 @@ class Simulator: #this class is used to run the whole simulation
 
             if self.config.show_cell_and_tumor_volume:
                 self.show_cell_and_tumor_volume(number_tumor_cells, number_necrotic_cells, number_quiescent_cells, number_cycling_cells, tumor_size, tumor_size_free, number_vessels, times)
-            self.time += self.dt
+
 
             if self.config.show_center_of_mass:
                 self.show_center_of_mass(center_of_mass, times)
@@ -319,6 +335,11 @@ class Simulator: #this class is used to run the whole simulation
             for i, process in enumerate(self.list_of_process):
                 execution_times[i].append(process.time_spent_doing_process)
                 process.time_spent_doing_process = 0
+
+            if not can_irradiate and self.config.irradiation_cell_based and number_tumor_cells[-1] >= self.config.critical_n_cells:
+                can_irradiate = True
+                for i in range(len(irradiations_times)):
+                    irradiations_times[i] = irradiations_times[i] + self.time
 
             #print('Time spent doing processes:', execution_times)
             plt.figure()
@@ -332,12 +353,14 @@ class Simulator: #this class is used to run the whole simulation
             plt.savefig('Plots/execution_times.png')
             plt.close()
 
-
+            self.time += self.dt
 
         print('Simulation finished')
 
         if self.config.show_final:
             self.show(world, self.time)
+
+
         return
 
 class Process: #abstract class, represents all the processes that can happen in the simulation
@@ -649,9 +672,8 @@ class UpdateVasculature(Process): #update the vasculature
         world.update_capillaries(n_capillaries_per_VVD= self.n_capillaries_per_VVD, capillary_length = self.capillary_length)
 
 class Irradiation(Process): #irradiation
-    def __init__(self, config, name, dt, topas_file, irradiation_time, irradiation_intensity, world: World):
+    def __init__(self, config, name, dt, topas_file, irradiation_intensity, world: World):
         super().__init__(config, 'Irradiation', dt)
-        self.irradiation_time = irradiation_time
         self.irradiation_intensity = irradiation_intensity
 
         #check if the file exists
@@ -708,11 +730,7 @@ class Irradiation(Process): #irradiation
                 mean_dose = 0
 
             damage_vessel = mean_dose * self.irradiation_intensity * vessel.radiosensitivity()
-            print('Mean dose: ', mean_dose)
-            print('Damage vessel: ', damage_vessel)
-            print('Vessel maturity before: ', vessel.maturity)
             vessel.maturity -= damage_vessel
-            print('Vessel maturity after: ', vessel.maturity)
             if vessel.maturity < 0:
                 vessel.maturity = 0
 
