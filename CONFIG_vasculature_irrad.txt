@@ -64,7 +64,7 @@ vessel_step_size: 0.05 #mm              #step size for vasculature growth
 growth_step_stop_threshold: 0.03 #mm    #threshold for step size for vasculature growth, under which growth stops
 vessel_time_to_maturity: 48 #hours      #time for a vessel to mature
 maturity_new_vessels: 0.5               #maturity of new vessels
-new_vessels_per_hour: 0.0003            #number of new vessels per hour*mm3
+new_vessels_per_hour: 0.0002            #number of new vessels per hour*mm3
 file_prefix_alpha_beta_maps: save       #prefix for the alpha and beta maps (save is sigmoid, newfunction is quadratic)
 metabolic_damage_threshold: 0.0         #threshold in damage for metabolism to be non-zero. 0.0 means that as long as cells are even slightlty damaged they produce 0 vegf
 
