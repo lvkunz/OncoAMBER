@@ -1,0 +1,86 @@
+half_length_world: 7.5 #mm
+voxel_per_side: 25
+dt: 4 #hours
+endtime: 3000 #hours
+seed: -1                           #seed for random number generator. -1 for random seed
+running_on_cluster: True              #don't touch, the bash script changes it automatically. decides if plots are shown or just saved
+
+#Initialisation
+vessel_number: 0.3                     #initial number of vessels for healthy tissue per mm^2
+initial_number_tumor_cells: 200         #initial total number of tumor cells
+tumor_initial_radius: 0.5 #mm
+doubling_time_tumor: 17  #hours
+doubling_time_sd: 5
+radius_tumor_cells: 0.033 #mm
+new_world: True                         #if True, create a new world, if False, load a world from a file
+world_file: double             #name of the world file to create or load
+save_world_every: 100000                   #save the world every x hours
+
+#Radiation parameters
+topas_file: TOPAS_new
+irradiation_cell_based: True           #if True, irradiation is applied once the tumor reaches a certain number of cells, if False, irradiation is applied at a certain time
+first_irradiation_time: 800              #time at which radiation is applied if irradiation_cell_based is False
+critical_n_cells: 300000                  #number of cells above which radiation is applied if irradiation_cell_based is True
+fractionation_schedule: FRAC_25_frac_no_weekends.csv #fractionation scheme in Gy per fraction. Start with 0 to have irradiation at the first time decided by irradiation_cell_based
+irradiation_intensity: 0.0               #duration of radiation
+intra_radiosensitivity: 0.3             #damage rate of cells due to 1Gy of radiation
+vessel_radiosensitivity: 0.3          #death rate of vessels due to 1Gy of radiation
+repair_per_hour: 0.03                   #repair of cells per hour. For 0.03, cells with 50% damage are repaired after 24h. Full repair of cells with 50% damage after T hours : a = ln(2)/T
+necrosis_damage_coeff: 0.33             #rate of necrosis due to damage #proportion of cells to die of necrosis after irradiation
+apoptosis_damage_coeff: 0.66            #rate of apoptosis due to damage #proportion of cells to die of apoptosis after irradiation
+
+
+# Parameters for the simulation
+max_occupancy: 0.68                     #max pressure at which cells can't enter a voxel through migration or other means
+vitality_cycling_threshold: 0.8         #threshold in vitality for cells to start cycling
+vitality_apoptosis_threshold: 0.8       #threshold in vitality for cells to start apoptosis. DO NOT SET TO 0
+vitality_necrosis_threshold: 0.1        #threshold in vitality for cells to start necrosis
+probability_apoptosis: 0.02             #probability of apoptosis under the threshold (per hour). you can set it to 0
+probability_necrosis: 0.02              #probability of necrosis under the threshold (per hour)
+probability_necrosis_removal: 0.013      #probability of necrotic cells to be removed (per hour). Chose p to have 90% cleaned after T hours is p = 1 - exp(ln(0.1)/T)
+probability_apoptosis_removal: 0.047     #probability of apoptotic cells to be removed (per hour). Chose p to have 90% cleaned after T hours is p = 1 - exp(ln(0.1)/T)
+viscosity: 1.0                          #factor for diffusion of cells from one voxel to the next (not really a viscosity, it's more a diffusion coeff)
+pressure_coefficient_central_migration: 0.8 #coefficient accounting for the number of cells moving from one voxel towards the center in n_cells/mm*hours
+VEGF_production_per_cell: 0.005          #VEGF production per cell per hour?
+VEGF_production_threshold: 0.8   #threshold in vitality for cells to start producing VEGF
+vegf_map_step_gradient: 1.0 #mm           #vegf map step size, should be the order of the tumor size
+lower_pressure_threshold_step: 0.2      #reference value at which step size for vasculature remains the same, above, the step size decreases
+higher_pressure_threshold_step: 0.75     #value for which the stepsize for vasculature growth is 0
+radius_root_vessels: 0.01  #mm          #radius of the endvessels of the tree
+radius_killing_threshold: 0.0022 #mm    #threshold radius of vessels getting killed by pressure or because they are too small (0.022 - 5% of volume only)
+radius_decrease_exponent: 2             #exponent for the decrease of radius of vessels depending on pressure
+n_capillaries_per_VVD: 25000.0          #n capillaries [1/mm3]
+capillary_length: 2.0 #mm               #length of capillaries in mm, will give a number of diffusion averagings steps
+vegf_gradient_threshold: 0.0            #threshold in VEGF gradient for vessels to grow
+vegf_scalar_threshold: 0.1              #threshold in VEGF for vessels to grow
+splitting_rate_vasculature: 0.1         #probability of splitting a vessel when growing
+macro_steps: 1.0                        #number of macro steps per hour for vasculature growth
+micro_steps: 5                          #number of micro steps per macro step for vasculature growth
+weight_direction: 0.5                   #weight of direction for vasculature growth
+weight_vegf: 0.7                        #weight of VEGF gradient for vasculature growth
+weight_pressure: 2.5                    #weight of pressure for vasculature growth
+o2_to_vitality_factor: 1.0              #factor for the conversion of capillaries to vitality
+vessel_step_size: 0.05 #mm              #step size for vasculature growth
+growth_step_stop_threshold: 0.03 #mm    #threshold for step size for vasculature growth, under which growth stops
+vessel_time_to_maturity: 48 #hours      #time for a vessel to mature
+maturity_new_vessels: 0.5               #maturity of new vessels
+new_vessels_per_hour: 0.0002            #number of new vessels per hour*mm3
+file_prefix_alpha_beta_maps: save       #prefix for the alpha and beta maps (save is sigmoid, newfunction is quadratic)
+metabolic_damage_threshold: 0.0         #threshold in damage for metabolism to be non-zero. 0.0 means that as long as cells are even slightlty damaged they produce 0 vegf
+
+# Graphics parameters
+show_time_steps: True                   #if True, show the time during the simulation
+show_final: True                       #if True, show the final state of the simulation
+show_slices: True                      #if True, show a slice of the tumor during the simulation
+slice: x                                #what direction to slice the tumor (x or z
+show_o2_vitality_histograms: False       #if True, show a histogram of capillaries and vitality during the simulation
+show_tumor_and_vessels_3D: False         #if True, show the vasculature in 3D during the simulation with tumor cells
+visible_original_vessels: False         #if True, show the original vasculature in 3D during the simulation
+show_alpha_beta_maps: False             #if True, show the distribution of the parameters beta and gamma
+show_cell_and_tumor_volume: True        #if True, show the volume of tumor cells and healthy cells during the simulation
+verbose: False
+show_angiogenesis_metrics: False         #if True, show the metrics for angiogenesis
+true_vasculature: False
+show_3D_mesh: False                     #if True, show the 3D mesh of the tumor
+show_center_of_mass: False               #if True, show the center of mass of the tumor
+show_cell_damage: False                  #if True, show the damage of the cells
