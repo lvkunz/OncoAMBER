@@ -14,21 +14,22 @@ from scipy.integrate import odeint
 
 
 tmin = 0  # Minimum time
-tmax = 2700 # Maximum time
+tmax = 2160 # Maximum time
 show_fits = 0  # Show the exponential fits
 fit = 'gompertz' #gompertz or exp
 show_necro = 1
 show_quiet_cycling = 1
 show_vessels = False
 local = 0
-irradiation = [796, 24, 5] #first, frequence, number of fractions
+irradiation_first = 796
+irradiation_file = 'FRAC_25_frac_no_weekends.csv'
 
 def plot_outliners(ax, x, y, y_min, y_max, color='black'):
     for i in range(len(x)):
         if y[i] < y_min[i] or y[i] > y_max[i]:
             ax.plot(x[i], y[i], '.', color=color)
 
-repo = '20230815_lk001_Linux/CONFIG_vasculature_irrad_example3.py_184044'
+repo = '20230816_lk001_Linux/CONFIG_vasculature_irrad_example.py_171817'
 
 csv_file = ''
 #all repositories in repo:
@@ -251,7 +252,13 @@ axes[1].set_xticks(xticks)
 axes[1].set_xticklabels(xticklabels)
 #
 # # Add vertical black arrows to show times of irradiation
-irradiation_times_cells = [irradiation[0] + i*irradiation[1] for i in range(0,irradiation[2])]  # times of irradiation in hours
+# irradiation_times_cells = [irradiation[0] + i*irradiation[1] for i in range(0,irradiation[2])]  # times of irradiation in hours
+#read in from file
+irradiation_times_cells = []
+with open(irradiation_file, 'r') as f:
+    for line in f:
+        irradiation_times_cells.append(float(line) + irradiation_first)
+
 shift = 10000
 shift2 = 3
 for time in irradiation_times_cells:
@@ -269,7 +276,7 @@ axes[0].set_title('Number of Cells Evolution', fontsize=14)
 axes[0].set_xlabel('Time [Day]', fontsize=16)
 axes[0].set_ylabel('Number of Cells', fontsize=16)
 # axes[0].set_xlim(0, 250)
-axes[0].set_ylim(0, None)
+axes[0].set_ylim(0, 500000)
 axes[0].grid(True)
 axes[0].legend(fontsize=16, loc='upper left')
 

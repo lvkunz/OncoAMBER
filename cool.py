@@ -34,12 +34,13 @@ show_necro = True
 show_quiet_cycling = True
 show_vessels = True
 local = False
-generate_images = False
+generate_images = True
 generate_gif = True
-repo = '20230705_lk001_Linux/CONFIG_vasculature_irrad_single_example.py_162736/iter3'
+repo = '20230817_lk001_Linux/CONFIG_vasculature_irrad_single_example.py_104255/iter6'
 
-image_step = 8
-irradiation = [796, 24, 1]
+image_step = 4
+irradiation_first = 2272
+irradiation_file = 'FRAC_single.csv'
 
 
 path = f'{repo}/DataOutput/'
@@ -107,7 +108,7 @@ if generate_images:
         # axes[1].scatter(times_cut[-1], tumor_size_free_cut[-1], s=50, alpha=0.5, color='red')
 
         axes[0].set_title('Number of Cells Evolution', fontsize = 14)
-        axes[0].set_xlabel('Time [h]', fontsize = 16)
+        axes[0].set_xlabel('Time [days]', fontsize = 16)
         axes[0].set_ylabel('Number of Cells', fontsize = 16)
         # axes[0].set_xlim(0, 250)
         # axes[0].set_ylim(0, 2e5)
@@ -115,7 +116,7 @@ if generate_images:
         axes[0].legend(fontsize = 14)
 
         axes[1].set_title('Tumor Volume Evolution', fontsize = 14)
-        axes[1].set_xlabel('Time [h]', fontsize = 16)
+        axes[1].set_xlabel('Time [days]', fontsize = 16)
         axes[1].set_ylabel('Tumor Volume [mm^3]')
         # axes[1].set_xlim(0, 250)
         # axes[1].set_ylim(0, 50)
@@ -133,8 +134,14 @@ if generate_images:
         axes[1].set_xticklabels(xticklabels)
         #
         # # Add vertical black arrows to show times of irradiation
-        irradiation_times_cells = [irradiation[0] + i * irradiation[1] for i in
-                                   range(0, irradiation[2])]  # times of irradiation in hours
+        # irradiation_times_cells = [irradiation[0] + i*irradiation[1] for i in range(0,irradiation[2])]  # times of irradiation in hours
+        # read in from file
+        irradiation_times_cells = []
+        with open(irradiation_file, 'r') as f:
+            for line in f:
+                irradiation_times_cells.append(float(line) + irradiation_first)
+
+
         shift = 10000
         shift2 = 3
         for time in irradiation_times_cells:

@@ -8,12 +8,12 @@ from PIL import Image
 import re
 
 tmin = 0  # Minimum time
-tmax = 3001 # Maximum time
+tmax = 2001 # Maximum time
 show_fits = 0  # Show the exponential fits
 fit = 'exp' #gompertz or exp
 show_necro = 0
 show_quiet_cycling = 0
-show_vessels = True
+show_vessels = False
 show_rates = False
 experimental = 0
 rate_choice = 'volume' #volume or number
@@ -45,20 +45,17 @@ repo = ''
 
 # paths = [f'{repo}iter{i}/DataOutput/' for i in range(0, number_of_iterations)]
 # paths = [f'{repo}iter{i}/DataOutput/' for i in [0,1,2,3]]
-parameter = 'number of fractions '
-param = [1, 1, 1, 5, 5, 5]
-list_color = ['red','red','red','blue','blue','blue']
+parameter = 'Average cell duplication interval [hours]'
+param = [12, 14, 17]
+list_color = ['forestgreen', 'royalblue', 'orangered', 'magenta']
 #remove paths 4
 
-paths = ['20230727_lk001_Linux/CONFIG_vasculature_irrad_example.py_160837/iter0/DataOutput/',
-            '20230727_lk001_Linux/CONFIG_vasculature_irrad_example.py_160837/iter1/DataOutput/',
-            '20230727_lk001_Linux/CONFIG_vasculature_irrad_example.py_160837/iter2/DataOutput/',
-            '20230727_lk001_Linux/CONFIG_vasculature_irrad_example.py_160837/iter3/DataOutput/',
-            '20230727_lk001_Linux/CONFIG_vasculature_irrad_example.py_160837/iter4/DataOutput/',
-            '20230727_lk001_Linux/CONFIG_vasculature_irrad_example.py_160837/iter5/DataOutput/'
+paths = ['20230816_lk001_Linux/CONFIG_vasculature_irrad_example.py_101220/iter0/DataOutput/',
+            '20230816_lk001_Linux/CONFIG_vasculature_irrad_example.py_101220/iter1/DataOutput/',
+            '20230816_lk001_Linux/CONFIG_vasculature_irrad_example.py_101220/iter2/DataOutput/'
   ]
 
-
+shifts = [0, 80, 212]
 
 if local:
     paths = ['DataOutput/']
@@ -87,6 +84,8 @@ for path in paths:
     number_vessels = np.load(f'{path}number_vessels.npy', allow_pickle=True)
     times = np.load(f'{path}times.npy', allow_pickle=True)
 
+    for i in range(len(times)):
+        times[i] = times[i] - shifts[paths.index(path)]
 
     # Find the indices of the times that are within the time range
     idx = np.where((times >= tmin) & (times<=tmax))
@@ -163,14 +162,13 @@ for i in range(len(paths)):
 
     if show_fits:
         popt, pcov = curve_fit(func_cell, times_list[i], number_cells_list[i], p0=p1, maxfev=100000)
-    color = axes[0].plot(times_list[i], number_cells_list[i], '.', markersize=10,color = list_color[i], alpha=0.8, label=parameter+': '+str(param[i]))[0].get_color()
+    color = axes[0].plot(times_list[i], number_cells_list[i], '-', markersize=10,color = list_color[i], alpha=0.8, label=parameter+': '+str(param[i]))[0].get_color()
     if show_necro: axes[0].plot(times_list[i], necrotic_cells_list[i], 's', markersize=5, alpha=0.5, color=color)
     if show_quiet_cycling:
         axes[0].plot(times_list[i], cycling_cells_list[i], '+', markersize=3, alpha=0.5, color=color)
         axes[0].plot(times_list[i], quiescent_cells_list[i], 'D', markersize=3, alpha=0.5, color=color)
     if show_fits:
         axes[0].plot(times_list[i], func_cell(times_list[i], *popt), '-', color=color)#, label='fit '+parameter+': '+str(param[i]))
-
 
 
         doubling_time = np.log(2) / popt[1]

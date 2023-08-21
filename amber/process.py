@@ -300,6 +300,10 @@ class Simulator: #this class is used to run the whole simulation
                             quiescent_cells += 1
             end = current_time()
             print('Time for counting cells:', end - start)
+            print('Number of cycling cells:', cycling_cells)
+            print('Number of quiescent cells:', quiescent_cells)
+            print('Number of necrotic cells:', necrotic_cells)
+            print('Number of tumor cells:', cycling_cells + quiescent_cells + necrotic_cells)
 
             number_cycling_cells.append(cycling_cells)
             number_quiescent_cells.append(quiescent_cells)
@@ -706,9 +710,9 @@ class Irradiation(Process): #irradiation
 
         # plot the simulation
         fig, ax = plt.subplots(1, 3, figsize=(18, 5))
-        world.show_tumor_slice(ax[0], fig, 'dose', cmap='RdPu',refinement_level=2, slice='x', round_n=2, vmin=0.2, vmax=0.7)
-        world.show_tumor_slice(ax[1], fig, 'dose', cmap='RdPu',refinement_level=2, slice='y', round_n=2, vmin=0.2, vmax=0.7)
-        world.show_tumor_slice(ax[2], fig, 'dose', cmap='RdPu',refinement_level=2, slice='z', round_n=2, vmin=0.2, vmax=0.7)
+        world.show_tumor_slice(ax[0], fig, 'dose', cmap='RdPu',refinement_level=3, slice='x', round_n=2, vmin=0.2, vmax=0.7)
+        world.show_tumor_slice(ax[1], fig, 'dose', cmap='RdPu',refinement_level=3, slice='y', round_n=2, vmin=0.2, vmax=0.7)
+        world.show_tumor_slice(ax[2], fig, 'dose', cmap='RdPu',refinement_level=3, slice='z', round_n=2, vmin=0.2, vmax=0.7)
         fig.suptitle('Dose (arb. units)', fontsize=20)
         plt.tight_layout()
         plt.savefig('dose.png', dpi=300)
@@ -747,4 +751,6 @@ class Irradiation(Process): #irradiation
             if vessel.maturity < 0:
                 vessel.maturity = 0
 
+            if damage_vessel > 0.0:
+                vessel.in_growth = False
         return

@@ -22,7 +22,7 @@ def create_gif(image_dir, output_path, image_suffix, image_step=1):
         images.append(img)
 
         t += image_step
-        if t > 3000:
+        if t > 5000:
             break
 
     if images:
@@ -33,27 +33,27 @@ def create_gif(image_dir, output_path, image_suffix, image_step=1):
         print("No images found to create the GIF.")
 
 
-local = True
-repo = '20230705_lk001_Linux/CONFIG_vasculature_irrad_single_example.py_162736'
+local = False
+repo = '20230817_lk001_Linux/CONFIG_vasculature_irrad_single_example.py_104255'
 
-iter = [3]
-image_step = 5
+iter = [6]
+image_step = 4
 
 
 csv_file = ''
 #all repositories in repo:
 #find csv file in repo
-for filename in os.listdir(repo):
-    # Check if the file is a csv file
-    if filename.endswith('.csv'):
-        csv_file = filename
+# for filename in os.listdir(repo):
+#     # Check if the file is a csv file
+#     if filename.endswith('.csv'):
+#         csv_file = filename
 
-param_space = pd.read_csv(f'{repo}/{csv_file}', sep=' ', header=0)
-number_of_iterations = len(param_space['Iteration'])
+# param_space = pd.read_csv(f'{repo}/{csv_file}', sep=' ', header=0)
+# number_of_iterations = len(param_space['Iteration'])
 
-paths = [f'{repo}/iter{i}/DataOutput/' for i in range(0, number_of_iterations)]
-#remove paths 4
-print(paths)
+# paths = [f'{repo}/iter{i}/DataOutput/' for i in range(0, number_of_iterations)]
+# #remove paths 4
+# print(paths)
 
 
 if local: paths = ['']
@@ -68,7 +68,7 @@ for i in iter:
     image_sufix2 = 'Vasculature'
     output_path2 = repo + '/' + image_sufix2 + str(i) + '.gif'
     if local:
-        image_directory = 'Plots/CurrentPlotting'
+        image_directory = 'iter2/Plots/CurrentPlotting'
         output_path1 = image_sufix1 + '.gif'
         output_path2 = image_sufix2 + '.gif'
 
