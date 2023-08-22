@@ -45,7 +45,7 @@ VEGF_production_per_cell: 0.005          #VEGF production per cell per hour?
 VEGF_production_threshold: 0.8   #threshold in vitality for cells to start producing VEGF
 vegf_map_step_gradient: 1.0 #mm           #vegf map step size, should be the order of the tumor size
 lower_pressure_threshold_step: 0.2      #reference value at which step size for vasculature remains the same, above, the step size decreases
-higher_pressure_threshold_step: 0.75     #value for which the stepsize for vasculature growth is 0
+higher_pressure_threshold_step: 0.6     #value for which the stepsize for vasculature growth is 0
 radius_root_vessels: 0.01  #mm          #radius of the endvessels of the tree
 radius_killing_threshold: 0.0022 #mm    #threshold radius of vessels getting killed by pressure or because they are too small (0.022 - 5% of volume only)
 radius_decrease_exponent: 2             #exponent for the decrease of radius of vessels depending on pressure
