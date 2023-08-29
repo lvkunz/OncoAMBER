@@ -26,7 +26,7 @@ bash install.sh
 
 This will install the latest version of the amber package itself. Make sure to activate your python environment before running the command.
 
-github: https://github.com/lvkunz/OncoAMBER; PyPi: https://pypi.org/project/OncoAMBER/
+github: https://github.com/lvkunz/OncoAMBER
 
 ## Usage
 
