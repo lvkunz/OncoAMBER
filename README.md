@@ -1,5 +1,7 @@
 ![Title](AMBER_title.png)
 
+#Disclaimer: The current version of the code is still messy, might contain many bugs, and is not well documented. If you are planning on using it please feel free to ask questions
+
 # AMBER (Agent-based Modeling of Biophysics Evolution for Radiotherapy)
 ## Introduction
 
