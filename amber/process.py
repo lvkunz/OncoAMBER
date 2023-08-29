@@ -751,6 +751,4 @@ class Irradiation(Process): #irradiation
             if vessel.maturity < 0:
                 vessel.maturity = 0
 
-            if damage_vessel > 0.0:
-                vessel.in_growth = False
         return
