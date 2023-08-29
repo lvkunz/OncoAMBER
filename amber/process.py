@@ -702,7 +702,7 @@ class Irradiation(Process): #irradiation
 
         self.doses = np.zeros(len(read_doses)) #create an array of zeros
 
-        #added to compensate for some irregularities in the Topas simulation, TODO: fix this in the Topas simulation and remove this
+        #added to compensate for inhomogeneites in the Topas simulation, TODO: fix this in the Topas simulation and remove this
         for i in range(len(read_doses)):
             self.doses[i] = 0.5*(read_doses[i] + read_doses[len(read_doses) - i - 1])
 
