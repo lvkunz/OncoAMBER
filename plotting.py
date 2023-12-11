@@ -13,14 +13,14 @@ show_fits = 0  # Show the exponential fits
 fit = 'exp' #gompertz or exp
 show_necro = 0
 show_quiet_cycling = 0
-show_vessels = True
-show_rates = False
+show_vessels = False
+show_rates = True
 experimental = 0
 rate_choice = 'volume' #volume or number
 local = 0
 param_to_plot = []
 
-repo = '20230817_lk001_Linux/CONFIG_vasculature_irrad_single_example.py_104347'
+repo = 'CONFIG_growth_example.py_160329_paper'
 repo = repo + '/'
 
 csv_file = ''
@@ -72,7 +72,8 @@ for path in paths:
     number_cells = cycling_cells + quiescent_cells + necrotic_cells
     tumor_size = np.load(f'{path}tumor_size.npy', allow_pickle=True)
     tumor_size_free = np.load(f'{path}tumor_size_free.npy', allow_pickle=True)
-    number_vessels = np.load(f'{path}number_vessels.npy', allow_pickle=True)
+    if show_vessels:
+        number_vessels = np.load(f'{path}number_vessels.npy', allow_pickle=True)
     times = np.load(f'{path}times.npy', allow_pickle=True)
 
 
@@ -85,7 +86,8 @@ for path in paths:
     necrotic_cells = necrotic_cells[idx]
     cycling_cells = cycling_cells[idx]
     quiescent_cells = quiescent_cells[idx]
-    number_vessels = number_vessels[idx]
+    if show_vessels:
+        number_vessels = number_vessels[idx]
     times = times[idx]
 
     rates = []
@@ -109,7 +111,8 @@ for path in paths:
     necrotic_cells_list.append(necrotic_cells)
     cycling_cells_list.append(cycling_cells)
     quiescent_cells_list.append(quiescent_cells)
-    number_vessels_list.append(number_vessels)
+    if show_vessels:
+        number_vessels_list.append(number_vessels)
     rates_list.append(rates)
     times_list.append(times)
 
@@ -216,7 +219,7 @@ axes[0].set_ylabel('Number of Cells', fontsize=16)
 # axes[0].set_xlim(0, 250)
 # axes[0].set_ylim(0, 5e5)
 axes[0].grid(True)
-axes[0].legend()
+axes[0].legend(loc = 'best', fontsize = 12)
 axes[1].set_xlabel('Time [h]', fontsize=16)
 axes[1].set_ylabel('Tumor Volume [mm^3]', fontsize=16)
 # axes[1].set_xlim(0, 250)
@@ -229,7 +232,7 @@ axes[1].set_ylabel('Tumor Volume [mm^3]', fontsize=16)
 #     tick.label.set_fontsize(14)
 
 axes[1].grid(True)
-axes[1].legend(fontsize = 14)
+axes[1].legend(loc = 'best', fontsize = 12)
 
 #add a tiny text box in the corner with the repo name
 plt.figtext(0.01, 0.01, repo, wrap=True, horizontalalignment='left', fontsize=6)

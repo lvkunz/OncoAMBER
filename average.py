@@ -14,14 +14,14 @@ from scipy.integrate import odeint
 
 
 tmin = 0  # Minimum time
-tmax = 2160 # Maximum time
+tmax = 4000 # Maximum time
 show_fits = 0  # Show the exponential fits
 fit = 'gompertz' #gompertz or exp
 show_necro = 1
 show_quiet_cycling = 1
 show_vessels = False
 local = 0
-irradiation_first = 796
+irradiation_first = 100000
 irradiation_file = 'FRAC_25_frac_no_weekends.csv'
 
 def plot_outliners(ax, x, y, y_min, y_max, color='black'):
@@ -29,7 +29,7 @@ def plot_outliners(ax, x, y, y_min, y_max, color='black'):
         if y[i] < y_min[i] or y[i] > y_max[i]:
             ax.plot(x[i], y[i], '.', color=color)
 
-repo = '20230816_lk001_Linux/CONFIG_vasculature_irrad_example.py_171817'
+repo = 'CONFIG_growth_example.py_160329_paper'
 
 csv_file = ''
 #all repositories in repo:
@@ -254,19 +254,19 @@ axes[1].set_xticklabels(xticklabels)
 # # Add vertical black arrows to show times of irradiation
 # irradiation_times_cells = [irradiation[0] + i*irradiation[1] for i in range(0,irradiation[2])]  # times of irradiation in hours
 #read in from file
-irradiation_times_cells = []
-with open(irradiation_file, 'r') as f:
-    for line in f:
-        irradiation_times_cells.append(float(line) + irradiation_first)
-
-shift = 10000
-shift2 = 3
-for time in irradiation_times_cells:
-    id = np.where(times_average == time)[0][0]  # get index of time
-    arrow1 = axes[0].annotate('', xy=(times_average[id], number_cells_average[id] + shift), xytext=(times_average[id], number_cells_average[id] + shift+1), arrowprops=dict(facecolor='black', width=1.5, headwidth=5))
-    arrow1.set_zorder(-1)  # set arrow below plot line
-    arrow2 = axes[1].annotate('', xy=(times_average[id], tumor_size_average[id] + shift2), xytext=(times_average[id], tumor_size_average[id] + shift2+1), arrowprops=dict(facecolor='black', width=1.5, headwidth=5))
-    arrow2.set_zorder(-1)  # set arrow below plot line
+# irradiation_times_cells = []
+# with open(irradiation_file, 'r') as f:
+#     for line in f:
+#         irradiation_times_cells.append(float(line) + irradiation_first)
+#
+# shift = 10000
+# shift2 = 3
+# for time in irradiation_times_cells:
+#     id = np.where(times_average == time)[0][0]  # get index of time
+#     arrow1 = axes[0].annotate('', xy=(times_average[id], number_cells_average[id] + shift), xytext=(times_average[id], number_cells_average[id] + shift+1), arrowprops=dict(facecolor='black', width=1.5, headwidth=5))
+#     arrow1.set_zorder(-1)  # set arrow below plot line
+#     arrow2 = axes[1].annotate('', xy=(times_average[id], tumor_size_average[id] + shift2), xytext=(times_average[id], tumor_size_average[id] + shift2+1), arrowprops=dict(facecolor='black', width=1.5, headwidth=5))
+#     arrow2.set_zorder(-1)  # set arrow below plot line
 
 legend_elements = [Line2D([0], [0], marker='>', color='black', lw=0, label='Irradiation with 6MeV photon beam')]
 #add a tiny text box in the corner with the repo name
@@ -308,12 +308,13 @@ if show_vessels:
 
 rates_average = []
 dt = times_average[1] - times_average[0]
+avg_over = 3
 for t in times_average:
     idd = np.where(times_average == t)[0][0]
-    if t <= 3*dt:
+    if t <= avg_over*dt:
         rates_average.append(0)
     else:
-        rate = (number_cells_average[idd] - number_cells_average[idd-3])/(3*dt)
+        rate = (number_cells_average[idd] - number_cells_average[idd-avg_over])/(avg_over*dt)
         rates_average.append(rate)
 
 def func_gompertz(x, a, b):
@@ -338,6 +339,18 @@ def func_holling(x, a, b, k):
 def func_holling_(x, t, a, b, k):
     return (a * x)/(k + x) - b * x
 
+def r2_scores(x, y, popt, func):
+    residuals = y - func(x, *popt)
+    ss_res = np.sum(residuals**2)
+    ss_tot = np.sum((y - np.mean(y))**2)
+    r_squared = 1 - (ss_res / ss_tot)
+    return r_squared
+
+def RMSE(x, y, popt, func):
+    residuals = y - func(x, *popt)
+    rmse = np.sqrt(np.mean(residuals**2))
+    return rmse
+
 param0 = np.array([1.0, 1.0, 1.0])
 param0_log = np.array([1.0, 100.0])
 param0_ = np.array([1.0, 1.0])
@@ -354,8 +367,15 @@ popt_g, pcov_g = curve_fit(func_gompertz, number_cells_average, rates_average, p
 popt_l, pcov_l = curve_fit(func_logistic, number_cells_average, rates_average, p0=param0_log, maxfev=100000, sigma=weights)
 popt_h, pcov_h = curve_fit(func_holling, number_cells_average, rates_average, p0=param0, maxfev=100000)
 print('Fitted parameters Gompertz: ', popt_g)
+rmse_g = RMSE(number_cells_average, rates_average, popt_g, func_gompertz)
+print('RMSE Gompertz: ', rmse_g)
 print('Fitted parameters Logistic: ', popt_l)
+rmse_l = RMSE(number_cells_average, rates_average, popt_l, func_logistic)
+print('RMSE Logistic: ', rmse_l)
 print('Fitted parameters Holling: ', popt_h)
+rmse_h = RMSE(number_cells_average, rates_average, popt_h, func_holling)
+print('RMSE Holling: ', rmse_h)
+
 #N fin
 
 N_final = popt_h[0]/popt_h[1] - popt_h[2]
@@ -404,8 +424,6 @@ plt.show()
 
 
 #plot the integral of the growth rate to get the number of cells
-
-
 # Define parameters
 aH = popt_h[0]
 bH = popt_h[1]
@@ -426,6 +444,24 @@ x0 = number_cells_average[0]
 x = odeint(func_holling_, x0, t, args=(aH, bH, kH)).flatten()
 x2 = odeint(func_gompertz_, x0, t, args=(aG, bG)).flatten()
 x3 = odeint(func_logistic_, x0, t, args=(aL, bL)).flatten()
+
+def r2_score(y_true, y_pred):
+    """Returns the R^2 score of two arrays"""
+    y_true = np.array(y_true)
+    y_pred = np.array(y_pred)
+    mean_y = np.mean(y_true)
+    ss_tot = np.sum((y_true - mean_y)**2)
+    ss_res = np.sum((y_true - y_pred)**2)
+    r2 = 1 - (ss_res / ss_tot)
+    return r2
+
+#get the r2 score of the fit
+r2_h = r2_score(number_cells_average, x)
+r2_g = r2_score(number_cells_average, x2)
+r2_l = r2_score(number_cells_average, x3)
+print('R2 Holling: ', r2_h)
+print('R2 Gompertz: ', r2_g)
+print('R2 Logistic: ', r2_l)
 
 fig, axes = plt.subplots(1, 1, figsize=(6, 6), dpi=dpi)
 axes.plot(times_average, number_cells_average, '-', label = 'Model values', color='green', alpha=0.8)
