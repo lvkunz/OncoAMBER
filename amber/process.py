@@ -8,6 +8,7 @@ from matplotlib.colors import TwoSlopeNorm
 import matplotlib.pyplot as plt
 import os
 from time import time as current_time
+import math
 
 class Simulator: #this class is used to run the whole simulation
 
@@ -157,7 +158,7 @@ class Simulator: #this class is used to run the whole simulation
 
             axes[0, 0].set_xlim(-size, size)
             axes[0, 0].set_ylim(-size, size)
-            world.show_tumor_slice(axes[0, 0], fig, 'number_of_tumor_cells', levels= np.linspace(1, 1001, 11), cmap='viridis', extend = 'neither')
+            world.show_tumor_slice(axes[0, 0], fig, 'occupied_volume_fraction', levels= np.linspace(0, 1, 11), cmap='viridis', extend = 'neither')
             axes[0,0].grid(True)
             axes[0,0].set_facecolor('whitesmoke')
             axes[0, 0].set_title('Number of Cells', fontsize=font)
@@ -501,22 +502,23 @@ class CellMigration(Process): #cell migration process, cells migrate in the worl
         for voxel in world.voxel_list:
             voxel_num = voxel.voxel_number
             if voxel_num % 10000 == 0: print('voxel number = ', voxel_num)
+
             list_of_neighbors = world.find_moor_neighbors(voxel)
             np.random.shuffle(list_of_neighbors) #shuffle the list to avoid bias
             for neighbor in list_of_neighbors:
                 n_events = exchange_matrix[voxel_num, neighbor.voxel_number] #number of expected events in the time step
-                n_moving_cells = np.random.poisson(n_events)
+                #n_moving_cells = np.random.poisson(n_events)
+                n_moving_cells = int(math.ceil(n_events))
                 n_moving_cells = min(n_moving_cells, int(round(len(voxel.list_of_cells))))
                 list_of_moving_cells = np.random.choice(voxel.list_of_cells, n_moving_cells, replace=False) #choose the cells to move randomly
                 for cell in list_of_moving_cells: #move the cells
                     if neighbor.add_cell(cell, self.config.max_occupancy):
                         voxel.remove_cell(cell)
 
-
 class UpdateCellOxygen(Process):
     def __init__(self, config, name, dt, voxel_half_length, file_prefix_alpha_beta_maps):
         super().__init__(config, 'UpdateState', dt)
-        self.voxel_side = int(voxel_half_length*20) #um/100
+        self.voxel_side = round(voxel_half_length*20) #um/100
 
         #read alpha and beta maps from csv files
         amber_dir = os.path.abspath(os.path.dirname(__file__))
@@ -536,6 +538,8 @@ class UpdateCellOxygen(Process):
 
         pressure_column = alpha_dataframe.index.values
         n_column = alpha_dataframe.columns.values.astype(float)
+
+        self.max_n = max(n_column)
 
         # Create a 2D grid of points (pressure, n)
         points = []
@@ -586,21 +590,25 @@ class UpdateCellOxygen(Process):
         n_vessels = voxel.n_capillaries
         n_cells = voxel.number_of_alive_cells()
         pressure = voxel.pressure()
-        if n_vessels == 0:
-            o2_values = np.zeros(n_cells) #if there are no vessels, all cells have 0 oxygen
-
-        elif n_vessels > 100:
-            o2_values = np.ones(n_cells) #if there are too many vessels, all cells have 1 oxygen
-
+        if self.config.o2_off:
+            o2_values = np.ones(n_cells)
         else:
-            alpha_ = self.alpha_map.evaluate((pressure, n_vessels))
-            beta_ = self.beta_map.evaluate((pressure, n_vessels))
+            if n_vessels == 0:
+                o2_values = np.zeros(n_cells) #if there are no vessels, all cells have 0 oxygen
 
-            if alpha_ < 0 or beta_ < 0:
-                print('pressure', pressure, 'n_vessels', n_vessels)
-                print('alpha_', alpha_, 'beta_', beta_)
+            elif n_vessels > self.max_n:
+                o2_values = np.ones(n_cells) #if there are too many vessels, all cells have 1 oxygen
 
-            o2_values = np.random.beta(alpha_, beta_, size=n_cells) #sample from beta distribution
+            else:
+                alpha_ = self.alpha_map.evaluate((pressure, n_vessels))
+                beta_ = self.beta_map.evaluate((pressure, n_vessels))
+
+                if alpha_ < 0 or beta_ < 0:
+                    print('pressure', pressure, 'n_vessels', n_vessels)
+                    print('alpha_', alpha_, 'beta_', beta_)
+
+                o2_values = np.random.beta(alpha_, beta_, size=n_cells) #sample from beta distribution
+
         for i in range(n_cells):
             voxel.list_of_cells[i].oxygen = o2_values[i]
 class UpdateVoxelMolecules(Process): #update the molecules in the voxel (VEGF), other not implemented yet
@@ -646,8 +654,6 @@ class UpdateVasculature(Process): #update the vasculature
     def __call__(self, world: World):
         #print in separate thread
         n_killed = world.vessels_killed(self.killing_radius_threshold) #kill vessels that have a radius smaller than the threshold
-
-
 
         print('Killed vessels: ', n_killed)
         print('Growing vessels')
@@ -710,10 +716,10 @@ class Irradiation(Process): #irradiation
 
         # plot the simulation
         fig, ax = plt.subplots(1, 3, figsize=(18, 5))
-        world.show_tumor_slice(ax[0], fig, 'dose', cmap='RdPu',refinement_level=3, slice='x', round_n=2, vmin=0.2, vmax=0.7)
-        world.show_tumor_slice(ax[1], fig, 'dose', cmap='RdPu',refinement_level=3, slice='y', round_n=2, vmin=0.2, vmax=0.7)
-        world.show_tumor_slice(ax[2], fig, 'dose', cmap='RdPu',refinement_level=3, slice='z', round_n=2, vmin=0.2, vmax=0.7)
-        fig.suptitle('Dose (arb. units)', fontsize=20)
+        world.show_tumor_slice(ax[0], fig, 'dose', cmap='RdPu',refinement_level=1, slice='x', round_n=1)
+        world.show_tumor_slice(ax[1], fig, 'dose', cmap='RdPu',refinement_level=1, slice='y', round_n=1)
+        world.show_tumor_slice(ax[2], fig, 'dose', cmap='RdPu',refinement_level=1, slice='z', round_n=1)
+        fig.suptitle('Dose (Gy)', fontsize=20)
         plt.tight_layout()
         plt.savefig('dose.png', dpi=300)
         if self.config.running_on_cluster:

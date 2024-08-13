@@ -57,6 +57,8 @@ class Voxel(object): #extra parameters are max_occupancy, viscosity
                 for cell in self.list_of_dead_cells:
                         volume = volume + cell.volume
                 return volume
+        def occupied_volume_fraction(self): #returns the volume fraction occupied by the cells in the voxel
+                return self.occupied_volume() / self.volume
 
         def vessel_volume_density(self): #returns the vessel volume density in the voxel
                 side = 2*self.half_length

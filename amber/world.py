@@ -180,8 +180,7 @@ class World: # class that contains the voxels and the vasculature
                 print('vessel ' + str(vessel.id) + ' killed by radius')
         return
 
-    def find_voxel_number(self, position): #finds the voxel number of a position
-        # doesn't handle the case where the position is outside the world
+    def find_voxel_number(self, position):
         num_voxels = self.number_of_voxels
         voxel_length = 2 * self.half_length / num_voxels
         i = int(round((position[0] + self.half_length - voxel_length / 2) / voxel_length))
@@ -189,62 +188,56 @@ class World: # class that contains the voxels and the vasculature
         k = int(round((position[2] + self.half_length - voxel_length / 2) / voxel_length))
         n = i * num_voxels ** 2 + j * num_voxels + k
         if n >= self.total_number_of_voxels or n < 0:
-            # print('position ' +str(position) + ' is outside the world (voxel number = ' + str(n) + ')' )
             return -1
         return n
 
-    def find_voxel(self, position): #finds the voxel of a position
+    def find_voxel(self, position):
         voxel_number = self.find_voxel_number(position)
         return self.voxel_list[voxel_number]
 
-    def find_moor_neighbors(self, voxel): #finds the Moore's neighbors of a voxel (26 neighbors)
-        # finds the Moore's neighbors of a voxel
-        voxel_number = voxel.voxel_number
+    def index_to_ijk(self, voxel_number):
         num_voxels = self.number_of_voxels
         i = voxel_number // (num_voxels ** 2)
         j = (voxel_number // num_voxels) % num_voxels
         k = voxel_number % num_voxels
+        return i, j, k
 
-        neighbors = []
-        for di in [-1, 0, 1]:
-            for dj in [-1, 0, 1]:
-                for dk in [-1, 0, 1]:
-                    if di == 0 and dj == 0 and dk == 0:
-                        continue
-                    if (0 <= i + di < num_voxels) and (0 <= j + dj < num_voxels) and (0 <= k + dk < num_voxels):
-                        neighbors.append((i + di) * num_voxels ** 2 + (j + dj) * num_voxels + (k + dk))
-
-        neighbors_voxels = [self.voxel_list[n] for n in neighbors]
-        # print('Moore neighbors found, number of neighbors = ' + str(len(neighbors_voxels)) + ' (should be 26)')
-        return neighbors_voxels
-
-
-    def find_neighbors(self, voxel): #finds the direct neighbors of a voxel (6 neighbors)
-        #finds the neighbors of a voxel
-        voxel_number = voxel.voxel_number
+    def ijk_to_index(self, i, j, k):
         num_voxels = self.number_of_voxels
-        i = voxel_number // (num_voxels ** 2)
-        j = (voxel_number // num_voxels) % num_voxels
-        k = voxel_number % num_voxels
+        return i * num_voxels ** 2 + j * num_voxels + k
 
+    def is_valid_index(self, i, j, k):
+        num_voxels = self.number_of_voxels
+        return 0 <= i < num_voxels and 0 <= j < num_voxels and 0 <= k < num_voxels
+
+    def find_neighbors(self, voxel, neighbor_offsets):
+        voxel_number = voxel.voxel_number
+        i, j, k = self.index_to_ijk(voxel_number)
         neighbors = []
-        if i > 0:
-            neighbors.append((i - 1) * num_voxels ** 2 + j * num_voxels + k)
-        if i < num_voxels - 1:
-            neighbors.append((i + 1) * num_voxels ** 2 + j * num_voxels + k)
-        if j > 0:
-            neighbors.append(i * num_voxels ** 2 + (j - 1) * num_voxels + k)
-        if j < num_voxels - 1:
-            neighbors.append(i * num_voxels ** 2 + (j + 1) * num_voxels + k)
-        if k > 0:
-            neighbors.append(i * num_voxels ** 2 + j * num_voxels + (k - 1))
-        if k < num_voxels - 1:
-            neighbors.append(i * num_voxels ** 2 + j * num_voxels + (k + 1))
 
-        neighbors = [n for n in neighbors if 0 <= n < num_voxels ** 3]
-        neighbors_voxels = [self.voxel_list[n] for n in neighbors]
-        return neighbors_voxels
+        for di, dj, dk in neighbor_offsets:
+            ni, nj, nk = i + di, j + dj, k + dk
+            if self.is_valid_index(ni, nj, nk):
+                neighbors.append(self.ijk_to_index(ni, nj, nk))
 
+        return [self.voxel_list[n] for n in neighbors]
+
+    def find_moor_neighbors(self, voxel):
+        offsets = [(di, dj, dk) for di in [-1, 0, 1] for dj in [-1, 0, 1] for dk in [-1, 0, 1] if
+                   not (di == 0 and dj == 0 and dk == 0)]
+        return self.find_neighbors(voxel, offsets)
+
+    def find_neighbors_face(self, voxel):
+        offsets = [(di, 0, 0) for di in [-1, 1]] + [(0, dj, 0) for dj in [-1, 1]] + [(0, 0, dk) for dk in [-1, 1]]
+        return self.find_neighbors(voxel, offsets)
+
+    def find_neighbors_edge(self, voxel):
+        offsets = [(di, dj, 0) for di in [-1, 1] for dj in [-1, 1]] + [(di, 0, dk) for di in [-1, 1] for dk in [-1, 1]] + [(0, dj, dk) for dj in [-1, 1] for dk in [-1, 1]]
+        return self.find_neighbors(voxel, offsets)
+
+    def find_neighbors_vertice(self, voxel):
+        offsets = [(di, dj, dk) for di in [-1, 1] for dj in [-1, 1] for dk in [-1, 1]]
+        return self.find_neighbors(voxel, offsets)
 
     #this function needs to be changed into something that is consistant for different voxel sizes and different dt
     #Use PhysiCell to find the dependencies?
@@ -284,27 +277,55 @@ class World: # class that contains the voxels and the vasculature
             viscosity = viscosities[i]
 
             # Find neighbors of the current voxel
-            neighbors = self.find_moor_neighbors(voxel_i)
-            for neighbor in neighbors:
-                j = neighbor.voxel_number
-                pressure_diff = voxel_pressure - pressures[j] #pressure difference between the current voxel and its neighbor
-                distance = np.linalg.norm(voxel_i.position - neighbor.position) #distance between the current voxel and its neighbor
-                coeff = (side/distance) * dt
+            neighbors_face = self.find_neighbors_face(voxel_i)
+            neighbors_edge = self.find_neighbors_edge(voxel_i)
+            neighbors_vertice = self.find_neighbors_vertice(voxel_i)
+            # print('voxel number', i)
+            # #if not on the side of the geometry show the neighbors
+            # print('neighbors face', [neighbor.voxel_number for neighbor in neighbors_face])
+            # print('neighbors edge', [neighbor.voxel_number for neighbor in neighbors_edge])
+            # print('neighbors vertice', [neighbor.voxel_number for neighbor in neighbors_vertice])
+            for neighbor1 in neighbors_face: #for each neighbor of the current voxel
+                d = 1
+                j1 = neighbor1.voxel_number
+                pressure_diff = voxel_pressure - pressures[j1] #pressure difference between the current voxel and its neighbor
+                #print('pressure diff', pressure_diff)
                 if pressure_diff > 0: #if the pressure of the current voxel is higher than the pressure of the neighbor
-                    t_res = (V / pressure_diff) * viscosity
-                    if self.config.verbose:
-                        print('V, pressure diff, viscosity ', V, pressure_diff, viscosity)
-                        print('t_res = ', t_res)
-                    n_events = coeff / t_res
-                    migration_matrix[i, j] = n_events
+                    n_out = (viscosity * dt * pressure_diff)/ (side * side * d)
+                    #print('n_out', n_out)
+                    migration_matrix[i, j1] = n_out
 
+            if self.config.moor_neighbors:
+                for neighbor2 in neighbors_edge: #for each neighbor of the current voxel
+                    d = np.sqrt(2)
+                    j2 = neighbor2.voxel_number
+                    pressure_diff = voxel_pressure - pressures[j2]
+                    if pressure_diff > 0: #if the pressure of the current voxel is higher than the pressure of the neighbor
+                        n_out = (viscosity * dt * pressure_diff)/(side * side * d)
+                        migration_matrix[i, j2] = n_out
+
+                for neighbor3 in neighbors_vertice:
+                    d = np.sqrt(3)
+                    j3 = neighbor3.voxel_number
+                    pressure_diff = voxel_pressure - pressures[j3]
+                    if pressure_diff > 0:
+                        n_out = (viscosity * dt * pressure_diff)/(side * side * d)
+                        migration_matrix[i, j3] = n_out
             # pressure pushing cells to move towards the center of the tumor\
 
-            vector_to_center = voxel_i.position - center_of_mass #vector from the center of the tumor to the current voxel
-            distance = np.linalg.norm(vector_to_center) #distance between the center of the tumor and the current voxel
-            if distance > 0:
-                neighbor_towards_center = self.find_voxel_number(voxel_i.position - (side/distance) * vector_to_center)
-                migration_matrix[i, neighbor_towards_center] += self.config.pressure_coefficient_central_migration * dt * (distance**2)
+            vector_to_center = voxel_i.position - center_of_mass
+            distance = np.linalg.norm(vector_to_center)
+            # Scale the step size to ensure it corresponds to a valid neighboring voxel
+            step_vector = (vector_to_center / distance) * (side)  # Adjust the factor as needed
+            new_position = voxel_i.position - step_vector
+            # Find the nearest voxel to the new position
+            neighbor_towards_center = self.find_voxel_number(new_position)
+            #print('voxel', voxel_i.voxel_number)
+            print('neighbor_towards_center', neighbor_towards_center)
+
+            m_cells = self.config.pressure_coefficient_central_migration * dt * (distance ** 2)
+            print('m_cells', m_cells)
+            migration_matrix[i, neighbor_towards_center] += m_cells
 
         # Convert the lil_matrix to a csr_matrix for faster arithmetic operations
         migration_matrix = migration_matrix.tocsr()
@@ -312,7 +333,7 @@ class World: # class that contains the voxels and the vasculature
         # plt.figure(figsize=(20, 20))
         # #only show the first 100 voxels
         # matrix = migration_matrix.toarray()
-        # matrix = matrix[:500, :500]
+        # matrix = matrix[:100, :100]
         # plt.imshow(matrix, cmap='inferno')
         # plt.colorbar()
         # plt.title('Migration Matrix')
@@ -320,6 +341,7 @@ class World: # class that contains the voxels and the vasculature
         # plt.ylabel('Source Voxel')
         # plt.tight_layout()
         # plt.show()
+
         end = current_time()
         print('Time to compute exchange matrix : ', end - start)
         return migration_matrix
@@ -362,7 +384,7 @@ class World: # class that contains the voxels and the vasculature
         print('-- Computing capillaries map')
         side = self.voxel_list[0].half_length * 2
         for voxel in self.voxel_list:
-            voxel.n_capillaries = int((voxel.vessel_volume / side ** 3) * n_capillaries_per_VVD) #vessel volume density in voxel * number of capillaries per VVD
+            voxel.n_capillaries = int((voxel.vessel_volume / side) * n_capillaries_per_VVD) #vessel volume density in voxel * number of capillaries per VVD
             # voxel.bifurcation_density += voxel.capillaries
         diffusion_number = int(capillary_length / side) #number of diffusion steps to reach the capillary length
         for i in range(diffusion_number): # "diffusion" of the capillaries
@@ -627,10 +649,12 @@ class World: # class that contains the voxels and the vasculature
     def measure_tumor_volume(self): #measures the volume of the tumor
         volume_necrotic_free = 0
         volume_total = 0
+        #TODO Update with a consideration for different cells
+        cell_volume = (4/3)*np.pi*(self.config.radius_tumor_cells**3)
         for voxel in self.voxel_list:
-            if voxel.number_of_tumor_cells() > 50: #threshold to be considered tumor
+            if voxel.number_of_tumor_cells() > round(0.05*(voxel.volume/cell_volume)): #threshold to be considered tumor
                 volume_necrotic_free += voxel.volume
-            if voxel.number_of_tumor_cells() > 50 or voxel.number_of_necrotic_cells() > 50:
+            if voxel.number_of_tumor_cells() > round(0.05*(voxel.volume/cell_volume)) or voxel.number_of_necrotic_cells() > round(0.05*(voxel.volume/cell_volume)):
                 volume_total += voxel.volume
         return volume_total, volume_necrotic_free
 

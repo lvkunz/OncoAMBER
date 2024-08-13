@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(0, '/PHShome/lk001/.conda/envs/amberenv/lib/python3.9/site-packages') #cluster
+sys.path.insert(0, '/home/users/k/kunzlo/.conda/envs/amberenv/lib/python3.8/site-packages') #cluster
 import amber
 import numpy as np
 import random
@@ -10,6 +10,8 @@ print('Current working directory:', os.getcwd())
 #print the directory of amber
 print('Amber directory:', amber.__file__)
 print('Amber version:', amber.__version__)
+print('Python version:', sys.version)
+print('Python path')
 
 if len(sys.argv) > 1:
     config_file = sys.argv[1]
@@ -50,19 +52,37 @@ if config.new_world:
     #add cells to the voxels (tumor cells)
     points = amber.Sphere(config.tumor_initial_radius, [0, 0, 0]).generate_random_points(config.initial_number_tumor_cells)
     factor = [1]
+    count = 0
+    max_tries = 3
     for i, point in enumerate(points):
-        if i % 10000 == 0: print('Adding tumor cells ', i, ' out of ', config.initial_number_tumor_cells)
-        voxel = world.find_voxel(point)
-        doubling = factor[random.randint(0, len(factor) - 1)] * config.doubling_time_tumor
-        radio_sensitivity = factor[random.randint(0, len(factor) - 1)] * config.intra_radiosensitivity
-        voxel.add_cell(amber.TumorCell(config.radius_tumor_cells,
-                                       cycle_hours=doubling,
-                                       cycle_std=config.doubling_time_sd,
-                                       intra_radiosensitivity=radio_sensitivity,
-                                       o2_to_vitality_factor=config.o2_to_vitality_factor,
-                                       VEGF_threshold = config.VEGF_production_threshold,
-                                       VEGF_rate = config.VEGF_production_per_cell
-                                       ), config.max_occupancy)
+        if count < max_tries:
+            if i % 10000 == 0: print('Adding tumor cells ', i, ' out of ', config.initial_number_tumor_cells)
+            voxel = world.find_voxel(point)
+            doubling = factor[random.randint(0, len(factor) - 1)] * config.doubling_time_tumor
+            radio_sensitivity = factor[random.randint(0, len(factor) - 1)] * config.intra_radiosensitivity
+            count = 0
+            was_added = False
+            while not was_added and count < max_tries:
+                count += 1
+                was_added = voxel.add_cell(amber.TumorCell(config.radius_tumor_cells,
+                                               cycle_hours=doubling,
+                                               cycle_std=config.doubling_time_sd,
+                                               intra_radiosensitivity=radio_sensitivity,
+                                               o2_to_vitality_factor=config.o2_to_vitality_factor,
+                                               VEGF_threshold = config.VEGF_production_threshold,
+                                               VEGF_rate = config.VEGF_production_per_cell
+                                               ), config.max_occupancy)
+                if not was_added:
+                    print("Failed to add a cell to the voxel, trying again, tried ", count, " times")
+                    point = amber.Sphere(config.tumor_initial_radius, [0, 0, 0]).generate_random_points(1)
+        else:
+            print('Tried more than max times to add a cell to a voxel')
+            print('Voxel is full, pressure is', voxel.pressure(), ' number of cells is', voxel.number_of_alive_cells(), ' and number of necrotic cells is', voxel.number_of_necrotic_cells())
+            n = 0
+            for voxel in world.voxel_list:
+                n += len(voxel.list_of_cells)
+            print('Total number of cells in the world is', n)
+            break
 
     #generate vasculature and print related information
     world.generate_healthy_vasculature(config.vessel_number,
