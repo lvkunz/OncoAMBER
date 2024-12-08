@@ -22,7 +22,7 @@ def create_gif(image_dir, output_path, image_suffix, image_step=1):
         images.append(img)
 
         t += image_step
-        if t > 5000:
+        if t > 2000:
             break
 
     if images:
@@ -34,10 +34,10 @@ def create_gif(image_dir, output_path, image_suffix, image_step=1):
 
 
 local = False
-repo = '20230817_lk001_Linux/CONFIG_vasculature_irrad_single_example.py_104255'
+repo = "20240802_kunzlo_Linux/CONFIG_2024_example.py_231633"
 
-iter = [6]
-image_step = 4
+iter = [0]
+image_step = 12
 
 
 csv_file = ''

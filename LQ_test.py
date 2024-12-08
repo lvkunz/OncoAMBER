@@ -124,21 +124,24 @@ def run_experiment(dose,repair_rate, radiosensitivity,n0, n_fractions):
 
     return n_cells[-1]
 
-write = True
-fit = True
+write = False
+fit = False
 
-repair_rates = [0.01, 0.03, 0.05]
-doses = [0.0, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.5, 2.0]
+repair_rates = [0.03, 0.04, 0.05]
+doses = [0.0, 2.0, 4.0, 6.0, 8.0]
 
-fractions = [1, 3, 5]
+data_x = [0.0, 2.0, 4.0, 6.0, 8.0]
+data_y = [1.0, 0.815, 0.586, 0.356, 0.157]
+
+fractions = [1]
 
 # doses = [0.0, 0.5, 1.0, 1.5, 2.0]
-radio_sensitivities = [0.2, 0.3, 0.4]
+radio_sensitivities = [0.035, 0.04, 0.045]
 # doses = [0.0, 0.5, 1.0, 1.5, 2.0]
 #for each repair rate, store the number of surviving cells for each dose
 n0 = 10000
 
-colors1 = ['blueviolet', 'mediumblue', 'royalblue']
+colors1 = ['blueviolet', 'mediumblue', 'royalblue','blue', 'dodgerblue', 'deepskyblue']
 colors2 = ['darkred', 'red', 'tomato']
 # colors2 = ['darkgreen', 'green', 'limegreen']
 
@@ -149,7 +152,7 @@ if write:
         surviving_cells_array = []
         for i in doses:
             print('Dose = ', i)
-            surviving_cells = run_experiment(i, repair, 0.3, n0, n_fractions=1)
+            surviving_cells = run_experiment(i, repair, 0.04, n0, n_fractions=1)
             print('----------------------------------')
             surviving_cells_array.append(surviving_cells/n0)
             np.save('LQ_tests/doses_array_repair='+str(repair)+'.npy', doses)
@@ -159,7 +162,7 @@ if write:
         surviving_cells_array = []
         for i in doses:
             print('Dose = ', i)
-            surviving_cells = run_experiment(i, 0.03, radiosensi,n0,n_fractions=1)
+            surviving_cells = run_experiment(i, 0.04, radiosensi,n0,n_fractions=1)
             print('----------------------------------')
             surviving_cells_array.append(surviving_cells/n0)
             np.save('LQ_tests/doses_array_radiosensi='+str(radiosensi)+'.npy', doses)
@@ -167,7 +170,7 @@ if write:
 
 fig, ax = plt.subplots(1, 1, figsize=(6, 4), dpi=200)
 for repair in repair_rates:
-
+    print('Repair rate = ', repair)
     surviving_cells_array = np.load('LQ_tests/surviving_cells_array_repair='+str(repair)+'.npy')
     doses = np.load('LQ_tests/doses_array_repair='+str(repair)+'.npy')
 
@@ -178,26 +181,29 @@ for repair in repair_rates:
             finite_surviving_cells_array.append(surviving_cells_array[i])
             finite_doses.append(doses[i])
 
-    finite_surviving_cells_array = np.log(finite_surviving_cells_array)
-    popt, pcov = curve_fit(LQ_wo_exp, finite_doses, finite_surviving_cells_array, p0=[1,5], maxfev=100000, bounds=([0.0,0],[100,100]))
+    # finite_surviving_cells_array = np.log(finite_surviving_cells_array)
+    popt, pcov = curve_fit(LQ_model, finite_doses, finite_surviving_cells_array, p0=[0.1, 0.01], maxfev=100000, bounds=([0.0,0],[100,100]))
     alpha_beta_ratio = popt[0]/popt[1]
     print('alpha = ', popt[0])
     print('beta = ', popt[1])
     print('alpha/beta ratio = ', alpha_beta_ratio)
-    doses_smooth = np.linspace(0, 2, 100)
+    doses_smooth = np.linspace(0, 10, 500)
     color = colors1[repair_rates.index(repair)]
-    ax.plot(finite_doses, finite_surviving_cells_array, 'x', label='Repair rate = ' + str(repair), color=color, alpha = 0.7)
-    if fit: ax.plot(doses_smooth, LQ_wo_exp(doses_smooth, *popt), color = color, label='LQ, alpha = ' + str(round(popt[0],1)) + ', beta = ' + str(round(popt[1],1)))
+    ax.plot(finite_doses, finite_surviving_cells_array, 'o', label='Repair rate = ' + str(repair), color=color, alpha = 0.7)
+    if fit: ax.plot(doses_smooth, LQ_model(doses_smooth, *popt), color = color)#, label='LQ, alpha = ' + str(round(popt[0],4)) + ', beta = ' + str(round(popt[1],4)) + ', alpha/beta = ' + str(round(alpha_beta_ratio,4)))
 
-ax.set_xlabel('Dose (arb. units)')
+ax.set_xlabel('Dose (Gy)')
 ax.set_ylabel('Fraction of surviving cells')
 #put the ticks as 10^x
-ax.set_ylim(-8, 1)
-ax.set_yticks([0, -1, -2, -3, -4, -5, -6, -7, -8])
-ax.set_yticklabels(['$10^0$', '$10^{-1}$', '$10^{-2}$', '$10^{-3}$', '$10^{-4}$', '$10^{-5}$', '$10^{-6}$', '$10^{-7}$', '$10^{-8}$'])
+#ax.set_ylim(0, 1)
+ax.plot(data_x, data_y, '+', label='Data', color='black', markersize=10)
+#ax.set_yticks([0, -1, -2, -3, -4, -5, -6, -7, -8])
+#ax.set_yticklabels(['$10^0$', '$10^{-1}$', '$10^{-2}$', '$10^{-3}$', '$10^{-4}$', '$10^{-5}$', '$10^{-6}$', '$10^{-7}$', '$10^{-8}$'])
+#set semi-log scale
+ax.set_yscale('log')
 ax.legend()
 ax.grid()
-plt.savefig('LQ_tests/repair_rate.png')
+plt.savefig('LQ_tests/repair_rate.tiff', dpi=600)
 plt.show()
 print('----------------------------------')
 
@@ -213,23 +219,27 @@ for radiosensi in radio_sensitivities:
             finite_surviving_cells_array.append(surviving_cells_array[i])
             finite_doses.append(doses[i])
 
-    finite_surviving_cells_array = np.log(finite_surviving_cells_array)
-    popt, pcov = curve_fit(LQ_wo_exp, finite_doses, finite_surviving_cells_array, method = 'trf', p0=[100, 100], maxfev=100000, bounds=([0.0, 0.0], [100, 100]))
+    # finite_surviving_cells_array = np.log(finite_surviving_cells_array)
+    popt, pcov = curve_fit(LQ_model, finite_doses, finite_surviving_cells_array, method = 'trf', p0=[0.1, 0.01], maxfev=100000, bounds=([0.0, 0.0], [100, 100]))
     alpha_beta_ratio = popt[0] / popt[1]
+    print('alpha = ', popt[0])
+    print('beta = ', popt[1])
     print('alpha/beta ratio = ', alpha_beta_ratio)
-    doses_smooth = np.linspace(0, 2, 100)
+    doses_smooth = np.linspace(0, 10, 500)
     color = colors2[radio_sensitivities.index(radiosensi)]
-    ax.plot(finite_doses, finite_surviving_cells_array, 'x', color=color, label='Radiosensitivity = ' + str(radiosensi), alpha = 0.7)
-    if fit: ax.plot(doses_smooth, LQ_wo_exp(doses_smooth, *popt),  color=color, label='LQ, alpha = ' + str(round(popt[0],1)) + ', beta = ' + str(round(popt[1],1)))
+    ax.plot(finite_doses, finite_surviving_cells_array, 'o', color=color, label='Radiosensitivity = ' + str(radiosensi), alpha = 0.7)
+    if fit: ax.plot(doses_smooth, LQ_model(doses_smooth, *popt),  color=color)#, label='LQ, alpha = ' + str(round(popt[0],4)) + ', beta = ' + str(round(popt[1],4)) + ', alpha/beta = ' + str(round(alpha_beta_ratio,4)))
 
-ax.set_xlabel('Dose (arb. units)')
+ax.set_xlabel('Dose (Gy)')
 ax.set_ylabel('Fraction of surviving cells')
-ax.set_ylim(-8, 1)
-ax.set_yticks([0, -1, -2, -3, -4, -5, -6, -7, -8])
-ax.set_yticklabels(['$10^0$', '$10^{-1}$', '$10^{-2}$', '$10^{-3}$', '$10^{-4}$', '$10^{-5}$', '$10^{-6}$', '$10^{-7}$', '$10^{-8}$'])
+#ax.set_ylim(0, 1)
+ax.set_yscale('log')
+ax.plot(data_x, data_y, '+', label='Data', color='black', markersize=10)
+# ax.set_yticks([0, -1, -2, -3, -4, -5, -6, -7, -8])
+# ax.set_yticklabels(['$10^0$', '$10^{-1}$', '$10^{-2}$', '$10^{-3}$', '$10^{-4}$', '$10^{-5}$', '$10^{-6}$', '$10^{-7}$', '$10^{-8}$'])
 ax.legend()
 ax.grid()
-plt.savefig('LQ_tests/radiosensitivity.png')
+plt.savefig('LQ_tests/radiosensitivity.tiff', dpi=600)
 plt.show()
 print('----------------------------------')
 

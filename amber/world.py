@@ -323,7 +323,7 @@ class World: # class that contains the voxels and the vasculature
             #print('voxel', voxel_i.voxel_number)
             print('neighbor_towards_center', neighbor_towards_center)
 
-            m_cells = self.config.pressure_coefficient_central_migration * dt * (distance ** 2)
+            m_cells = self.config.pressure_coefficient_central_migration * (side**3) * dt * (distance ** 2)
             print('m_cells', m_cells)
             migration_matrix[i, neighbor_towards_center] += m_cells
 

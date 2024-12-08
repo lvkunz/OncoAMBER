@@ -1,9 +1,7 @@
 #!/bin/bash -e
 
 module purge
-module load anaconda/4.12.0
-module load topas/3.8.0
-#show the version of oncoamber installed on amberenv
+module load Anaconda3/2024.02-1 #show the version of oncoamber installed on amberenv
 
 INFILE=$1
 ITER=$2
@@ -123,13 +121,12 @@ for (( COUNT=0; COUNT<$ITER; COUNT++ )); do
 
   cat << EOF > $SCRIPT
 #!/bin/bash
-#BSUB -J ${INFILE}-${CONFIG_NAME}-${COUNT}
-#BSUB -q normal
-#BSUB -r
-#BSUB -C 0
-#BSUB -n 1
-#BSUB -R "rusage[mem=2500]"
-#BSUB -Q "140"
+#SBATCH --job-name ${INFILE}-${CONFIG_NAME}-${COUNT}         # this is a parameter to help you sort your job when listing it
+#SBATCH --cpus-per-task 8             		      # number of cpus for each task. One by default
+#SBATCH --partition shared-cpu         		      # the partition to use. By default debug-cpu
+#SBATCH --time 12:00:00                  		      # maximum run time.
+#SBATCH --mail-type=ALL
+
 cd $DIR
 
 start_time=\$(date +%s.%N)

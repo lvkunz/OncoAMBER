@@ -8,19 +8,19 @@ from PIL import Image
 import re
 
 tmin = 0  # Minimum time
-tmax = 4003 # Maximum time
+tmax = 3000 # Maximum time
 show_fits = 0  # Show the exponential fits
 fit = 'exp' #gompertz or exp
 show_necro = 0
 show_quiet_cycling = 0
 show_vessels = False
-show_rates = True
+show_rates = False
 experimental = 0
 rate_choice = 'volume' #volume or number
 local = 0
 param_to_plot = []
 
-repo = 'CONFIG_growth_example.py_160329_paper'
+repo = "20240815_kunzlo_Linux/CONFIG_2024_example.py_213715"
 repo = repo + '/'
 
 csv_file = ''
@@ -42,7 +42,7 @@ param = np.array(param_space[parameter])
 iterations = np.array(param_space['Iteration'])
 
 paths = [f'{repo}iter{i}/DataOutput/' for i in iterations]
-# paths = [f'{repo}iter{i}/DataOutput/' for i in [0,1,2,3]]
+#paths = [f'{repo}iter{i}/DataOutput/' for i in [0,1,2,3,4,5,6,19]]
 # param = [param[i] for i in [0,1,2,3]]
 #remove paths 4
 
@@ -89,7 +89,7 @@ for path in paths:
     if show_vessels:
         number_vessels = number_vessels[idx]
     times = times[idx]
-
+    print(times)
     rates = []
     dt = times[1] - times[0]
     for t in times:

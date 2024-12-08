@@ -8,7 +8,7 @@ from PIL import Image
 import re
 
 tmin = 0  # Minimum time
-tmax = 2001 # Maximum time
+tmax = 2000 # Maximum time
 show_fits = 0  # Show the exponential fits
 fit = 'exp' #gompertz or exp
 show_necro = 0
@@ -45,17 +45,16 @@ repo = ''
 
 # paths = [f'{repo}iter{i}/DataOutput/' for i in range(0, number_of_iterations)]
 # paths = [f'{repo}iter{i}/DataOutput/' for i in [0,1,2,3]]
-parameter = 'Average cell duplication interval [hours]'
-param = [12, 14, 17]
-list_color = ['forestgreen', 'royalblue', 'orangered', 'magenta']
+parameter = 'Side [mm]'
+param = [1.0,0.5,0.3,0.7,0.8]
+list_color = ['forestgreen', 'royalblue', 'orangered', 'magenta', 'cyan', 'yellow', 'black', 'purple']
 #remove paths 4
+paths = ["20240730_kunzlo_Linux/CONFIG_2024_example.py_231756/iter0/DataOutput/",
+         "20240730_kunzlo_Linux/CONFIG_2024_example.py_231804/iter0/DataOutput/",
+         "20240730_kunzlo_Linux/CONFIG_2024_example.py_231814/iter0/DataOutput/"
+         ]
 
-paths = ['20230816_lk001_Linux/CONFIG_vasculature_irrad_example.py_101220/iter0/DataOutput/',
-            '20230816_lk001_Linux/CONFIG_vasculature_irrad_example.py_101220/iter1/DataOutput/',
-            '20230816_lk001_Linux/CONFIG_vasculature_irrad_example.py_101220/iter2/DataOutput/'
-  ]
-
-shifts = [0, 80, 212]
+shifts = [0, 0, 0, 0, 0, 0, 0, 0]
 
 if local:
     paths = ['DataOutput/']

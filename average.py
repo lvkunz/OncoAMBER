@@ -29,7 +29,7 @@ def plot_outliners(ax, x, y, y_min, y_max, color='black'):
         if y[i] < y_min[i] or y[i] > y_max[i]:
             ax.plot(x[i], y[i], '.', color=color)
 
-repo = 'CONFIG_growth_example.py_160329_paper'
+repo = "20240815_kunzlo_Linux/CONFIG_2024_example.py_214904"
 
 csv_file = ''
 #all repositories in repo:
@@ -49,7 +49,7 @@ parameter = param_space.columns[1]
 param = np.array(param_space[parameter])
 number_of_iterations = len(param_space['Iteration'])
 
-# iter = [0,1,2,3,4]
+#iter = [1,2,3,4,5,6,7,8,9]
 iter = []
 
 if iter == []:
@@ -112,7 +112,7 @@ for path in paths:
 doubling_times_number_cells = []
 doubling_times_tumor_size = []
 dpi = 300
-fig, axes = plt.subplots(2, 1, figsize=(16, 10), dpi=dpi)
+fig, axes = plt.subplots(2, 1, figsize=(5, 10), dpi=dpi)
 
 #for each y point, find the average and SD
 
@@ -161,6 +161,12 @@ for t in max_times:
     tumor_size_sd.append(np.std(tumor_size))
     tumor_size_free_sd.append(np.std(tumor_size_free))
     number_vessels_sd.append(np.std(number_vessels))
+    if t == 500 or t == 1000 or t == 1500 or t == 2000 or t == 2500 or t == 3000 or t == 3500 or t == 4000:
+        print('Average number of cells at time', t, ':', number_cells_average[-1], 'SD:', number_cells_sd[-1])
+        print('Average tumor size at time', t, ':', tumor_size_average[-1], 'SD:', tumor_size_sd[-1])
+        #add in a csv file, with the repo name in a column and the average number of cells and tumor size at each time point
+        df = pd.DataFrame({'Repo': [repo], 'Time': [t], 'Number of Cells': [number_cells_average[-1]], 'Number of Cells SD' : [number_cells_sd[-1]], 'Tumor Size': [tumor_size_average[-1]], 'Tumor Size SD': [tumor_size_sd[-1]]})
+        df.to_csv('average_data.csv', mode='a', header=False)
 
 times_average = max_times
 
@@ -275,16 +281,16 @@ plt.figtext(0.01, 0.01, repo, wrap=True, horizontalalignment='left', fontsize=6)
 axes[0].set_title('Number of Cells Evolution', fontsize=14)
 axes[0].set_xlabel('Time [Day]', fontsize=16)
 axes[0].set_ylabel('Number of Cells', fontsize=16)
-# axes[0].set_xlim(0, 250)
-axes[0].set_ylim(0, 500000)
+axes[0].set_xlim(0, tmax)
+axes[0].set_ylim(0, 800000)
 axes[0].grid(True)
 axes[0].legend(fontsize=16, loc='upper left')
 
 axes[1].set_title('Tumor Volume Evolution', fontsize=14)
 axes[1].set_xlabel('Time [Day]', fontsize=16)
 axes[1].set_ylabel('Tumor Volume [mm^3]', fontsize=16)
-# axes[1].set_xlim(0, 250)
-axes[1].set_ylim(0, None)
+axes[1].set_xlim(0, tmax)
+axes[1].set_ylim(0, 400)
 axes[1].grid(True)
 axes[1].legend(fontsize = 16, loc = 'upper left')
 
@@ -387,40 +393,40 @@ for i in range(len(number_cells_average)):
     if number_cells_average[i] > N_final:
         times_final.append(times_average[i])
         break
-fig, axes = plt.subplots(2, 2, figsize=(12, 12), dpi=dpi)
-# popt_r = np.array([1.0, 1.0])
-axes[0, 0].plot(number_cells_average, rates_average, 'o', markersize=3, color='orange', label='Model Values')
-axes[0,0 ].plot(number_cells_average, func_gompertz(number_cells_average, *popt_g), linestyle = 'dotted', color='black', label='Gompertz fit')
-axes[0, 0].plot(number_cells_average, func_logistic(number_cells_average, *popt_l), linestyle = 'dashed', color='black', label='Logistic fit')
-axes[0, 0].plot(number_cells_average, func_holling(number_cells_average, *popt_h), linestyle = 'dashdot', color='black', label='Holling fit')
-axes[0, 0].legend(fontsize = 14)
-axes[1, 0].plot(times_average, rates_average, 'o', markersize=3, color='black')
-axes[0, 1].plot(number_vessels_average, rates_average, 'o', markersize=3, color='crimson')
-axes[1, 1].plot(cycling_cells_average, rates_average, 'o', markersize=3, color='green')
-
-axes[0, 0].set_title('Growth Rate vs Number of Cells and fittings')
-axes[0, 0].set_xlabel('Number of Cells',fontsize=14)
-axes[0, 0].set_ylabel('Growth Rate',fontsize=14)
-axes[0, 0].set_ylim(0, None)
-axes[0, 0].grid(True)
-axes[1, 0].set_title('Growth Rate Evolution')
-axes[1, 0].set_xlabel('Time')
-axes[1, 0].set_ylabel('Growth Rate')
-axes[1, 0].set_ylim(0, None)
-axes[1, 0].grid(True)
-axes[0, 1].set_title('Growth Rate vs Number of Vessels')
-axes[0, 1].set_xlabel('Number of Vessels')
-axes[0, 1].set_ylabel('Growth Rate')
-axes[0, 1].set_ylim(0, None)
-axes[0, 1].grid(True)
-axes[1, 1].set_title('Growth Rate vs Number of Cycling Cells')
-axes[1, 1].set_xlabel('Number of Cycling Cells')
-axes[1, 1].set_ylabel('Growth Rate')
-axes[1, 1].set_ylim(0, None)
-axes[1, 1].grid(True)
-plt.tight_layout()
-plt.savefig(repo + '/growth_rate' + str(tmax) + '.png', dpi=dpi)
-plt.show()
+# fig, axes = plt.subplots(2, 2, figsize=(12, 12), dpi=dpi)
+# # popt_r = np.array([1.0, 1.0])
+# axes[0, 0].plot(number_cells_average, rates_average, 'o', markersize=3, color='orange', label='Model Values')
+# axes[0,0 ].plot(number_cells_average, func_gompertz(number_cells_average, *popt_g), linestyle = 'dotted', color='black', label='Gompertz fit')
+# axes[0, 0].plot(number_cells_average, func_logistic(number_cells_average, *popt_l), linestyle = 'dashed', color='black', label='Logistic fit')
+# axes[0, 0].plot(number_cells_average, func_holling(number_cells_average, *popt_h), linestyle = 'dashdot', color='black', label='Holling fit')
+# axes[0, 0].legend(fontsize = 14)
+# axes[1, 0].plot(times_average, rates_average, 'o', markersize=3, color='black')
+# axes[0, 1].plot(number_vessels_average, rates_average, 'o', markersize=3, color='crimson')
+# axes[1, 1].plot(cycling_cells_average, rates_average, 'o', markersize=3, color='green')
+#
+# axes[0, 0].set_title('Growth Rate vs Number of Cells and fittings')
+# axes[0, 0].set_xlabel('Number of Cells',fontsize=14)
+# axes[0, 0].set_ylabel('Growth Rate',fontsize=14)
+# axes[0, 0].set_ylim(0, None)
+# axes[0, 0].grid(True)
+# axes[1, 0].set_title('Growth Rate Evolution')
+# axes[1, 0].set_xlabel('Time')
+# axes[1, 0].set_ylabel('Growth Rate')
+# axes[1, 0].set_ylim(0, None)
+# axes[1, 0].grid(True)
+# axes[0, 1].set_title('Growth Rate vs Number of Vessels')
+# axes[0, 1].set_xlabel('Number of Vessels')
+# axes[0, 1].set_ylabel('Growth Rate')
+# axes[0, 1].set_ylim(0, None)
+# axes[0, 1].grid(True)
+# axes[1, 1].set_title('Growth Rate vs Number of Cycling Cells')
+# axes[1, 1].set_xlabel('Number of Cycling Cells')
+# axes[1, 1].set_ylabel('Growth Rate')
+# axes[1, 1].set_ylim(0, None)
+# axes[1, 1].grid(True)
+# plt.tight_layout()
+# plt.savefig(repo + '/growth_rate' + str(tmax) + '.png', dpi=dpi)
+# plt.show()
 
 
 #plot the integral of the growth rate to get the number of cells
@@ -445,20 +451,24 @@ x = odeint(func_holling_, x0, t, args=(aH, bH, kH)).flatten()
 x2 = odeint(func_gompertz_, x0, t, args=(aG, bG)).flatten()
 x3 = odeint(func_logistic_, x0, t, args=(aL, bL)).flatten()
 
-def r2_score(y_true, y_pred):
-    """Returns the R^2 score of two arrays"""
+#evaluate pseudo r2
+def pseudo_r2_score(y_true, y_pred):
+    """Returns the pseudo R^2 score of two arrays"""
     y_true = np.array(y_true)
     y_pred = np.array(y_pred)
     mean_y = np.mean(y_true)
-    ss_tot = np.sum((y_true - mean_y)**2)
-    ss_res = np.sum((y_true - y_pred)**2)
-    r2 = 1 - (ss_res / ss_tot)
-    return r2
+    null_deviance = np.sum((y_true - mean_y)**2)
+    max_likelihood = -0.5 * null_deviance
+    model_deviance = -0.5 * np.sum((y_true - y_pred)**2)
+    pseudo_r2 = 1 - (model_deviance / max_likelihood)**(2/len(y_true))
+    return pseudo_r2
+
+
 
 #get the r2 score of the fit
-r2_h = r2_score(number_cells_average, x)
-r2_g = r2_score(number_cells_average, x2)
-r2_l = r2_score(number_cells_average, x3)
+r2_h = pseudo_r2_score(number_cells_average, x)
+r2_g = pseudo_r2_score(number_cells_average, x2)
+r2_l = pseudo_r2_score(number_cells_average, x3)
 print('R2 Holling: ', r2_h)
 print('R2 Gompertz: ', r2_g)
 print('R2 Logistic: ', r2_l)

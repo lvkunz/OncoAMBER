@@ -507,8 +507,8 @@ class CellMigration(Process): #cell migration process, cells migrate in the worl
             np.random.shuffle(list_of_neighbors) #shuffle the list to avoid bias
             for neighbor in list_of_neighbors:
                 n_events = exchange_matrix[voxel_num, neighbor.voxel_number] #number of expected events in the time step
-                #n_moving_cells = np.random.poisson(n_events)
-                n_moving_cells = int(math.ceil(n_events))
+                n_moving_cells = np.random.poisson(n_events)
+                #n_moving_cells = int(math.ceil(n_events))
                 n_moving_cells = min(n_moving_cells, int(round(len(voxel.list_of_cells))))
                 list_of_moving_cells = np.random.choice(voxel.list_of_cells, n_moving_cells, replace=False) #choose the cells to move randomly
                 for cell in list_of_moving_cells: #move the cells
@@ -518,12 +518,29 @@ class CellMigration(Process): #cell migration process, cells migrate in the worl
 class UpdateCellOxygen(Process):
     def __init__(self, config, name, dt, voxel_half_length, file_prefix_alpha_beta_maps):
         super().__init__(config, 'UpdateState', dt)
-        self.voxel_side = round(voxel_half_length*20) #um/100
+        self.voxel_side = round(voxel_half_length*20,1) #um/100
 
-        #read alpha and beta maps from csv files
+        #read alpha and beta maps from csv file
+        first_try = str(self.voxel_side)
+        second_try = str(round(self.voxel_side))
         amber_dir = os.path.abspath(os.path.dirname(__file__))
-        alpha_file_name = str(file_prefix_alpha_beta_maps) + '_alpha_dataframe'+str(self.voxel_side)+'.csv'
-        beta_file_name = str(file_prefix_alpha_beta_maps) + '_beta_dataframe'+str(self.voxel_side)+'.csv'
+
+        alpha_file_name_first = str(file_prefix_alpha_beta_maps) + '_alpha_dataframe' + str(first_try) + '.csv'
+        beta_file_name_first = str(file_prefix_alpha_beta_maps) + '_beta_dataframe' + str(first_try) + '.csv'
+
+        alpha_file_name_second = str(file_prefix_alpha_beta_maps) + '_alpha_dataframe' + str(second_try) + '.csv'
+        beta_file_name_second = str(file_prefix_alpha_beta_maps) + '_beta_dataframe' + str(second_try) + '.csv'
+
+        # Check if the first file exists, if not, use the second file name
+        alpha_file_name = alpha_file_name_first if os.path.exists(
+            os.path.join(amber_dir, alpha_file_name_first)) else alpha_file_name_second
+        beta_file_name = beta_file_name_first if os.path.exists(
+            os.path.join(amber_dir, beta_file_name_first)) else beta_file_name_second
+
+        print("Oxygen Files are : ")
+        print(first_try, second_try)
+        print(alpha_file_name, beta_file_name)
+
         alpha_file_name = os.path.join(amber_dir, alpha_file_name)
         beta_file_name = os.path.join(amber_dir, beta_file_name)
 

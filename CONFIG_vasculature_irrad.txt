@@ -3,7 +3,7 @@ voxel_per_side: 25
 dt: 4 #hours
 endtime: 4000 #hours
 seed: -1                           #seed for random number generator. -1 for random seed
-running_on_cluster: True              #don't touch, the bash script changes it automatically. decides if plots are shown or just saved
+running_on_cluster: False              #don't touch, the bash script changes it automatically. decides if plots are shown or just saved
 
 #Initialisation
 vessel_number: 0.3                     #initial number of vessels for healthy tissue per mm^2
@@ -49,7 +49,7 @@ higher_pressure_threshold_step: 0.75     #value for which the stepsize for vascu
 radius_root_vessels: 0.01  #mm          #radius of the endvessels of the tree
 radius_killing_threshold: 0.0022 #mm    #threshold radius of vessels getting killed by pressure or because they are too small (0.022 - 5% of volume only)
 radius_decrease_exponent: 2             #exponent for the decrease of radius of vessels depending on pressure
-n_capillaries_per_VVD: 25000.0          #n capillaries [1/mm3]
+n_capillaries_per_VVD: 9000.0          #n capillaries [1/mm3]
 capillary_length: 2.0 #mm               #length of capillaries in mm, will give a number of diffusion averagings steps
 vegf_gradient_threshold: 0.0            #threshold in VEGF gradient for vessels to grow
 vegf_scalar_threshold: 0.1              #threshold in VEGF for vessels to grow
@@ -67,6 +67,7 @@ maturity_new_vessels: 0.5               #maturity of new vessels
 new_vessels_per_hour: 0.0002            #number of new vessels per hour*mm3
 file_prefix_alpha_beta_maps: save       #prefix for the alpha and beta maps (save is sigmoid, newfunction is quadratic)
 metabolic_damage_threshold: 0.0         #threshold in damage for metabolism to be non-zero. 0.0 means that as long as cells are even slightly damaged they produce 0 vegf
+o2_off: True
 
 # Graphics parameters
 show_time_steps: True                   #if True, show the time during the simulation
