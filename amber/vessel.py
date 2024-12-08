@@ -131,9 +131,6 @@ class VasculatureNetwork: #class that contains the list of vessels
         self.config = config
 
     def branching(self, vessel_id, branching_point): #branches a vessel at a given point
-        if branching_point == [] or branching_point is None:
-            print("No branching point found, branching point called was", branching_point)
-            return
         mother_vessel = self.get_vessel(vessel_id) #get the vessel that will be branched
         if mother_vessel is None:
             raise ValueError("Vessel with id {} does not exist".format(vessel_id))
